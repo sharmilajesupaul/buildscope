@@ -18,13 +18,33 @@ BuildScope is a local-first Bazel build graph explorer. It ingests `query`/`aque
 ## Quick Start
 
 ### Development
-Run the UI with live reload:
+
+**One-command development** (recommended):
 ```bash
+# Install UI dependencies first
+cd ui && npm install && cd ..
+
+# Start both servers with sample graph
+./dev.sh
+
+# Or with your own graph data
+./dev.sh path/to/your/graph.json
+```
+
+Then open http://localhost:4400
+
+This starts both the Go server (port 4422) and Vite dev server (port 4400) with hot reload. Press Ctrl+C to stop both servers.
+
+**Manual development** (if you prefer separate terminals):
+```bash
+# Terminal 1: Go server
+cd cli
+go run ./cmd/buildscope serve -graph /path/to/your/graph.json -addr :4422
+
+# Terminal 2: Vite dev server
 cd ui
-npm install
 npm run dev
 ```
-Then open http://localhost:4400
 
 ### Production
 Build and serve the UI with the Go server:
