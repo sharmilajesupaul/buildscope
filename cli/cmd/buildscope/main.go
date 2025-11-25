@@ -78,14 +78,28 @@ type graphEdge struct {
 	Target string `json:"target"`
 }
 
-// parseQueryGraph parses `bazel query --output=graph` output.
-func parseQueryGraph(data string) graph {
+// parseQueryGraphStreaming parses `bazel query --output=graph` from a streaming reader.
+// This avoids loading the entire output into memory, critical for large graphs (50k+ nodes).
+func parseQueryGraphStreaming(r interface{ Read([]byte) (int, error) }) graph {
 	nodes := make(map[string]struct{})
 	edgeSet := make(map[string]graphEdge)
 
-	sc := bufio.NewScanner(strings.NewReader(data))
+	sc := bufio.NewScanner(r)
+	// Increase buffer size for very long lines in large graphs
+	const maxCapacity = 1024 * 1024 // 1MB per line
+	buf := make([]byte, maxCapacity)
+	sc.Buffer(buf, maxCapacity)
+
+	lineCount := 0
 	for sc.Scan() {
 		line := strings.TrimSpace(sc.Text())
+		lineCount++
+
+		// Progress indicator for large graphs
+		if lineCount%10000 == 0 {
+			log.Printf("Processed %d lines, found %d nodes, %d edges...", lineCount, len(nodes), len(edgeSet))
+		}
+
 		if line == "" || strings.HasPrefix(line, "digraph") || line == "}" {
 			continue
 		}
@@ -137,6 +151,12 @@ func parseQueryGraph(data string) graph {
 	return out
 }
 
+// parseQueryGraph parses `bazel query --output=graph` output from a string.
+// Deprecated: Use parseQueryGraphStreaming for large graphs.
+func parseQueryGraph(data string) graph {
+	return parseQueryGraphStreaming(strings.NewReader(data))
+}
+
 func splitLabels(raw string) []string {
 	parts := strings.Split(raw, "\\n")
 	out := make([]string, 0, len(parts))
@@ -161,13 +181,26 @@ func extract(args []string) error {
 	}
 
 	// Run bazel query deps(target) --output=graph
-	cmd := fmt.Sprintf("cd %s && bazel query 'deps(%s)' --output=graph --keep_going", *workdir, *target)
-	outBytes, err := runCmdCapture(cmd)
+	log.Printf("Running bazel query for %s...", *target)
+	cmd := exec.Command("/bin/sh", "-c",
+		fmt.Sprintf("cd %s && bazel query 'deps(%s)' --output=graph --keep_going", *workdir, *target))
+
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("bazel query failed: %w", err)
+		return fmt.Errorf("create pipe: %w", err)
 	}
 
-	g := parseQueryGraph(string(outBytes))
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start bazel: %w", err)
+	}
+
+	// Parse streaming output
+	g := parseQueryGraphStreaming(stdout)
+
+	if err := cmd.Wait(); err != nil {
+		log.Printf("Warning: bazel query exited with error (might be partial results): %v", err)
+	}
+
 	if len(g.Nodes) == 0 {
 		return fmt.Errorf("no nodes parsed; ensure target exists")
 	}

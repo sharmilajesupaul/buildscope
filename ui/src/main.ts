@@ -196,6 +196,27 @@ function main() {
     }
   }
 
+  // Calculate viewport bounds in graph coordinates
+  function getViewportBounds() {
+    const viewW = app.renderer.screen.width;
+    const viewH = app.renderer.screen.height;
+    const padding = 200; // Extra padding to render slightly off-screen nodes
+
+    // Convert screen coordinates to graph coordinates
+    const minX = (-graphContainer.position.x - padding) / currentScale;
+    const minY = (-graphContainer.position.y - padding) / currentScale;
+    const maxX = (viewW - graphContainer.position.x + padding) / currentScale;
+    const maxY = (viewH - graphContainer.position.y + padding) / currentScale;
+
+    return { minX, minY, maxX, maxY };
+  }
+
+  // Check if node is in viewport
+  function isNodeVisible(node: PositionedNode, bounds: { minX: number; minY: number; maxX: number; maxY: number }) {
+    return node.x >= bounds.minX && node.x <= bounds.maxX &&
+           node.y >= bounds.minY && node.y <= bounds.maxY;
+  }
+
   function draw(pg: PositionedGraph, applyFit = true, centerOnSelection = false) {
     graphContainer.removeChildren();
     const edgesGfx = new Graphics();
@@ -220,17 +241,37 @@ function main() {
       }
     }
 
+    // For large graphs (>5000 nodes), use viewport culling
+    const useCulling = pg.nodes.length > 5000;
+    const viewportBounds = useCulling ? getViewportBounds() : null;
+
     const showAllEdges = currentScale > 0.2;
     const highlightSet = new Set<string>();
     if (hoveredId) highlightSet.add(hoveredId);
     if (selectedId) highlightSet.add(selectedId);
     const neighborEdges = new Set(pg.edges.filter((e) => highlightSet.has(e.source) || highlightSet.has(e.target)));
 
-    // Draw normal edges
+    // Build set of visible nodes for culling
+    const visibleNodes = new Set<string>();
+    if (useCulling && viewportBounds) {
+      pg.nodes.forEach((n) => {
+        if (isNodeVisible(n, viewportBounds) || highlightSet.has(n.id)) {
+          visibleNodes.add(n.id);
+        }
+      });
+    }
+
+    // Draw normal edges (with culling for large graphs)
     if (showAllEdges) {
       edgesGfx.lineStyle(1, COLORS.edge, 0.35);
       for (const e of pg.edges) {
         if (neighborEdges.has(e)) continue; // Skip neighbor edges, draw them later
+
+        // Skip edges where both nodes are outside viewport (for large graphs)
+        if (useCulling && !visibleNodes.has(e.source) && !visibleNodes.has(e.target)) {
+          continue;
+        }
+
         const s = pg.idToNode.get(e.source);
         const t = pg.idToNode.get(e.target);
         if (!s || !t) continue;
@@ -239,7 +280,7 @@ function main() {
       }
     }
 
-    // Draw highlighted edges
+    // Draw highlighted edges (always visible)
     if (neighborEdges.size > 0) {
       edgesGfx.lineStyle(2, COLORS.edgeHighlight, 0.85);
       neighborEdges.forEach((e) => {
@@ -251,8 +292,15 @@ function main() {
       });
     }
 
-    // Draw nodes
+    // Draw nodes (with viewport culling for large graphs)
+    let renderedNodes = 0;
     pg.nodes.forEach((n) => {
+      // Skip nodes outside viewport for large graphs (unless highlighted)
+      if (useCulling && !visibleNodes.has(n.id)) {
+        return;
+      }
+
+      renderedNodes++;
       const isHighlight = highlightSet.has(n.id);
       const core = isHighlight ? 9 : 7;
       const halo = core * 1.8;
@@ -284,6 +332,10 @@ function main() {
       });
       nodesLayer.addChild(g);
     });
+
+    if (useCulling) {
+      console.log(`Rendered ${renderedNodes} / ${pg.nodes.length} nodes (viewport culling enabled)`);
+    }
 
     updateStatus();
   }
@@ -386,11 +438,32 @@ function main() {
 
   loadGraph()
     .then((g) => {
-      const clean = sanitizeGraph(g);
-      positioned = layeredLayout(clean);
-      statusBadge.innerText = "Ready";
-      statusBadge.className = "status-badge success";
-      draw(positioned, true, false);
+      console.log(`Loaded graph with ${g.nodes.length} nodes, ${g.edges.length} edges`);
+
+      statusBadge.innerText = "Processing...";
+      statusBadge.className = "status-badge loading";
+
+      // Use setTimeout to allow UI to update before heavy computation
+      setTimeout(() => {
+        const clean = sanitizeGraph(g);
+        console.log(`Sanitized to ${clean.nodes.length} nodes, ${clean.edges.length} edges`);
+
+        if (clean.nodes.length > 10000) {
+          statusBadge.innerText = "Large graph - Computing layout...";
+        }
+
+        // Another setTimeout for layout computation
+        setTimeout(() => {
+          const layoutStart = performance.now();
+          positioned = layeredLayout(clean);
+          const layoutTime = performance.now() - layoutStart;
+          console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
+
+          statusBadge.innerText = "Ready";
+          statusBadge.className = "status-badge success";
+          draw(positioned, true, false);
+        }, 10);
+      }, 10);
     })
     .catch((err) => {
       console.error(err);

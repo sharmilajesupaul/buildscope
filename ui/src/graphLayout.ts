@@ -32,7 +32,50 @@ export function sanitizeGraph(raw: Graph): Graph {
   return { nodes: Array.from(nodeMap.values()), edges };
 }
 
+// Fast grid layout for very large graphs (50k+ nodes)
+// Arranges nodes in a compact grid, much faster than layered layout
+function compactGridLayout(graph: Graph): PositionedGraph {
+  const nodes = graph.nodes.map((n) => ({ ...n, x: 0, y: 0 }));
+
+  // Arrange in a square grid
+  const gridSize = Math.ceil(Math.sqrt(nodes.length));
+  const spacing = 60; // Spacing between nodes
+
+  nodes.forEach((n, i) => {
+    const col = i % gridSize;
+    const row = Math.floor(i / gridSize);
+    n.x = col * spacing;
+    n.y = row * spacing;
+  });
+
+  // Center around origin
+  const avgX = nodes.reduce((acc, n) => acc + n.x, 0) / nodes.length;
+  const avgY = nodes.reduce((acc, n) => acc + n.y, 0) / nodes.length;
+  nodes.forEach((n) => {
+    n.x -= avgX;
+    n.y -= avgY;
+  });
+
+  const idToNode = new Map<string, PositionedNode>();
+  nodes.forEach((n) => idToNode.set(n.id, n));
+  const neighbors = new Map<string, GraphEdge[]>();
+  nodes.forEach((n) => neighbors.set(n.id, []));
+  graph.edges.forEach((e) => {
+    neighbors.get(e.source)?.push(e);
+    neighbors.get(e.target)?.push(e);
+  });
+
+  return { nodes: nodes as PositionedNode[], edges: graph.edges, idToNode, neighbors };
+}
+
 export function layeredLayout(graph: Graph): PositionedGraph {
+  // For very large graphs (>10k nodes), use fast grid layout instead
+  // The layered layout becomes impractical due to massive layer widths
+  if (graph.nodes.length > 10000) {
+    console.log(`Large graph detected (${graph.nodes.length} nodes), using fast grid layout`);
+    return compactGridLayout(graph);
+  }
+
   const nodes = graph.nodes.map((n) => ({ ...n, x: 0, y: 0 }));
   const idIndex = new Map<string, number>();
   nodes.forEach((n, i) => idIndex.set(n.id, i));
