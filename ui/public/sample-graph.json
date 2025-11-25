@@ -1,0 +1,19 @@
+{
+  "nodes": [
+    { "id": "root", "label": "//speller:root" },
+    { "id": "dict", "label": "//speller/main:dictionary" },
+    { "id": "lookup", "label": "//speller/lookup:lookup" },
+    { "id": "announce", "label": "//speller/announce:announce" },
+    { "id": "spell", "label": "//speller/main:spell" },
+    { "id": "tests", "label": "//speller/main:spell_test" }
+  ],
+  "edges": [
+    { "source": "root", "target": "dict" },
+    { "source": "root", "target": "lookup" },
+    { "source": "root", "target": "announce" },
+    { "source": "dict", "target": "spell" },
+    { "source": "lookup", "target": "spell" },
+    { "source": "announce", "target": "spell" },
+    { "source": "spell", "target": "tests" }
+  ]
+}

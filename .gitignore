@@ -1,0 +1,23 @@
+# General
+.DS_Store
+*.log
+
+# Node/JS
+node_modules/
+dist/
+.parcel-cache/
+.turbo/
+.next/
+
+# Go/Rust
+bin/
+vendor/
+target/
+
+# Bazel/BuildScope outputs
+bazel-*
+*.profile
+*.pb
+*.jsonpb
+*.aquery.json
+*.query.pb
