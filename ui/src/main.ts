@@ -201,6 +201,8 @@ function main() {
 
     if (applyFit) {
       const fit = fitToView(pg.nodes, viewW, viewH);
+      console.log('FitToView:', { viewW, viewH, scale: fit.scale, offsetX: fit.offsetX, offsetY: fit.offsetY });
+      console.log('Nodes count:', pg.nodes.length);
       currentScale = fit.scale;
       graphContainer.scale.set(fit.scale);
       graphContainer.position.set(fit.offsetX, fit.offsetY);
