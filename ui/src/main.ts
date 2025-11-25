@@ -2,40 +2,11 @@ import { Application, Container, Graphics } from "pixi.js";
 import {
   fitToView,
   sanitizeGraph,
+  layeredLayout,
   Graph,
   PositionedGraph,
   PositionedNode,
 } from "./graphLayout";
-
-function gridLayout(graph: Graph): PositionedGraph {
-  const cols = Math.ceil(Math.sqrt(graph.nodes.length));
-  const gap = 40;
-  const nodes: PositionedNode[] = graph.nodes.map((n, idx) => {
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-    return {
-      ...n,
-      x: col * gap,
-      y: row * gap,
-    };
-  });
-  // recenter around origin
-  const avgX = nodes.reduce((a, n) => a + n.x, 0) / nodes.length;
-  const avgY = nodes.reduce((a, n) => a + n.y, 0) / nodes.length;
-  nodes.forEach((n) => {
-    n.x -= avgX;
-    n.y -= avgY;
-  });
-  const idToNode = new Map<string, PositionedNode>();
-  nodes.forEach((n) => idToNode.set(n.id, n));
-  const neighbors = new Map<string, Graph["edges"]>();
-  nodes.forEach((n) => neighbors.set(n.id, []));
-  graph.edges.forEach((e) => {
-    neighbors.get(e.source)?.push(e);
-    neighbors.get(e.target)?.push(e);
-  });
-  return { nodes, edges: graph.edges, idToNode, neighbors };
-}
 
 async function loadGraph(): Promise<Graph> {
   try {
@@ -51,64 +22,127 @@ async function loadGraph(): Promise<Graph> {
 function main() {
   const root = document.getElementById("app");
   if (!root) return;
-  document.body.style.margin = "0";
-  document.body.style.background =
-    "radial-gradient(circle at 30% 30%, rgba(120, 160, 255, 0.06), transparent 35%), radial-gradient(circle at 70% 70%, rgba(255, 190, 140, 0.05), transparent 32%), #090d14";
+
   root.innerHTML = "";
 
-  const status = document.createElement("div");
-  status.style.position = "fixed";
-  status.style.top = "12px";
-  status.style.left = "12px";
-  status.style.color = "#d4e5ff";
-  status.style.fontFamily = "system-ui, sans-serif";
-  status.style.fontSize = "14px";
-  status.style.background = "rgba(12, 18, 26, 0.7)";
-  status.style.padding = "8px 10px";
-  status.style.borderRadius = "8px";
-  status.style.border = "1px solid rgba(255,255,255,0.08)";
-  status.innerText = "Loading graph…";
-  root.appendChild(status);
+  // Create header
+  const header = document.createElement("div");
+  header.className = "app-header";
+  header.innerHTML = `
+    <div class="app-title">
+      <div class="app-logo">B</div>
+      <div>
+        <div class="app-name">BuildScope</div>
+      </div>
+      <div class="app-subtitle">Bazel Build Graph Explorer</div>
+    </div>
+  `;
+  root.appendChild(header);
 
-  const controls = document.createElement("div");
-  controls.style.position = "fixed";
-  controls.style.top = "12px";
-  controls.style.right = "12px";
-  controls.style.display = "flex";
-  controls.style.gap = "8px";
-  controls.style.alignItems = "center";
-  controls.style.background = "rgba(12, 18, 26, 0.7)";
-  controls.style.border = "1px solid rgba(255,255,255,0.08)";
-  controls.style.borderRadius = "8px";
-  controls.style.padding = "8px 10px";
-  controls.style.color = "#d4e5ff";
-  controls.style.fontFamily = "system-ui, sans-serif";
-  controls.style.fontSize = "13px";
+  // Create controls panel
+  const controlsPanel = document.createElement("div");
+  controlsPanel.className = "controls-panel";
+  controlsPanel.innerHTML = `
+    <div class="controls-section">
+      <div class="controls-label">Search</div>
+      <div class="search-container">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+        </svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Search nodes..." />
+      </div>
+    </div>
+    <div class="controls-section">
+      <div class="controls-label">View Controls</div>
+      <div class="button-group">
+        <button class="btn btn-primary" id="fit-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3zm13 0A1.5 1.5 0 0 0 12.5 1h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 1 0v-3zM.5 10.5A.5.5 0 0 1 1 10v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 1 13v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 0 0 1h3a1.5 1.5 0 0 0 1.5-1.5v-3a.5.5 0 0 0-.5-.5z"/>
+          </svg>
+          Fit View
+        </button>
+        <button class="btn btn-secondary" id="reset-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+          </svg>
+          Reset
+        </button>
+      </div>
+    </div>
+  `;
+  root.appendChild(controlsPanel);
 
-  const searchInput = document.createElement("input");
-  searchInput.type = "text";
-  searchInput.placeholder = "Search node label…";
-  searchInput.style.background = "rgba(255,255,255,0.06)";
-  searchInput.style.border = "1px solid rgba(255,255,255,0.12)";
-  searchInput.style.borderRadius = "6px";
-  searchInput.style.padding = "6px 8px";
-  searchInput.style.color = "#d4e5ff";
-  searchInput.style.outline = "none";
-  searchInput.style.width = "220px";
+  const searchInput = controlsPanel.querySelector("#search-input") as HTMLInputElement;
+  const fitBtn = controlsPanel.querySelector("#fit-btn") as HTMLButtonElement;
+  const resetBtn = controlsPanel.querySelector("#reset-btn") as HTMLButtonElement;
 
-  const fitBtn = document.createElement("button");
-  fitBtn.textContent = "Fit";
-  fitBtn.style.background = "linear-gradient(135deg, #4f7cff, #79a8ff)";
-  fitBtn.style.border = "none";
-  fitBtn.style.color = "#0b0f14";
-  fitBtn.style.fontWeight = "600";
-  fitBtn.style.padding = "8px 10px";
-  fitBtn.style.borderRadius = "6px";
-  fitBtn.style.cursor = "pointer";
+  // Create status panel
+  const statusPanel = document.createElement("div");
+  statusPanel.className = "status-panel";
+  statusPanel.innerHTML = `
+    <div class="status-item">
+      <span class="status-label">Status:</span>
+      <span class="status-badge loading" id="status-badge">Loading</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Nodes:</span>
+      <span class="status-value" id="node-count">0</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Edges:</span>
+      <span class="status-value" id="edge-count">0</span>
+    </div>
+    <div class="status-item hidden" id="current-node-status">
+      <span class="status-label">Selected:</span>
+      <span class="status-value font-size-sm" id="current-node"></span>
+    </div>
+    <div class="legend">
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-color node"></div>
+          <span>Nodes</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color edge"></div>
+          <span>Dependencies</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color highlight"></div>
+          <span>Highlighted</span>
+        </div>
+      </div>
+    </div>
+  `;
+  root.appendChild(statusPanel);
 
-  controls.appendChild(searchInput);
-  controls.appendChild(fitBtn);
-  root.appendChild(controls);
+  const statusBadge = statusPanel.querySelector("#status-badge") as HTMLElement;
+  const nodeCountEl = statusPanel.querySelector("#node-count") as HTMLElement;
+  const edgeCountEl = statusPanel.querySelector("#edge-count") as HTMLElement;
+  const currentNodeEl = statusPanel.querySelector("#current-node") as HTMLElement;
+  const currentNodeStatus = statusPanel.querySelector("#current-node-status") as HTMLElement;
+
+  // Create zoom controls
+  const zoomControls = document.createElement("div");
+  zoomControls.className = "zoom-controls";
+  zoomControls.innerHTML = `
+    <button class="zoom-btn" id="zoom-in" title="Zoom In">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+      </svg>
+    </button>
+    <div class="zoom-level" id="zoom-level">100%</div>
+    <button class="zoom-btn" id="zoom-out" title="Zoom Out">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+      </svg>
+    </button>
+  `;
+  root.appendChild(zoomControls);
+
+  const zoomInBtn = zoomControls.querySelector("#zoom-in") as HTMLButtonElement;
+  const zoomOutBtn = zoomControls.querySelector("#zoom-out") as HTMLButtonElement;
+  const zoomLevelEl = zoomControls.querySelector("#zoom-level") as HTMLElement;
 
   const app = new Application({
     resizeTo: window,
@@ -129,9 +163,31 @@ function main() {
   let selectedId: string | null = null;
 
   const COLORS = {
-    edge: 0x4f6da8,
-    node: 0xf3c16f,
+    edge: 0x5b9eff,
+    edgeHighlight: 0xffc857,
+    node: 0xffc857,
+    nodeHighlight: 0xffd98e,
   };
+
+  function updateZoomLevel() {
+    zoomLevelEl.innerText = `${Math.round(currentScale * 100)}%`;
+  }
+
+  function updateStatus() {
+    if (!positioned) return;
+    nodeCountEl.innerText = positioned.nodes.length.toString();
+    edgeCountEl.innerText = positioned.edges.length.toString();
+    if (selectedId || hoveredId) {
+      const activeId = selectedId || hoveredId;
+      const node = positioned.idToNode.get(activeId!);
+      if (node) {
+        currentNodeEl.innerText = node.label;
+        currentNodeStatus.classList.remove('hidden');
+      }
+    } else {
+      currentNodeStatus.classList.add('hidden');
+    }
+  }
 
   function draw(pg: PositionedGraph, applyFit = true, centerOnSelection = false) {
     graphContainer.removeChildren();
@@ -148,6 +204,7 @@ function main() {
       currentScale = fit.scale;
       graphContainer.scale.set(fit.scale);
       graphContainer.position.set(viewW / 2, viewH / 2);
+      updateZoomLevel();
     } else if (centerOnSelection && selectedId) {
       const node = pg.idToNode.get(selectedId);
       if (node) {
@@ -162,17 +219,22 @@ function main() {
     if (selectedId) highlightSet.add(selectedId);
     const neighborEdges = new Set(pg.edges.filter((e) => highlightSet.has(e.source) || highlightSet.has(e.target)));
 
+    // Draw normal edges
     if (showAllEdges) {
-      edgesGfx.lineStyle(1, COLORS.edge, 0.28);
+      edgesGfx.lineStyle(1, COLORS.edge, 0.35);
       for (const e of pg.edges) {
+        if (neighborEdges.has(e)) continue; // Skip neighbor edges, draw them later
         const s = pg.idToNode.get(e.source);
         const t = pg.idToNode.get(e.target);
         if (!s || !t) continue;
         edgesGfx.moveTo(s.x, s.y);
         edgesGfx.lineTo(t.x, t.y);
       }
-    } else if (neighborEdges.size > 0) {
-      edgesGfx.lineStyle(1.5, COLORS.edge, 0.5);
+    }
+
+    // Draw highlighted edges
+    if (neighborEdges.size > 0) {
+      edgesGfx.lineStyle(2, COLORS.edgeHighlight, 0.85);
       neighborEdges.forEach((e) => {
         const s = pg.idToNode.get(e.source);
         const t = pg.idToNode.get(e.target);
@@ -182,6 +244,7 @@ function main() {
       });
     }
 
+    // Draw nodes
     pg.nodes.forEach((n) => {
       const isHighlight = highlightSet.has(n.id);
       const core = isHighlight ? 9 : 7;
@@ -190,7 +253,7 @@ function main() {
       g.beginFill(COLORS.node, 0.22);
       g.drawCircle(0, 0, halo);
       g.endFill();
-      g.beginFill(COLORS.node, 1);
+      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
       g.drawCircle(0, 0, core);
       g.endFill();
       g.x = n.x;
@@ -199,25 +262,23 @@ function main() {
       g.cursor = "pointer";
       g.on("pointerover", () => {
         hoveredId = n.id;
-        status.innerText = n.label;
+        updateStatus();
         draw(pg, false, false);
       });
       g.on("pointerout", () => {
         hoveredId = null;
-        if (!selectedId) {
-          status.innerText = `Loaded ${pg.nodes.length} nodes, ${pg.edges.length} edges`;
-        }
+        updateStatus();
         draw(pg, false, false);
       });
       g.on("pointertap", () => {
         selectedId = n.id;
-        status.innerText = n.label;
+        updateStatus();
         draw(pg, false, true);
       });
       nodesLayer.addChild(g);
     });
 
-    status.innerText = `Loaded ${pg.nodes.length} nodes, ${pg.edges.length} edges`;
+    updateStatus();
   }
 
   function zoom(delta: number, cx: number, cy: number) {
@@ -236,6 +297,7 @@ function main() {
     };
     graphContainer.position.x += (after.x - before.x) * currentScale;
     graphContainer.position.y += (after.y - before.y) * currentScale;
+    updateZoomLevel();
     draw(positioned, false, false);
   }
 
@@ -262,11 +324,40 @@ function main() {
     if (positioned) draw(positioned, true, false);
   });
 
+  zoomInBtn.addEventListener("click", () => {
+    if (!positioned) return;
+    const centerX = app.renderer.screen.width / 2;
+    const centerY = app.renderer.screen.height / 2;
+    zoom(-1, centerX, centerY);
+  });
+
+  zoomOutBtn.addEventListener("click", () => {
+    if (!positioned) return;
+    const centerX = app.renderer.screen.width / 2;
+    const centerY = app.renderer.screen.height / 2;
+    zoom(1, centerX, centerY);
+  });
+
   fitBtn.addEventListener("click", () => {
     if (positioned) {
       selectedId = null;
       hoveredId = null;
       draw(positioned, true, false);
+    }
+  });
+
+  resetBtn.addEventListener("click", () => {
+    if (positioned) {
+      selectedId = null;
+      hoveredId = null;
+      currentScale = 1;
+      graphContainer.scale.set(1);
+      graphContainer.position.set(
+        app.renderer.screen.width / 2,
+        app.renderer.screen.height / 2
+      );
+      updateZoomLevel();
+      draw(positioned, false, false);
     }
   });
 
@@ -278,23 +369,27 @@ function main() {
       n.label.toLowerCase().includes(term)
     );
     if (!node) {
-      status.innerText = `Not found: ${term}`;
+      currentNodeEl.innerText = `Not found: ${term}`;
+      currentNodeStatus.classList.remove('hidden');
       return;
     }
     selectedId = node.id;
     draw(positioned, true, true);
-    status.innerText = node.label;
   });
 
   loadGraph()
     .then((g) => {
       const clean = sanitizeGraph(g);
-      positioned = gridLayout(clean);
+      positioned = layeredLayout(clean);
+      statusBadge.innerText = "Ready";
+      statusBadge.className = "status-badge success";
       draw(positioned, true, false);
     })
     .catch((err) => {
       console.error(err);
-      status.innerText = "Failed to load graph";
+      statusBadge.innerText = "Error";
+      statusBadge.className = "status-badge error";
+      nodeCountEl.innerText = "Failed to load graph";
     });
 }
 
