@@ -44,6 +44,7 @@ BuildScope is a local-first Bazel build graph explorer. It ingests `query`/`aque
 - Add schema draft in `docs/` and lock CLI flags.
 - Scaffold Go module and `cmd/buildscope` with stub commands.
 - Create UI skeleton that loads a sample `graph.json`.
+- Add UI tests (`npm run test` in `ui/`) to validate graph sanitize/layout/fit.
 
 ## Tooling
 - Node version pinned via `.node-version` (v24.11.1). Use `fnm`/`nvm` to match.
