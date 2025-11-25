@@ -93,9 +93,9 @@ function main() {
       <span class="status-label">Edges:</span>
       <span class="status-value" id="edge-count">0</span>
     </div>
-    <div class="status-item" id="current-node-status" style="display: none;">
+    <div class="status-item hidden" id="current-node-status">
       <span class="status-label">Selected:</span>
-      <span class="status-value" id="current-node" style="font-size: 12px;"></span>
+      <span class="status-value font-size-sm" id="current-node"></span>
     </div>
     <div class="legend">
       <div class="legend-items">
@@ -182,10 +182,10 @@ function main() {
       const node = positioned.idToNode.get(activeId!);
       if (node) {
         currentNodeEl.innerText = node.label;
-        currentNodeStatus.style.display = "flex";
+        currentNodeStatus.classList.remove('hidden');
       }
     } else {
-      currentNodeStatus.style.display = "none";
+      currentNodeStatus.classList.add('hidden');
     }
   }
 
@@ -370,7 +370,7 @@ function main() {
     );
     if (!node) {
       currentNodeEl.innerText = `Not found: ${term}`;
-      currentNodeStatus.style.display = "flex";
+      currentNodeStatus.classList.remove('hidden');
       return;
     }
     selectedId = node.id;

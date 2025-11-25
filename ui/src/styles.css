@@ -142,7 +142,6 @@ body {
   background: linear-gradient(135deg, var(--color-text-primary), var(--color-text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .app-subtitle {
@@ -408,7 +407,7 @@ body {
   transition: opacity var(--transition-fast);
   z-index: 200;
   max-width: 300px;
-  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .tooltip.visible {
@@ -570,4 +569,8 @@ body {
 
 .visible {
   display: block !important;
+}
+
+.font-size-sm {
+  font-size: var(--font-size-sm) !important;
 }
