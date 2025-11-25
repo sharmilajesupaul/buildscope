@@ -150,7 +150,14 @@ function main() {
     antialias: true,
     resolution: Math.max(1, window.devicePixelRatio || 1),
   });
-  root.appendChild(app.view as HTMLCanvasElement);
+  const canvas = app.view as HTMLCanvasElement;
+  canvas.style.position = 'absolute';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.zIndex = '0';
+  root.appendChild(canvas);
 
   const graphContainer = new Container();
   app.stage.addChild(graphContainer);
@@ -201,8 +208,6 @@ function main() {
 
     if (applyFit) {
       const fit = fitToView(pg.nodes, viewW, viewH);
-      console.log('FitToView:', { viewW, viewH, scale: fit.scale, offsetX: fit.offsetX, offsetY: fit.offsetY });
-      console.log('Nodes count:', pg.nodes.length);
       currentScale = fit.scale;
       graphContainer.scale.set(fit.scale);
       graphContainer.position.set(fit.offsetX, fit.offsetY);

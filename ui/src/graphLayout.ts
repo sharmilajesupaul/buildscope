@@ -123,6 +123,5 @@ export function fitToView(
   const cy = (minY + maxY) / 2;
   const offsetX = viewW / 2 - cx * clamped;
   const offsetY = viewH / 2 - cy * clamped;
-  console.log('BBox:', { minX, minY, maxX, maxY, w, h, cx, cy });
   return { scale: clamped, offsetX, offsetY };
 }
