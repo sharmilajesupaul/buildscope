@@ -567,8 +567,12 @@ body {
   display: none !important;
 }
 
-.visible {
+.d-block {
   display: block !important;
+}
+
+.d-flex {
+  display: flex !important;
 }
 
 .font-size-sm {
