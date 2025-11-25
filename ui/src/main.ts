@@ -203,7 +203,7 @@ function main() {
       const fit = fitToView(pg.nodes, viewW, viewH);
       currentScale = fit.scale;
       graphContainer.scale.set(fit.scale);
-      graphContainer.position.set(viewW / 2, viewH / 2);
+      graphContainer.position.set(fit.offsetX, fit.offsetY);
       updateZoomLevel();
     } else if (centerOnSelection && selectedId) {
       const node = pg.idToNode.get(selectedId);
