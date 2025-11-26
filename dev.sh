@@ -26,7 +26,7 @@ trap cleanup INT TERM
 # Start Go server in background
 echo "Starting Go server on :4422..."
 cd cli
-go run ./cmd/buildscope serve -graph "../$GRAPH_PATH" -addr :4422 &
+go run ./cmd/buildscope serve -dir ../ui/dist -graph "../$GRAPH_PATH" -addr :4422 &
 GO_PID=$!
 cd ..
 
