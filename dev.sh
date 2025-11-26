@@ -8,6 +8,13 @@ set -e
 # Default to sample graph if no argument provided
 GRAPH_PATH="${1:-ui/public/sample-graph.json}"
 
+# Use absolute graph paths directly; otherwise resolve relative to repo root
+if [[ "$GRAPH_PATH" = /* ]]; then
+  GRAPH_ARG="$GRAPH_PATH"
+else
+  GRAPH_ARG="../$GRAPH_PATH"
+fi
+
 echo "🚀 Starting BuildScope development servers..."
 echo "📊 Graph: $GRAPH_PATH"
 echo ""
@@ -26,7 +33,7 @@ trap cleanup INT TERM
 # Start Go server in background
 echo "Starting Go server on :4422..."
 cd cli
-go run ./cmd/buildscope serve -dir ../ui/dist -graph "../$GRAPH_PATH" -addr :4422 &
+go run ./cmd/buildscope serve -dir ../ui/dist -graph "$GRAPH_ARG" -addr :4422 &
 GO_PID=$!
 cd ..
 
