@@ -168,6 +168,10 @@ function main() {
   let lastPan = { x: 0, y: 0 };
   let hoveredId: string | null = null;
   let selectedId: string | null = null;
+  let panRedrawPending = false;
+
+  // Threshold for enabling viewport culling on large graphs
+  const LARGE_GRAPH_THRESHOLD = 5000;
 
   const COLORS = {
     edge: 0x5b9eff,
@@ -241,8 +245,8 @@ function main() {
       }
     }
 
-    // For large graphs (>5000 nodes), use viewport culling
-    const useCulling = pg.nodes.length > 5000;
+    // For large graphs, use viewport culling
+    const useCulling = pg.nodes.length > LARGE_GRAPH_THRESHOLD;
     const viewportBounds = useCulling ? getViewportBounds() : null;
 
     const showAllEdges = currentScale > 0.2;
@@ -371,12 +375,27 @@ function main() {
   });
   window.addEventListener("pointerup", () => {
     isPanning = false;
+    // Final redraw after pan ends for large graphs
+    if (positioned && positioned.nodes.length > LARGE_GRAPH_THRESHOLD) {
+      draw(positioned, false, false);
+    }
   });
   window.addEventListener("pointermove", (e) => {
     if (!isPanning) return;
     graphContainer.position.x += e.clientX - lastPan.x;
     graphContainer.position.y += e.clientY - lastPan.y;
     lastPan = { x: e.clientX, y: e.clientY };
+
+    // Throttled redraw during pan for large graphs with viewport culling
+    if (positioned && positioned.nodes.length > LARGE_GRAPH_THRESHOLD && !panRedrawPending) {
+      panRedrawPending = true;
+      requestAnimationFrame(() => {
+        if (positioned) {
+          draw(positioned, false, false);
+        }
+        panRedrawPending = false;
+      });
+    }
   });
 
   window.addEventListener("resize", () => {
