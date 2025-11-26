@@ -8,8 +8,10 @@ set -e
 # Default to sample graph if no argument provided
 GRAPH_PATH="${1:-ui/public/sample-graph.json}"
 
+GRAPH_ARG="$(cd "$(dirname "$GRAPH_PATH")" && pwd)/$(basename "$GRAPH_PATH")"
+
 echo "🚀 Starting BuildScope development servers..."
-echo "📊 Graph: $GRAPH_PATH"
+echo "📊 Graph: $GRAPH_ARG"
 echo ""
 
 # Cleanup function to kill background processes
@@ -20,27 +22,25 @@ cleanup() {
   exit 0
 }
 
+server_log_file=$(mktemp /tmp/buildscope-server-log.XXXXXX)
+touch "$server_log_file"
+
 # Register cleanup function for Ctrl+C
 trap cleanup INT TERM
 
 # Start Go server in background
 echo "Starting Go server on :4422..."
 cd cli
-go run ./cmd/buildscope serve -graph "../$GRAPH_PATH" -addr :4422 &
+go run ./cmd/buildscope serve -dir ../ui/dist -graph "$GRAPH_ARG" -addr :4422 &> "$server_log_file" &
 GO_PID=$!
 cd ..
 
-# Wait a moment for Go server to start
-sleep 2
-
-# Start Vite dev server (foreground)
-echo "Starting Vite dev server on :4400..."
 echo ""
-echo "✨ Open http://localhost:4400 in your browser"
-echo "Press Ctrl+C to stop both servers"
-echo ""
-cd ui
-npm run dev
+echo "Go server started with PID $GO_PID"
+echo "Logs available at $server_log_file"
 
-# If npm run dev exits, cleanup
-cleanup
+echo ""
+echo "✨ View BuildScope at http://localhost:4422"
+
+wait
+
