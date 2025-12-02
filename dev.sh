@@ -5,8 +5,8 @@
 
 set -e
 
-# Default to sample graph if no argument provided
-GRAPH_PATH="${1:-ui/public/sample-graph.json}"
+# Default to large Angular app fixture if no argument provided
+GRAPH_PATH="${1:-fixtures/buildscope_large_angular_app.json}"
 
 GRAPH_ARG="$(cd "$(dirname "$GRAPH_PATH")" && pwd)/$(basename "$GRAPH_PATH")"
 
@@ -38,6 +38,15 @@ cd ..
 echo ""
 echo "Go server started with PID $GO_PID"
 echo "Logs available at $server_log_file"
+
+# Wait a moment and check if the process is still running
+sleep 2
+if ! kill -0 $GO_PID 2>/dev/null; then
+  echo ""
+  echo "❌ Error: Go server exited early. Check logs:"
+  cat "$server_log_file"
+  exit 1
+fi
 
 echo ""
 echo "✨ View BuildScope at http://localhost:4422"
