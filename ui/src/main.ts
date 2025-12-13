@@ -187,6 +187,9 @@ function main() {
   function updateStatus() {
     if (!positioned) return;
 
+    const totalNodes = positioned.nodes.length;
+    const totalEdges = positioned.edges.length;
+
     if (selectedId) {
       // Calculate connected nodes and edges for the selected node
       const selectedEdges = positioned.edges.filter(
@@ -199,8 +202,9 @@ function main() {
         if (e.target === selectedId) connectedNodeIds.add(e.source);
       });
 
-      nodeCountEl.innerText = connectedNodeIds.size.toString();
-      edgeCountEl.innerText = selectedEdges.length.toString();
+      // Show both selected and total statistics
+      nodeCountEl.innerText = `${connectedNodeIds.size} / ${totalNodes}`;
+      edgeCountEl.innerText = `${selectedEdges.length} / ${totalEdges}`;
 
       const node = positioned.idToNode.get(selectedId);
       if (node) {
@@ -209,8 +213,8 @@ function main() {
       }
     } else {
       // Show total graph statistics
-      nodeCountEl.innerText = positioned.nodes.length.toString();
-      edgeCountEl.innerText = positioned.edges.length.toString();
+      nodeCountEl.innerText = totalNodes.toString();
+      edgeCountEl.innerText = totalEdges.toString();
 
       if (hoveredId) {
         const node = positioned.idToNode.get(hoveredId);
