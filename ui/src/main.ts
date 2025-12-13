@@ -186,17 +186,41 @@ function main() {
 
   function updateStatus() {
     if (!positioned) return;
-    nodeCountEl.innerText = positioned.nodes.length.toString();
-    edgeCountEl.innerText = positioned.edges.length.toString();
-    if (selectedId || hoveredId) {
-      const activeId = selectedId || hoveredId;
-      const node = positioned.idToNode.get(activeId!);
+
+    if (selectedId) {
+      // Calculate connected nodes and edges for the selected node
+      const selectedEdges = positioned.edges.filter(
+        (e) => e.source === selectedId || e.target === selectedId
+      );
+
+      const connectedNodeIds = new Set<string>();
+      selectedEdges.forEach((e) => {
+        if (e.source === selectedId) connectedNodeIds.add(e.target);
+        if (e.target === selectedId) connectedNodeIds.add(e.source);
+      });
+
+      nodeCountEl.innerText = connectedNodeIds.size.toString();
+      edgeCountEl.innerText = selectedEdges.length.toString();
+
+      const node = positioned.idToNode.get(selectedId);
       if (node) {
         currentNodeEl.innerText = node.label;
         currentNodeStatus.classList.remove('hidden');
       }
     } else {
-      currentNodeStatus.classList.add('hidden');
+      // Show total graph statistics
+      nodeCountEl.innerText = positioned.nodes.length.toString();
+      edgeCountEl.innerText = positioned.edges.length.toString();
+
+      if (hoveredId) {
+        const node = positioned.idToNode.get(hoveredId);
+        if (node) {
+          currentNodeEl.innerText = node.label;
+          currentNodeStatus.classList.remove('hidden');
+        }
+      } else {
+        currentNodeStatus.classList.add('hidden');
+      }
     }
   }
 
