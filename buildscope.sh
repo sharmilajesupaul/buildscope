@@ -38,11 +38,20 @@ go run ./cmd/buildscope extract \
   -workdir "$WORKSPACE_DIR" \
   -out "$GRAPH_FILE"
 
-# Start the viewer
+# Build UI if not already built or outdated
+cd "$SCRIPT_DIR/ui"
+if [ ! -d "dist" ] || [ "package.json" -nt "dist" ]; then
+  echo ""
+  echo "📦 Building UI..."
+  npm run build
+fi
+
+# Start the viewer (production mode - just Go server, no dev watchers)
 echo ""
 echo "🚀 Starting BuildScope viewer..."
 echo "   Graph: $GRAPH_FILE"
 echo ""
 
-cd "$SCRIPT_DIR"
-exec ./dev.sh "$GRAPH_FILE"
+cd "$SCRIPT_DIR/cli"
+echo "✨ View BuildScope at http://localhost:4422"
+exec go run ./cmd/buildscope serve -dir ../ui/dist -graph "$GRAPH_FILE" -addr :4422
