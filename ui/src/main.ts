@@ -1,4 +1,4 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics } from 'pixi.js';
 import {
   fitToView,
   sanitizeGraph,
@@ -6,28 +6,28 @@ import {
   Graph,
   PositionedGraph,
   PositionedNode,
-} from "./graphLayout";
+} from './graphLayout';
 
 async function loadGraph(): Promise<Graph> {
   try {
-    const res = await fetch("/graph.json");
-    if (!res.ok) throw new Error("fallback");
+    const res = await fetch('/graph.json');
+    if (!res.ok) throw new Error('fallback');
     return res.json();
   } catch {
-    const res = await fetch("/sample-graph.json");
+    const res = await fetch('/sample-graph.json');
     return res.json();
   }
 }
 
 function main() {
-  const root = document.getElementById("app");
+  const root = document.getElementById('app');
   if (!root) return;
 
-  root.innerHTML = "";
+  root.innerHTML = '';
 
   // Create header
-  const header = document.createElement("div");
-  header.className = "app-header";
+  const header = document.createElement('div');
+  header.className = 'app-header';
   header.innerHTML = `
     <div class="app-title">
       <div class="app-logo">B</div>
@@ -40,8 +40,8 @@ function main() {
   root.appendChild(header);
 
   // Create controls panel
-  const controlsPanel = document.createElement("div");
-  controlsPanel.className = "controls-panel";
+  const controlsPanel = document.createElement('div');
+  controlsPanel.className = 'controls-panel';
   controlsPanel.innerHTML = `
     <div class="controls-section">
       <div class="controls-label">Search</div>
@@ -73,13 +73,17 @@ function main() {
   `;
   root.appendChild(controlsPanel);
 
-  const searchInput = controlsPanel.querySelector("#search-input") as HTMLInputElement;
-  const fitBtn = controlsPanel.querySelector("#fit-btn") as HTMLButtonElement;
-  const resetBtn = controlsPanel.querySelector("#reset-btn") as HTMLButtonElement;
+  const searchInput = controlsPanel.querySelector(
+    '#search-input',
+  ) as HTMLInputElement;
+  const fitBtn = controlsPanel.querySelector('#fit-btn') as HTMLButtonElement;
+  const resetBtn = controlsPanel.querySelector(
+    '#reset-btn',
+  ) as HTMLButtonElement;
 
   // Create status panel
-  const statusPanel = document.createElement("div");
-  statusPanel.className = "status-panel";
+  const statusPanel = document.createElement('div');
+  statusPanel.className = 'status-panel';
   statusPanel.innerHTML = `
     <div class="status-item">
       <span class="status-label">Status:</span>
@@ -116,15 +120,19 @@ function main() {
   `;
   root.appendChild(statusPanel);
 
-  const statusBadge = statusPanel.querySelector("#status-badge") as HTMLElement;
-  const nodeCountEl = statusPanel.querySelector("#node-count") as HTMLElement;
-  const edgeCountEl = statusPanel.querySelector("#edge-count") as HTMLElement;
-  const currentNodeEl = statusPanel.querySelector("#current-node") as HTMLElement;
-  const currentNodeStatus = statusPanel.querySelector("#current-node-status") as HTMLElement;
+  const statusBadge = statusPanel.querySelector('#status-badge') as HTMLElement;
+  const nodeCountEl = statusPanel.querySelector('#node-count') as HTMLElement;
+  const edgeCountEl = statusPanel.querySelector('#edge-count') as HTMLElement;
+  const currentNodeEl = statusPanel.querySelector(
+    '#current-node',
+  ) as HTMLElement;
+  const currentNodeStatus = statusPanel.querySelector(
+    '#current-node-status',
+  ) as HTMLElement;
 
   // Create zoom controls
-  const zoomControls = document.createElement("div");
-  zoomControls.className = "zoom-controls";
+  const zoomControls = document.createElement('div');
+  zoomControls.className = 'zoom-controls';
   zoomControls.innerHTML = `
     <button class="zoom-btn" id="zoom-in" title="Zoom In">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -140,9 +148,11 @@ function main() {
   `;
   root.appendChild(zoomControls);
 
-  const zoomInBtn = zoomControls.querySelector("#zoom-in") as HTMLButtonElement;
-  const zoomOutBtn = zoomControls.querySelector("#zoom-out") as HTMLButtonElement;
-  const zoomLevelEl = zoomControls.querySelector("#zoom-level") as HTMLElement;
+  const zoomInBtn = zoomControls.querySelector('#zoom-in') as HTMLButtonElement;
+  const zoomOutBtn = zoomControls.querySelector(
+    '#zoom-out',
+  ) as HTMLButtonElement;
+  const zoomLevelEl = zoomControls.querySelector('#zoom-level') as HTMLElement;
 
   const app = new Application({
     resizeTo: window,
@@ -169,6 +179,10 @@ function main() {
   let hoveredId: string | null = null;
   let selectedId: string | null = null;
   let panRedrawPending = false;
+
+  // Node object pool - reuse Graphics objects instead of recreating
+  const nodeGraphics = new Map<string, Graphics>();
+  const nodesLayer = new Container();
 
   // Threshold for enabling viewport culling on large graphs
   const LARGE_GRAPH_THRESHOLD = 5000;
@@ -244,17 +258,37 @@ function main() {
   }
 
   // Check if node is in viewport
-  function isNodeVisible(node: PositionedNode, bounds: { minX: number; minY: number; maxX: number; maxY: number }) {
-    return node.x >= bounds.minX && node.x <= bounds.maxX &&
-           node.y >= bounds.minY && node.y <= bounds.maxY;
+  function isNodeVisible(
+    node: PositionedNode,
+    bounds: { minX: number; minY: number; maxX: number; maxY: number },
+  ) {
+    return (
+      node.x >= bounds.minX &&
+      node.x <= bounds.maxX &&
+      node.y >= bounds.minY &&
+      node.y <= bounds.maxY
+    );
   }
 
-  function draw(pg: PositionedGraph, applyFit = true, centerOnSelection = false) {
-    graphContainer.removeChildren();
+  function draw(
+    pg: PositionedGraph,
+    applyFit = true,
+    centerOnSelection = false,
+  ) {
+
+    // Remove old edges graphics, but keep nodes layer
+    const oldEdgesGfx = graphContainer.children.find(c => c instanceof Graphics);
+    if (oldEdgesGfx) {
+      graphContainer.removeChild(oldEdgesGfx);
+    }
+
     const edgesGfx = new Graphics();
-    const nodesLayer = new Container();
-    graphContainer.addChild(edgesGfx);
-    graphContainer.addChild(nodesLayer);
+    graphContainer.addChildAt(edgesGfx, 0); // Edges behind nodes
+
+    // Add nodes layer if not already added
+    if (!graphContainer.children.includes(nodesLayer)) {
+      graphContainer.addChild(nodesLayer);
+    }
 
     const viewW = app.renderer.screen.width;
     const viewH = app.renderer.screen.height;
@@ -281,7 +315,11 @@ function main() {
     const highlightSet = new Set<string>();
     if (hoveredId) highlightSet.add(hoveredId);
     if (selectedId) highlightSet.add(selectedId);
-    const neighborEdges = new Set(pg.edges.filter((e) => highlightSet.has(e.source) || highlightSet.has(e.target)));
+    const neighborEdges = new Set(
+      pg.edges.filter(
+        (e) => highlightSet.has(e.source) || highlightSet.has(e.target),
+      ),
+    );
 
     // Build set of visible nodes for culling
     const visibleNodes = new Set<string>();
@@ -300,7 +338,11 @@ function main() {
         if (neighborEdges.has(e)) continue; // Skip neighbor edges, draw them later
 
         // Skip edges where both nodes are outside viewport (for large graphs)
-        if (useCulling && !visibleNodes.has(e.source) && !visibleNodes.has(e.target)) {
+        if (
+          useCulling &&
+          !visibleNodes.has(e.source) &&
+          !visibleNodes.has(e.target)
+        ) {
           continue;
         }
 
@@ -327,46 +369,78 @@ function main() {
     // Draw nodes (with viewport culling for large graphs)
     let renderedNodes = 0;
     pg.nodes.forEach((n) => {
-      // Skip nodes outside viewport for large graphs (unless highlighted)
-      if (useCulling && !visibleNodes.has(n.id)) {
-        return;
+      const isHighlight = highlightSet.has(n.id);
+      const isVisible = !useCulling || visibleNodes.has(n.id);
+
+      // Get or create Graphics object for this node
+      let g = nodeGraphics.get(n.id);
+      if (!g) {
+        // Create node Graphics object once
+        const core = isHighlight ? 9 : 7;
+        const halo = core * 1.8;
+        g = new Graphics();
+        g.beginFill(COLORS.node, 0.22);
+        g.drawCircle(0, 0, halo);
+        g.endFill();
+        g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+        g.drawCircle(0, 0, core);
+        g.endFill();
+        g.x = n.x;
+        g.y = n.y;
+        g.eventMode = 'static';
+        g.cursor = 'pointer';
+
+        // Event handlers (created once)
+        g.on('pointerover', () => {
+          hoveredId = n.id;
+          updateStatus();
+          draw(pg, false, false);
+        });
+        g.on('pointerout', () => {
+          hoveredId = null;
+          updateStatus();
+          draw(pg, false, false);
+        });
+        g.on('pointertap', () => {
+          selectedId = n.id;
+          updateStatus();
+          draw(pg, false, true);
+        });
+
+        nodeGraphics.set(n.id, g);
+        nodesLayer.addChild(g);
+      } else {
+        // Update existing node appearance if highlight state changed
+        const currentCore = isHighlight ? 9 : 7;
+        const currentHalo = currentCore * 1.8;
+
+        // Only redraw if highlight state changed
+        if (g.tint !== (isHighlight ? COLORS.nodeHighlight : COLORS.node)) {
+          g.clear();
+          g.beginFill(COLORS.node, 0.22);
+          g.drawCircle(0, 0, currentHalo);
+          g.endFill();
+          g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+          g.drawCircle(0, 0, currentCore);
+          g.endFill();
+        }
+
+        // Update position (always, in case of pan/zoom)
+        g.x = n.x;
+        g.y = n.y;
       }
 
-      renderedNodes++;
-      const isHighlight = highlightSet.has(n.id);
-      const core = isHighlight ? 9 : 7;
-      const halo = core * 1.8;
-      const g = new Graphics();
-      g.beginFill(COLORS.node, 0.22);
-      g.drawCircle(0, 0, halo);
-      g.endFill();
-      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
-      g.drawCircle(0, 0, core);
-      g.endFill();
-      g.x = n.x;
-      g.y = n.y;
-      g.eventMode = "static";
-      g.cursor = "pointer";
-      g.on("pointerover", () => {
-        hoveredId = n.id;
-        updateStatus();
-        draw(pg, false, false);
-      });
-      g.on("pointerout", () => {
-        hoveredId = null;
-        updateStatus();
-        draw(pg, false, false);
-      });
-      g.on("pointertap", () => {
-        selectedId = n.id;
-        updateStatus();
-        draw(pg, false, true);
-      });
-      nodesLayer.addChild(g);
+      // Update visibility
+      g.visible = isVisible;
+      if (isVisible) {
+        renderedNodes++;
+      }
     });
 
     if (useCulling) {
-      console.log(`Rendered ${renderedNodes} / ${pg.nodes.length} nodes (viewport culling enabled)`);
+      console.log(
+        `Rendered ${renderedNodes} / ${pg.nodes.length} nodes (viewport culling enabled)`,
+      );
     }
 
     updateStatus();
@@ -392,30 +466,37 @@ function main() {
     draw(positioned, false, false);
   }
 
-  app.view.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    zoom(e.deltaY, e.clientX, e.clientY);
-  });
+  if (app.view instanceof HTMLCanvasElement) {
+    app.view.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      zoom(e.deltaY, e.clientX, e.clientY);
+    });
 
-  app.view.addEventListener("pointerdown", (e) => {
-    isPanning = true;
-    lastPan = { x: e.clientX, y: e.clientY };
-  });
-  window.addEventListener("pointerup", () => {
+    app.view.addEventListener('pointerdown', (e) => {
+      isPanning = true;
+      lastPan = { x: e.clientX, y: e.clientY };
+    });
+  }
+  
+  window.addEventListener('pointerup', () => {
     isPanning = false;
     // Final redraw after pan ends for large graphs
     if (positioned && positioned.nodes.length > LARGE_GRAPH_THRESHOLD) {
       draw(positioned, false, false);
     }
   });
-  window.addEventListener("pointermove", (e) => {
+  window.addEventListener('pointermove', (e) => {
     if (!isPanning) return;
     graphContainer.position.x += e.clientX - lastPan.x;
     graphContainer.position.y += e.clientY - lastPan.y;
     lastPan = { x: e.clientX, y: e.clientY };
 
     // Throttled redraw during pan for large graphs with viewport culling
-    if (positioned && positioned.nodes.length > LARGE_GRAPH_THRESHOLD && !panRedrawPending) {
+    if (
+      positioned &&
+      positioned.nodes.length > LARGE_GRAPH_THRESHOLD &&
+      !panRedrawPending
+    ) {
       panRedrawPending = true;
       requestAnimationFrame(() => {
         if (positioned) {
@@ -426,25 +507,25 @@ function main() {
     }
   });
 
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     if (positioned) draw(positioned, true, false);
   });
 
-  zoomInBtn.addEventListener("click", () => {
+  zoomInBtn.addEventListener('click', () => {
     if (!positioned) return;
     const centerX = app.renderer.screen.width / 2;
     const centerY = app.renderer.screen.height / 2;
     zoom(-1, centerX, centerY);
   });
 
-  zoomOutBtn.addEventListener("click", () => {
+  zoomOutBtn.addEventListener('click', () => {
     if (!positioned) return;
     const centerX = app.renderer.screen.width / 2;
     const centerY = app.renderer.screen.height / 2;
     zoom(1, centerX, centerY);
   });
 
-  fitBtn.addEventListener("click", () => {
+  fitBtn.addEventListener('click', () => {
     if (positioned) {
       selectedId = null;
       hoveredId = null;
@@ -452,7 +533,7 @@ function main() {
     }
   });
 
-  resetBtn.addEventListener("click", () => {
+  resetBtn.addEventListener('click', () => {
     if (positioned) {
       selectedId = null;
       hoveredId = null;
@@ -460,19 +541,19 @@ function main() {
       graphContainer.scale.set(1);
       graphContainer.position.set(
         app.renderer.screen.width / 2,
-        app.renderer.screen.height / 2
+        app.renderer.screen.height / 2,
       );
       updateZoomLevel();
       draw(positioned, false, false);
     }
   });
 
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" || !positioned) return;
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || !positioned) return;
     const term = searchInput.value.trim().toLowerCase();
     if (!term) return;
     const node = positioned.nodes.find((n) =>
-      n.label.toLowerCase().includes(term)
+      n.label.toLowerCase().includes(term),
     );
     if (!node) {
       currentNodeEl.innerText = `Not found: ${term}`;
@@ -485,18 +566,22 @@ function main() {
 
   loadGraph()
     .then((g) => {
-      console.log(`Loaded graph with ${g.nodes.length} nodes, ${g.edges.length} edges`);
+      console.log(
+        `Loaded graph with ${g.nodes.length} nodes, ${g.edges.length} edges`,
+      );
 
-      statusBadge.innerText = "Processing...";
-      statusBadge.className = "status-badge loading";
+      statusBadge.innerText = 'Processing...';
+      statusBadge.className = 'status-badge loading';
 
       // Use setTimeout to allow UI to update before heavy computation
       setTimeout(() => {
         const clean = sanitizeGraph(g);
-        console.log(`Sanitized to ${clean.nodes.length} nodes, ${clean.edges.length} edges`);
+        console.log(
+          `Sanitized to ${clean.nodes.length} nodes, ${clean.edges.length} edges`,
+        );
 
         if (clean.nodes.length > 10000) {
-          statusBadge.innerText = "Large graph - Computing layout...";
+          statusBadge.innerText = 'Large graph - Computing layout...';
         }
 
         // Another setTimeout for layout computation
@@ -506,17 +591,17 @@ function main() {
           const layoutTime = performance.now() - layoutStart;
           console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
 
-          statusBadge.innerText = "Ready";
-          statusBadge.className = "status-badge success";
+          statusBadge.innerText = 'Ready';
+          statusBadge.className = 'status-badge success';
           draw(positioned, true, false);
         }, 10);
       }, 10);
     })
     .catch((err) => {
       console.error(err);
-      statusBadge.innerText = "Error";
-      statusBadge.className = "status-badge error";
-      nodeCountEl.innerText = "Failed to load graph";
+      statusBadge.innerText = 'Error';
+      statusBadge.className = 'status-badge error';
+      nodeCountEl.innerText = 'Failed to load graph';
     });
 }
 
