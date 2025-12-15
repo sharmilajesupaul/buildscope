@@ -17,6 +17,16 @@ BuildScope is a local-first Bazel build graph explorer. It ingests `query`/`aque
 
 ## Quick Start
 
+### Quick graph visualization from Bazel
+
+**Instant visualization of any Bazel target** (from within a Bazel workspace):
+```bash
+# From your Bazel workspace root
+/path/to/buildscope/buildscope.sh //your/package:target
+```
+
+This extracts the dependency graph, builds the UI, and starts the viewer at http://localhost:4422
+
 ### Development
 
 **One-command development** (recommended):
@@ -33,7 +43,12 @@ cd ui && npm install && cd ..
 
 Then open http://localhost:4400
 
-This starts both the Go server (port 4422) and Vite dev server (port 4400) with hot reload. Press Ctrl+C to stop both servers.
+This starts:
+- **Vite dev server** (port 4400) with TypeScript hot module reloading
+- **Go API server** (port 4422) with automatic restart on `.go` file changes
+- **File watchers** for both TypeScript and Go code
+
+Press Ctrl+C to cleanly stop all servers.
 
 **Manual development** (if you prefer separate terminals):
 ```bash
@@ -68,6 +83,15 @@ go run ./cmd/buildscope extract \
 ```
 
 ## Workflow
+
+**Quick workflow** (one command):
+```bash
+./buildscope.sh //your/package:target
+```
+
+This does everything: extract → build UI → serve → visualize
+
+**Manual workflow** (step by step):
 1) **Extract**: `buildscope extract -target //path:target -workdir <workspace> -out graph.json`
    - Runs `bazel query 'deps(target)' --output=graph`
    - Parses the graph output and emits normalized JSON
