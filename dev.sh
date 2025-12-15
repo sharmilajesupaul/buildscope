@@ -47,7 +47,7 @@ restart_go_server() {
   echo ""
   echo "🔄 Restarting Go server (Go files changed)..."
   kill $GO_PID 2>/dev/null || true
-  sleep 1
+  sleep 2
   start_go_server
 }
 
@@ -66,6 +66,15 @@ if ! kill -0 $GO_PID 2>/dev/null; then
 fi
 
 echo ""
+
+# Check and install npm dependencies if needed
+if [ ! -d "ui/node_modules" ]; then
+  echo "📦 Installing npm dependencies..."
+  cd ui
+  npm install
+  cd ..
+  echo ""
+fi
 
 # Start Vite dev server in background (handles TS watching automatically)
 echo "Starting Vite dev server on :4400..."
@@ -103,11 +112,15 @@ echo ""
   last_check=$(date +%s)
   while true; do
     sleep 2
-    # Find any .go files modified in the last 3 seconds
+    current_time=$(date +%s)
+    # Find any .go files modified since last check (matching the 2-second interval)
     if find cli -name "*.go" -type f -newermt "@$last_check" 2>/dev/null | grep -q .; then
       restart_go_server
+      # Update timestamp after restart to avoid duplicate detections
+      last_check=$(date +%s)
+    else
+      last_check=$current_time
     fi
-    last_check=$(date +%s)
   done
 } &
 WATCH_PID=$!
