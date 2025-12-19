@@ -173,7 +173,7 @@ function compactGridLayout(graph: Graph): PositionedGraph {
 
   // Arrange in a square grid
   const gridSize = Math.ceil(Math.sqrt(nodes.length));
-  const spacing = 60; // Spacing between nodes
+  const spacing = 120; // Spacing between nodes (increased for larger node sizes)
 
   nodes.forEach((n, i) => {
     const col = i % gridSize;
@@ -262,8 +262,8 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     layers[lv].push(i);
   });
 
-  const layerHeight = 140;
-  const horizontalGap = 40;
+  const layerHeight = 180; // Increased for larger node sizes
+  const horizontalGap = 80; // Increased for larger node sizes
   layers.forEach((idxs, lv) => {
     const count = idxs.length;
     const width = Math.max(1, (count - 1) * horizontalGap);
