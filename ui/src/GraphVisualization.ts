@@ -166,7 +166,7 @@ export class GraphVisualization {
 
   // Calculate node size based on weight
   private calculateNodeSize(node: PositionedNode, isHighlight: boolean): number {
-    const baseSize = 7;
+    const baseSize = 5;
     const highlightBonus = isHighlight ? 2 : 0;
 
     // For uniform mode, use base size
@@ -174,14 +174,14 @@ export class GraphVisualization {
       return baseSize + highlightBonus;
     }
 
-    // Scale by weight using logarithmic scaling to avoid extreme sizes
-    // Adding 1 to weight to handle nodes with weight 0
-    const scaleFactor = Math.log(node.weight + 1) + 1;
-    const scaledSize = baseSize * scaleFactor;
+    // Use square root scaling for better visual differentiation
+    // Square root provides more spread than log but less extreme than linear
+    const scaleFactor = Math.sqrt(node.weight + 1);
+    const scaledSize = baseSize + scaleFactor * 2.5;
 
     // Clamp between min and max sizes
     const minSize = 4;
-    const maxSize = 20;
+    const maxSize = 30;
     return Math.min(Math.max(scaledSize, minSize), maxSize) + highlightBonus;
   }
 
