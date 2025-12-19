@@ -30,6 +30,7 @@ function main() {
   const searchInput = controlsPanel.querySelector('#search-input') as HTMLInputElement;
   const fitBtn = controlsPanel.querySelector('#fit-btn') as HTMLButtonElement;
   const resetBtn = controlsPanel.querySelector('#reset-btn') as HTMLButtonElement;
+  const weightModeSelect = controlsPanel.querySelector('#weight-mode-select') as HTMLSelectElement;
 
   const statusBadge = statusPanel.querySelector('#status-badge') as HTMLElement;
   const nodeCountEl = statusPanel.querySelector('#node-count') as HTMLElement;
@@ -91,6 +92,12 @@ function main() {
     const term = searchInput.value.trim();
     if (!term) return;
     viz.search(term);
+  });
+
+  // Event listeners - Weight mode
+  weightModeSelect.addEventListener('change', () => {
+    const mode = weightModeSelect.value as 'total' | 'inputs' | 'outputs' | 'uniform';
+    viz.setWeightMode(mode);
   });
 
   // Event listeners - Canvas interactions

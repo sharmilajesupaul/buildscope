@@ -1,5 +1,11 @@
 import { Application, Container, Graphics } from 'pixi.js';
-import { fitToView, PositionedGraph, PositionedNode } from './graphLayout';
+import {
+  fitToView,
+  PositionedGraph,
+  PositionedNode,
+  WeightMode,
+  recalculateWeights,
+} from './graphLayout';
 import {
   LARGE_GRAPH_THRESHOLD,
   VIEWPORT_PADDING,
@@ -33,6 +39,7 @@ export class GraphVisualization {
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
   private panRedrawPending = false;
+  private currentWeightMode: WeightMode = 'total';
 
   // UI Elements
   private zoomLevelEl: HTMLElement;
@@ -157,15 +164,36 @@ export class GraphVisualization {
     }
   }
 
+  // Calculate node size based on weight
+  private calculateNodeSize(node: PositionedNode, isHighlight: boolean): number {
+    const baseSize = 7;
+    const highlightBonus = isHighlight ? 2 : 0;
+
+    // For uniform mode, use base size
+    if (this.currentWeightMode === 'uniform') {
+      return baseSize + highlightBonus;
+    }
+
+    // Scale by weight using logarithmic scaling to avoid extreme sizes
+    // Adding 1 to weight to handle nodes with weight 0
+    const scaleFactor = Math.log(node.weight + 1) + 1;
+    const scaledSize = baseSize * scaleFactor;
+
+    // Clamp between min and max sizes
+    const minSize = 4;
+    const maxSize = 20;
+    return Math.min(Math.max(scaledSize, minSize), maxSize) + highlightBonus;
+  }
+
   // Node creation and management
   private createOrUpdateNode(node: PositionedNode, isHighlight: boolean, pg: PositionedGraph) {
     let g = this.nodeGraphics.get(node.id);
 
+    const core = this.calculateNodeSize(node, isHighlight);
+    const halo = core * 1.8;
+
     if (!g) {
       // Create new node
-      const core = isHighlight ? 9 : 7;
-      const halo = core * 1.8;
-
       g = new Graphics();
       g.beginFill(COLORS.node, 0.22);
       g.drawCircle(0, 0, halo);
@@ -199,18 +227,13 @@ export class GraphVisualization {
       this.nodesLayer.addChild(g);
     } else {
       // Update existing node
-      const currentCore = isHighlight ? 9 : 7;
-      const currentHalo = currentCore * 1.8;
-
-      if (g.tint !== (isHighlight ? COLORS.nodeHighlight : COLORS.node)) {
-        g.clear();
-        g.beginFill(COLORS.node, 0.22);
-        g.drawCircle(0, 0, currentHalo);
-        g.endFill();
-        g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
-        g.drawCircle(0, 0, currentCore);
-        g.endFill();
-      }
+      g.clear();
+      g.beginFill(COLORS.node, 0.22);
+      g.drawCircle(0, 0, halo);
+      g.endFill();
+      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+      g.drawCircle(0, 0, core);
+      g.endFill();
 
       g.x = node.x;
       g.y = node.y;
@@ -440,5 +463,17 @@ export class GraphVisualization {
 
   setNodeCount(text: string) {
     this.nodeCountEl.innerText = text;
+  }
+
+  setWeightMode(mode: WeightMode) {
+    if (!this.positioned) return;
+
+    this.currentWeightMode = mode;
+    recalculateWeights(this.positioned, mode);
+    this.draw(this.positioned, false, false);
+  }
+
+  getWeightMode(): WeightMode {
+    return this.currentWeightMode;
   }
 }

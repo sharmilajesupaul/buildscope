@@ -29,6 +29,15 @@ export function createControlsPanel(): HTMLElement {
       </div>
     </div>
     <div class="controls-section">
+      <div class="controls-label">Node Size</div>
+      <select class="weight-mode-select" id="weight-mode-select">
+        <option value="total">Total Connections</option>
+        <option value="inputs">Inputs Only</option>
+        <option value="outputs">Outputs Only</option>
+        <option value="uniform">Uniform Size</option>
+      </select>
+    </div>
+    <div class="controls-section">
       <div class="controls-label">View Controls</div>
       <div class="button-group">
         <button class="btn btn-primary" id="fit-btn">

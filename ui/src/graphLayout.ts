@@ -1,13 +1,48 @@
-export type GraphNode = { id: string; label: string; x?: number; y?: number };
+export type GraphNode = {
+  id: string;
+  label: string;
+  x?: number;
+  y?: number;
+  inDegree?: number;
+  outDegree?: number;
+  weight?: number;
+};
 export type GraphEdge = { source: string; target: string };
 export type Graph = { nodes: GraphNode[]; edges: GraphEdge[] };
-export type PositionedNode = GraphNode & { x: number; y: number };
+export type PositionedNode = GraphNode & {
+  x: number;
+  y: number;
+  inDegree: number;
+  outDegree: number;
+  weight: number;
+};
 export type PositionedGraph = {
   nodes: PositionedNode[];
   edges: GraphEdge[];
   idToNode: Map<string, PositionedNode>;
   neighbors: Map<string, GraphEdge[]>;
 };
+
+export type WeightMode = 'total' | 'inputs' | 'outputs' | 'uniform';
+
+export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void {
+  pg.nodes.forEach((node) => {
+    switch (mode) {
+      case 'total':
+        node.weight = node.inDegree + node.outDegree;
+        break;
+      case 'inputs':
+        node.weight = node.inDegree;
+        break;
+      case 'outputs':
+        node.weight = node.outDegree;
+        break;
+      case 'uniform':
+        node.weight = 1;
+        break;
+    }
+  });
+}
 
 export function sanitizeGraph(raw: Graph): Graph {
   const isValidId = (s: string) =>
@@ -35,7 +70,32 @@ export function sanitizeGraph(raw: Graph): Graph {
 // Fast grid layout for very large graphs (50k+ nodes)
 // Arranges nodes in a compact grid, much faster than layered layout
 function compactGridLayout(graph: Graph): PositionedGraph {
-  const nodes = graph.nodes.map((n) => ({ ...n, x: 0, y: 0 }));
+  const nodes = graph.nodes.map((n) => ({
+    ...n,
+    x: 0,
+    y: 0,
+    inDegree: 0,
+    outDegree: 0,
+    weight: 0,
+  }));
+
+  // Calculate degrees
+  const idIndex = new Map<string, number>();
+  nodes.forEach((n, i) => idIndex.set(n.id, i));
+
+  graph.edges.forEach((e) => {
+    const sourceIdx = idIndex.get(e.source);
+    const targetIdx = idIndex.get(e.target);
+    if (sourceIdx !== undefined && targetIdx !== undefined) {
+      nodes[sourceIdx].outDegree++;
+      nodes[targetIdx].inDegree++;
+    }
+  });
+
+  // Calculate default weight (total degree)
+  nodes.forEach((n) => {
+    n.weight = n.inDegree + n.outDegree;
+  });
 
   // Arrange in a square grid
   const gridSize = Math.ceil(Math.sqrt(nodes.length));
@@ -76,7 +136,14 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     return compactGridLayout(graph);
   }
 
-  const nodes = graph.nodes.map((n) => ({ ...n, x: 0, y: 0 }));
+  const nodes = graph.nodes.map((n) => ({
+    ...n,
+    x: 0,
+    y: 0,
+    inDegree: 0,
+    outDegree: 0,
+    weight: 0,
+  }));
   const idIndex = new Map<string, number>();
   nodes.forEach((n, i) => idIndex.set(n.id, i));
 
@@ -88,7 +155,15 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     if (s === undefined || t === undefined) continue;
     outgoing[s].push(t);
     indegree[t]++;
+    // Track degrees in nodes
+    nodes[s].outDegree++;
+    nodes[t].inDegree++;
   }
+
+  // Calculate default weight (total degree)
+  nodes.forEach((n) => {
+    n.weight = n.inDegree + n.outDegree;
+  });
 
   const layer: number[] = new Array(nodes.length).fill(0);
   const queue: number[] = [];
