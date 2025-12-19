@@ -5,6 +5,8 @@ export type GraphNode = {
   y?: number;
   inDegree?: number;
   outDegree?: number;
+  transitiveInDegree?: number;
+  transitiveOutDegree?: number;
   weight?: number;
 };
 export type GraphEdge = { source: string; target: string };
@@ -14,6 +16,8 @@ export type PositionedNode = GraphNode & {
   y: number;
   inDegree: number;
   outDegree: number;
+  transitiveInDegree: number;
+  transitiveOutDegree: number;
   weight: number;
 };
 export type PositionedGraph = {
@@ -23,7 +27,14 @@ export type PositionedGraph = {
   neighbors: Map<string, GraphEdge[]>;
 };
 
-export type WeightMode = 'total' | 'inputs' | 'outputs' | 'uniform';
+export type WeightMode =
+  | 'total'
+  | 'inputs'
+  | 'outputs'
+  | 'transitive-total'
+  | 'transitive-inputs'
+  | 'transitive-outputs'
+  | 'uniform';
 
 export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void {
   pg.nodes.forEach((node) => {
@@ -37,10 +48,68 @@ export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void 
       case 'outputs':
         node.weight = node.outDegree;
         break;
+      case 'transitive-total':
+        node.weight = node.transitiveInDegree + node.transitiveOutDegree;
+        break;
+      case 'transitive-inputs':
+        node.weight = node.transitiveInDegree;
+        break;
+      case 'transitive-outputs':
+        node.weight = node.transitiveOutDegree;
+        break;
       case 'uniform':
         node.weight = 1;
         break;
     }
+  });
+}
+
+// Calculate transitive closure using BFS
+function calculateTransitiveClosure(
+  nodes: PositionedNode[],
+  edges: GraphEdge[]
+): void {
+  const idIndex = new Map<string, number>();
+  nodes.forEach((n, i) => idIndex.set(n.id, i));
+
+  // Build adjacency lists
+  const outgoing: number[][] = nodes.map(() => []);
+  const incoming: number[][] = nodes.map(() => []);
+
+  edges.forEach((e) => {
+    const s = idIndex.get(e.source);
+    const t = idIndex.get(e.target);
+    if (s !== undefined && t !== undefined) {
+      outgoing[s].push(t);
+      incoming[t].push(s);
+    }
+  });
+
+  // Calculate transitive dependencies for each node
+  nodes.forEach((node, nodeIdx) => {
+    // Transitive inputs (all ancestors via BFS on incoming edges)
+    const visitedIn = new Set<number>();
+    const queueIn = [...incoming[nodeIdx]];
+    while (queueIn.length > 0) {
+      const curr = queueIn.shift()!;
+      if (!visitedIn.has(curr)) {
+        visitedIn.add(curr);
+        queueIn.push(...incoming[curr]);
+      }
+    }
+    node.transitiveInDegree = visitedIn.size;
+
+    // Transitive outputs (all descendants via BFS on outgoing edges)
+    const visitedOut = new Set<number>();
+    const queueOut = [...outgoing[nodeIdx]];
+    while (queueOut.length > 0) {
+      const curr = queueOut.shift()!;
+      if (!visitedOut.has(curr)) {
+        visitedOut.add(curr);
+        queueOut.push(...outgoing[curr]);
+      }
+    }
+    node.transitiveOutDegree = visitedOut.size;
   });
 }
 
@@ -76,6 +145,8 @@ function compactGridLayout(graph: Graph): PositionedGraph {
     y: 0,
     inDegree: 0,
     outDegree: 0,
+    transitiveInDegree: 0,
+    transitiveOutDegree: 0,
     weight: 0,
   }));
 
@@ -91,6 +162,9 @@ function compactGridLayout(graph: Graph): PositionedGraph {
       nodes[targetIdx].inDegree++;
     }
   });
+
+  // Calculate transitive closure
+  calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
 
   // Calculate default weight (total degree)
   nodes.forEach((n) => {
@@ -142,6 +216,8 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     y: 0,
     inDegree: 0,
     outDegree: 0,
+    transitiveInDegree: 0,
+    transitiveOutDegree: 0,
     weight: 0,
   }));
   const idIndex = new Map<string, number>();
@@ -159,6 +235,9 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     nodes[s].outDegree++;
     nodes[t].inDegree++;
   }
+
+  // Calculate transitive closure
+  calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
 
   // Calculate default weight (total degree)
   nodes.forEach((n) => {

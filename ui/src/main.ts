@@ -96,7 +96,14 @@ function main() {
 
   // Event listeners - Weight mode
   weightModeSelect.addEventListener('change', () => {
-    const mode = weightModeSelect.value as 'total' | 'inputs' | 'outputs' | 'uniform';
+    const mode = weightModeSelect.value as
+      | 'total'
+      | 'inputs'
+      | 'outputs'
+      | 'transitive-total'
+      | 'transitive-inputs'
+      | 'transitive-outputs'
+      | 'uniform';
     viz.setWeightMode(mode);
   });
 
