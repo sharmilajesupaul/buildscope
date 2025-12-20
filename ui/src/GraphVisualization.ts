@@ -1,5 +1,11 @@
 import { Application, Container, Graphics } from 'pixi.js';
-import { fitToView, PositionedGraph, PositionedNode } from './graphLayout';
+import {
+  fitToView,
+  PositionedGraph,
+  PositionedNode,
+  WeightMode,
+  recalculateWeights,
+} from './graphLayout';
 import {
   LARGE_GRAPH_THRESHOLD,
   VIEWPORT_PADDING,
@@ -33,6 +39,7 @@ export class GraphVisualization {
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
   private panRedrawPending = false;
+  private currentWeightMode: WeightMode = 'total';
 
   // UI Elements
   private zoomLevelEl: HTMLElement;
@@ -115,6 +122,40 @@ export class GraphVisualization {
     this.draw(this.positioned, false, false);
   }
 
+  // Calculate transitive dependencies for a specific node
+  private calculateTransitiveDeps(nodeId: string, pg: PositionedGraph): {
+    transitiveNodes: Set<string>;
+    transitiveEdges: Set<string>;
+  } {
+    const transitiveNodes = new Set<string>();
+    const transitiveEdges = new Set<string>();
+    const visited = new Set<string>();
+    const queue: string[] = [nodeId];
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      if (visited.has(currentId)) continue;
+      visited.add(currentId);
+
+      // Find all edges connected to this node
+      pg.edges.forEach((e) => {
+        const edgeKey = `${e.source}->${e.target}`;
+        if (e.source === currentId || e.target === currentId) {
+          transitiveEdges.add(edgeKey);
+
+          // Add connected nodes to queue
+          const connectedId = e.source === currentId ? e.target : e.source;
+          if (!visited.has(connectedId)) {
+            transitiveNodes.add(connectedId);
+            queue.push(connectedId);
+          }
+        }
+      });
+    }
+
+    return { transitiveNodes, transitiveEdges };
+  }
+
   // Status updates
   updateStatus() {
     if (!this.positioned) return;
@@ -123,6 +164,7 @@ export class GraphVisualization {
     const totalEdges = this.positioned.edges.length;
 
     if (this.selectedId) {
+      // Direct connections
       const selectedEdges = this.positioned.edges.filter(
         (e) => e.source === this.selectedId || e.target === this.selectedId
       );
@@ -133,8 +175,26 @@ export class GraphVisualization {
         if (e.target === this.selectedId) connectedNodeIds.add(e.source);
       });
 
-      this.nodeCountEl.innerText = `${connectedNodeIds.size} / ${totalNodes}`;
-      this.edgeCountEl.innerText = `${selectedEdges.length} / ${totalEdges}`;
+      // Only calculate transitive counts when in transitive mode (to avoid BFS overhead)
+      const isTransitiveMode =
+        this.currentWeightMode === 'transitive-total' ||
+        this.currentWeightMode === 'transitive-inputs' ||
+        this.currentWeightMode === 'transitive-outputs';
+
+      if (isTransitiveMode) {
+        const { transitiveNodes, transitiveEdges } = this.calculateTransitiveDeps(
+          this.selectedId,
+          this.positioned
+        );
+
+        this.nodeCountEl.innerText =
+          `${connectedNodeIds.size} direct, ${transitiveNodes.size} transitive / ${totalNodes}`;
+        this.edgeCountEl.innerText =
+          `${selectedEdges.length} direct, ${transitiveEdges.size} transitive / ${totalEdges}`;
+      } else {
+        this.nodeCountEl.innerText = `${connectedNodeIds.size} / ${totalNodes}`;
+        this.edgeCountEl.innerText = `${selectedEdges.length} / ${totalEdges}`;
+      }
 
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
@@ -157,15 +217,36 @@ export class GraphVisualization {
     }
   }
 
+  // Calculate node size based on weight
+  private calculateNodeSize(node: PositionedNode, isHighlight: boolean): number {
+    const baseSize = 5;
+    const highlightBonus = isHighlight ? 2 : 0;
+
+    // For uniform mode, use base size
+    if (this.currentWeightMode === 'uniform') {
+      return baseSize + highlightBonus;
+    }
+
+    // Use square root scaling for better visual differentiation
+    // Square root provides more spread than log but less extreme than linear
+    const scaleFactor = Math.sqrt(node.weight + 1);
+    const scaledSize = baseSize + scaleFactor * 2.5;
+
+    // Clamp between min and max sizes
+    const minSize = 4;
+    const maxSize = 30;
+    return Math.min(Math.max(scaledSize, minSize), maxSize) + highlightBonus;
+  }
+
   // Node creation and management
   private createOrUpdateNode(node: PositionedNode, isHighlight: boolean, pg: PositionedGraph) {
     let g = this.nodeGraphics.get(node.id);
 
+    const core = this.calculateNodeSize(node, isHighlight);
+    const halo = core * 1.8;
+
     if (!g) {
       // Create new node
-      const core = isHighlight ? 9 : 7;
-      const halo = core * 1.8;
-
       g = new Graphics();
       g.beginFill(COLORS.node, 0.22);
       g.drawCircle(0, 0, halo);
@@ -199,18 +280,13 @@ export class GraphVisualization {
       this.nodesLayer.addChild(g);
     } else {
       // Update existing node
-      const currentCore = isHighlight ? 9 : 7;
-      const currentHalo = currentCore * 1.8;
-
-      if (g.tint !== (isHighlight ? COLORS.nodeHighlight : COLORS.node)) {
-        g.clear();
-        g.beginFill(COLORS.node, 0.22);
-        g.drawCircle(0, 0, currentHalo);
-        g.endFill();
-        g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
-        g.drawCircle(0, 0, currentCore);
-        g.endFill();
-      }
+      g.clear();
+      g.beginFill(COLORS.node, 0.22);
+      g.drawCircle(0, 0, halo);
+      g.endFill();
+      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+      g.drawCircle(0, 0, core);
+      g.endFill();
 
       g.x = node.x;
       g.y = node.y;
@@ -440,5 +516,17 @@ export class GraphVisualization {
 
   setNodeCount(text: string) {
     this.nodeCountEl.innerText = text;
+  }
+
+  setWeightMode(mode: WeightMode) {
+    if (!this.positioned) return;
+
+    this.currentWeightMode = mode;
+    recalculateWeights(this.positioned, mode);
+    this.draw(this.positioned, false, false);
+  }
+
+  getWeightMode(): WeightMode {
+    return this.currentWeightMode;
   }
 }

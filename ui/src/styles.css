@@ -222,6 +222,31 @@ body {
   pointer-events: none;
 }
 
+.weight-mode-select {
+  width: 100%;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  outline: none;
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.weight-mode-select:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-medium);
+}
+
+.weight-mode-select:focus {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(91, 158, 255, 0.1);
+}
+
 .button-group {
   display: flex;
   gap: var(--space-sm);

@@ -1,13 +1,117 @@
-export type GraphNode = { id: string; label: string; x?: number; y?: number };
+export type GraphNode = {
+  id: string;
+  label: string;
+  x?: number;
+  y?: number;
+  inDegree?: number;
+  outDegree?: number;
+  transitiveInDegree?: number;
+  transitiveOutDegree?: number;
+  weight?: number;
+};
 export type GraphEdge = { source: string; target: string };
 export type Graph = { nodes: GraphNode[]; edges: GraphEdge[] };
-export type PositionedNode = GraphNode & { x: number; y: number };
+export type PositionedNode = GraphNode & {
+  x: number;
+  y: number;
+  inDegree: number;
+  outDegree: number;
+  transitiveInDegree: number;
+  transitiveOutDegree: number;
+  weight: number;
+};
 export type PositionedGraph = {
   nodes: PositionedNode[];
   edges: GraphEdge[];
   idToNode: Map<string, PositionedNode>;
   neighbors: Map<string, GraphEdge[]>;
 };
+
+export type WeightMode =
+  | 'total'
+  | 'inputs'
+  | 'outputs'
+  | 'transitive-total'
+  | 'transitive-inputs'
+  | 'transitive-outputs'
+  | 'uniform';
+
+export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void {
+  pg.nodes.forEach((node) => {
+    switch (mode) {
+      case 'total':
+        node.weight = node.inDegree + node.outDegree;
+        break;
+      case 'inputs':
+        node.weight = node.inDegree;
+        break;
+      case 'outputs':
+        node.weight = node.outDegree;
+        break;
+      case 'transitive-total':
+        node.weight = node.transitiveInDegree + node.transitiveOutDegree;
+        break;
+      case 'transitive-inputs':
+        node.weight = node.transitiveInDegree;
+        break;
+      case 'transitive-outputs':
+        node.weight = node.transitiveOutDegree;
+        break;
+      case 'uniform':
+        node.weight = 1;
+        break;
+    }
+  });
+}
+
+// Calculate transitive closure using BFS
+function calculateTransitiveClosure(
+  nodes: PositionedNode[],
+  edges: GraphEdge[]
+): void {
+  const idIndex = new Map<string, number>();
+  nodes.forEach((n, i) => idIndex.set(n.id, i));
+
+  // Build adjacency lists
+  const outgoing: number[][] = nodes.map(() => []);
+  const incoming: number[][] = nodes.map(() => []);
+
+  edges.forEach((e) => {
+    const s = idIndex.get(e.source);
+    const t = idIndex.get(e.target);
+    if (s !== undefined && t !== undefined) {
+      outgoing[s].push(t);
+      incoming[t].push(s);
+    }
+  });
+
+  // Calculate transitive dependencies for each node
+  nodes.forEach((node, nodeIdx) => {
+    // Transitive inputs (all ancestors via BFS on incoming edges)
+    const visitedIn = new Set<number>();
+    const queueIn = [...incoming[nodeIdx]];
+    while (queueIn.length > 0) {
+      const curr = queueIn.shift()!;
+      if (!visitedIn.has(curr)) {
+        visitedIn.add(curr);
+        queueIn.push(...incoming[curr]);
+      }
+    }
+    node.transitiveInDegree = visitedIn.size;
+
+    // Transitive outputs (all descendants via BFS on outgoing edges)
+    const visitedOut = new Set<number>();
+    const queueOut = [...outgoing[nodeIdx]];
+    while (queueOut.length > 0) {
+      const curr = queueOut.shift()!;
+      if (!visitedOut.has(curr)) {
+        visitedOut.add(curr);
+        queueOut.push(...outgoing[curr]);
+      }
+    }
+    node.transitiveOutDegree = visitedOut.size;
+  });
+}
 
 export function sanitizeGraph(raw: Graph): Graph {
   const isValidId = (s: string) =>
@@ -35,11 +139,41 @@ export function sanitizeGraph(raw: Graph): Graph {
 // Fast grid layout for very large graphs (50k+ nodes)
 // Arranges nodes in a compact grid, much faster than layered layout
 function compactGridLayout(graph: Graph): PositionedGraph {
-  const nodes = graph.nodes.map((n) => ({ ...n, x: 0, y: 0 }));
+  const nodes = graph.nodes.map((n) => ({
+    ...n,
+    x: 0,
+    y: 0,
+    inDegree: 0,
+    outDegree: 0,
+    transitiveInDegree: 0,
+    transitiveOutDegree: 0,
+    weight: 0,
+  }));
+
+  // Calculate degrees
+  const idIndex = new Map<string, number>();
+  nodes.forEach((n, i) => idIndex.set(n.id, i));
+
+  graph.edges.forEach((e) => {
+    const sourceIdx = idIndex.get(e.source);
+    const targetIdx = idIndex.get(e.target);
+    if (sourceIdx !== undefined && targetIdx !== undefined) {
+      nodes[sourceIdx].outDegree++;
+      nodes[targetIdx].inDegree++;
+    }
+  });
+
+  // Calculate transitive closure
+  calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
+
+  // Calculate default weight (total degree)
+  nodes.forEach((n) => {
+    n.weight = n.inDegree + n.outDegree;
+  });
 
   // Arrange in a square grid
   const gridSize = Math.ceil(Math.sqrt(nodes.length));
-  const spacing = 60; // Spacing between nodes
+  const spacing = 120; // Spacing between nodes (increased for larger node sizes)
 
   nodes.forEach((n, i) => {
     const col = i % gridSize;
@@ -76,7 +210,16 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     return compactGridLayout(graph);
   }
 
-  const nodes = graph.nodes.map((n) => ({ ...n, x: 0, y: 0 }));
+  const nodes = graph.nodes.map((n) => ({
+    ...n,
+    x: 0,
+    y: 0,
+    inDegree: 0,
+    outDegree: 0,
+    transitiveInDegree: 0,
+    transitiveOutDegree: 0,
+    weight: 0,
+  }));
   const idIndex = new Map<string, number>();
   nodes.forEach((n, i) => idIndex.set(n.id, i));
 
@@ -88,7 +231,18 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     if (s === undefined || t === undefined) continue;
     outgoing[s].push(t);
     indegree[t]++;
+    // Track degrees in nodes
+    nodes[s].outDegree++;
+    nodes[t].inDegree++;
   }
+
+  // Calculate transitive closure
+  calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
+
+  // Calculate default weight (total degree)
+  nodes.forEach((n) => {
+    n.weight = n.inDegree + n.outDegree;
+  });
 
   const layer: number[] = new Array(nodes.length).fill(0);
   const queue: number[] = [];
@@ -108,8 +262,8 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     layers[lv].push(i);
   });
 
-  const layerHeight = 140;
-  const horizontalGap = 40;
+  const layerHeight = 180; // Increased for larger node sizes
+  const horizontalGap = 80; // Increased for larger node sizes
   layers.forEach((idxs, lv) => {
     const count = idxs.length;
     const width = Math.max(1, (count - 1) * horizontalGap);
