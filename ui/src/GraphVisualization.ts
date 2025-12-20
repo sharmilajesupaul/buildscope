@@ -122,6 +122,40 @@ export class GraphVisualization {
     this.draw(this.positioned, false, false);
   }
 
+  // Calculate transitive dependencies for a specific node
+  private calculateTransitiveDeps(nodeId: string, pg: PositionedGraph): {
+    transitiveNodes: Set<string>;
+    transitiveEdges: Set<string>;
+  } {
+    const transitiveNodes = new Set<string>();
+    const transitiveEdges = new Set<string>();
+    const visited = new Set<string>();
+    const queue: string[] = [nodeId];
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      if (visited.has(currentId)) continue;
+      visited.add(currentId);
+
+      // Find all edges connected to this node
+      pg.edges.forEach((e) => {
+        const edgeKey = `${e.source}->${e.target}`;
+        if (e.source === currentId || e.target === currentId) {
+          transitiveEdges.add(edgeKey);
+
+          // Add connected nodes to queue
+          const connectedId = e.source === currentId ? e.target : e.source;
+          if (!visited.has(connectedId)) {
+            transitiveNodes.add(connectedId);
+            queue.push(connectedId);
+          }
+        }
+      });
+    }
+
+    return { transitiveNodes, transitiveEdges };
+  }
+
   // Status updates
   updateStatus() {
     if (!this.positioned) return;
@@ -130,6 +164,7 @@ export class GraphVisualization {
     const totalEdges = this.positioned.edges.length;
 
     if (this.selectedId) {
+      // Direct connections
       const selectedEdges = this.positioned.edges.filter(
         (e) => e.source === this.selectedId || e.target === this.selectedId
       );
@@ -140,8 +175,17 @@ export class GraphVisualization {
         if (e.target === this.selectedId) connectedNodeIds.add(e.source);
       });
 
-      this.nodeCountEl.innerText = `${connectedNodeIds.size} / ${totalNodes}`;
-      this.edgeCountEl.innerText = `${selectedEdges.length} / ${totalEdges}`;
+      // Transitive connections
+      const { transitiveNodes, transitiveEdges } = this.calculateTransitiveDeps(
+        this.selectedId,
+        this.positioned
+      );
+
+      // Show both direct and transitive counts
+      this.nodeCountEl.innerText =
+        `${connectedNodeIds.size} direct, ${transitiveNodes.size} transitive / ${totalNodes}`;
+      this.edgeCountEl.innerText =
+        `${selectedEdges.length} direct, ${transitiveEdges.size} transitive / ${totalEdges}`;
 
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
