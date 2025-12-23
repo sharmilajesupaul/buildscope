@@ -19,43 +19,53 @@ export function createControlsPanel(): HTMLElement {
   const controlsPanel = document.createElement('div');
   controlsPanel.className = 'controls-panel';
   controlsPanel.innerHTML = `
-    <div class="controls-section">
-      <div class="controls-label">Search</div>
-      <div class="search-container">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-        </svg>
-        <input type="text" class="search-input" id="search-input" placeholder="Search nodes..." />
+    <button class="controls-toggle" id="controls-toggle" title="Toggle Controls">
+      <svg class="toggle-icon toggle-icon-menu" width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M2 3.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/>
+      </svg>
+      <svg class="toggle-icon toggle-icon-close" width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+      </svg>
+    </button>
+    <div class="controls-content">
+      <div class="controls-section">
+        <div class="controls-label">Search</div>
+        <div class="search-container">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+          </svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Search nodes..." />
+        </div>
       </div>
-    </div>
-    <div class="controls-section">
-      <div class="controls-label">Node Size</div>
-      <select class="weight-mode-select" id="weight-mode-select">
-        <option value="total">Direct: Total Connections</option>
-        <option value="inputs">Direct: Inputs Only</option>
-        <option value="outputs">Direct: Outputs Only</option>
-        <option value="transitive-total">Transitive: Total</option>
-        <option value="transitive-inputs">Transitive: Inputs</option>
-        <option value="transitive-outputs">Transitive: Outputs</option>
-        <option value="uniform">Uniform Size</option>
-      </select>
-    </div>
-    <div class="controls-section">
-      <div class="controls-label">View Controls</div>
-      <div class="button-group">
-        <button class="btn btn-primary" id="fit-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3zm13 0A1.5 1.5 0 0 0 12.5 1h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 1 0v-3zM.5 10.5A.5.5 0 0 1 1 10v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 1 13v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 0 0 1h3a1.5 1.5 0 0 0 1.5-1.5v-3a.5.5 0 0 0-.5-.5z"/>
-          </svg>
-          Fit View
-        </button>
-        <button class="btn btn-secondary" id="reset-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-          </svg>
-          Reset
-        </button>
+      <div class="controls-section">
+        <div class="controls-label">Node Size</div>
+        <select class="weight-mode-select" id="weight-mode-select">
+          <option value="total">Direct: Total Connections</option>
+          <option value="inputs">Direct: Inputs Only</option>
+          <option value="outputs">Direct: Outputs Only</option>
+          <option value="transitive-total">Transitive: Total</option>
+          <option value="transitive-inputs">Transitive: Inputs</option>
+          <option value="transitive-outputs">Transitive: Outputs</option>
+          <option value="uniform">Uniform Size</option>
+        </select>
+      </div>
+      <div class="controls-section">
+        <div class="controls-label">View Controls</div>
+        <div class="button-group">
+          <button class="btn btn-primary" id="fit-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3zm13 0A1.5 1.5 0 0 0 12.5 1h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 1 0v-3zM.5 10.5A.5.5 0 0 1 1 10v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 1 13v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 0 0 1h3a1.5 1.5 0 0 0 1.5-1.5v-3a.5.5 0 0 0-.5-.5z"/>
+            </svg>
+            Fit View
+          </button>
+          <button class="btn btn-secondary" id="reset-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+              <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+            </svg>
+            Reset
+          </button>
+        </div>
       </div>
     </div>
   `;

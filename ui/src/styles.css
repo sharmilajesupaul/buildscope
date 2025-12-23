@@ -160,12 +160,93 @@ body {
   background: var(--color-surface-primary);
   border: 1px solid var(--color-border-medium);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
   box-shadow: var(--shadow-md);
   z-index: 50;
-  min-width: 320px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  transition: all var(--transition-slow);
+  overflow: hidden;
+}
+
+.controls-panel.expanded {
+  padding: var(--space-lg);
+  min-width: 320px;
+  width: 320px;
+}
+
+.controls-panel.collapsed {
+  padding: 0;
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+}
+
+.controls-toggle {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  z-index: 10;
+}
+
+.controls-panel.collapsed .controls-toggle {
+  position: relative;
+  top: 0;
+  right: 0;
+  width: 48px;
+  height: 48px;
+}
+
+.controls-toggle:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-accent-bright);
+}
+
+.toggle-icon {
+  position: absolute;
+  transition: all var(--transition-base);
+}
+
+.controls-panel.expanded .toggle-icon-menu {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.8);
+}
+
+.controls-panel.expanded .toggle-icon-close {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.controls-panel.collapsed .toggle-icon-menu {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.controls-panel.collapsed .toggle-icon-close {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.8);
+}
+
+.controls-content {
+  opacity: 1;
+  transition: opacity var(--transition-slow);
+  pointer-events: auto;
+}
+
+.controls-panel.collapsed .controls-content {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .controls-section {
@@ -567,11 +648,17 @@ body {
     display: none;
   }
 
-  .controls-panel {
+  .controls-panel.expanded {
     right: var(--space-md);
     left: var(--space-md);
     top: 76px;
     min-width: unset;
+    width: auto;
+  }
+
+  .controls-panel.collapsed {
+    right: var(--space-md);
+    left: auto;
   }
 
   .status-panel {

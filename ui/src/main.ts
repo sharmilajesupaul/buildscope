@@ -26,7 +26,11 @@ function main() {
   root.appendChild(statusPanel);
   root.appendChild(zoomControls);
 
+  // Initialize controls panel as expanded
+  controlsPanel.classList.add('expanded');
+
   // Get DOM references
+  const controlsToggle = controlsPanel.querySelector('#controls-toggle') as HTMLButtonElement;
   const searchInput = controlsPanel.querySelector('#search-input') as HTMLInputElement;
   const fitBtn = controlsPanel.querySelector('#fit-btn') as HTMLButtonElement;
   const resetBtn = controlsPanel.querySelector('#reset-btn') as HTMLButtonElement;
@@ -41,6 +45,18 @@ function main() {
   const zoomInBtn = zoomControls.querySelector('#zoom-in') as HTMLButtonElement;
   const zoomOutBtn = zoomControls.querySelector('#zoom-out') as HTMLButtonElement;
   const zoomLevelEl = zoomControls.querySelector('#zoom-level') as HTMLElement;
+
+  // Event listener - Controls panel toggle
+  controlsToggle.addEventListener('click', () => {
+    const isExpanded = controlsPanel.classList.contains('expanded');
+    if (isExpanded) {
+      controlsPanel.classList.remove('expanded');
+      controlsPanel.classList.add('collapsed');
+    } else {
+      controlsPanel.classList.remove('collapsed');
+      controlsPanel.classList.add('expanded');
+    }
+  });
 
   // Create PixiJS application
   const app = new Application({
