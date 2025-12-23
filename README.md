@@ -1,165 +1,91 @@
 # BuildScope
 
-BuildScope is a local-first Bazel build graph explorer. It ingests `query`/`aquery` graphs plus timing data from a `bazel build --profile`/BEP run, then renders a high-performance 2D view to spot bottlenecks, fan-in hotspots, and critical paths.
+BuildScope is a local-first Bazel build graph explorer. It extracts dependency graphs from Bazel and renders them in a fast 2D UI for inspection.
 
-## Tech choices
-- CLI/server: Go (fast to ship, simple static binary, solid proto tooling)
-- UI: Vite + TypeScript with Pixi.js for high-performance 2D rendering
-- Layout: Layered graph layout with topological sorting for dependency visualization
-
-## Current state
-- ✅ Go CLI with `extract` and `serve` commands
-- ✅ Modern UI with Pixi.js renderer, pan/zoom, search, and interactive controls
-- ✅ Graph layout engine with fit-to-view and layered positioning
-- ✅ Sample graph visualization with hover/selection highlighting
-- 🚧 BEP/profile integration for timing data (planned)
-- 🚧 Advanced insights: critical path, heatmaps, metrics (planned)
+## Prerequisites
+- Node.js v24.11.1 (see `.node-version`)
+- Go 1.22+
+- Bazel workspace (only required for `extract`)
 
 ## Quick Start
 
-### Quick graph visualization from Bazel
-
-**Instant visualization of any Bazel target** (from within a Bazel workspace):
+### Visualize a Bazel target
 ```bash
 # From your Bazel workspace root
 /path/to/buildscope/buildscope.sh //your/package:target
 ```
 
-This extracts the dependency graph, builds the UI, and starts the viewer at http://localhost:4422
+This extracts the graph, builds the UI if needed, and starts the viewer.
 
 ### Development
-
-**One-command development** (recommended):
 ```bash
-# Install UI dependencies first
+# Install UI dependencies
 cd ui && npm install && cd ..
 
-# Start both servers with sample graph
+# Start dev servers with sample graph
 ./dev.sh
 
-# Or with your own graph data
+# Or pass a custom graph
 ./dev.sh path/to/your/graph.json
 ```
 
-Then open http://localhost:4400
+Default URLs are printed on startup. Ports will fall back if defaults are busy.
 
-This starts:
-- **Vite dev server** (port 4400) with TypeScript hot module reloading
-- **Go API server** (port 4422) with automatic restart on `.go` file changes
-- **File watchers** for both TypeScript and Go code
+## CLI Usage
 
-Press Ctrl+C to cleanly stop all servers.
-
-**Manual development** (if you prefer separate terminals):
-```bash
-# Terminal 1: Go server
-cd cli
-go run ./cmd/buildscope serve -graph /path/to/your/graph.json -addr :4422
-
-# Terminal 2: Vite dev server
-cd ui
-npm run dev
-```
-
-### Production
-Build and serve the UI with the Go server:
-```bash
-# Build the UI
-npm --prefix ui run build
-
-# Serve with your graph data
-cd cli
-go run ./cmd/buildscope serve -dir ../ui/dist -graph /path/to/your/graph.json -addr :4422
-```
-Then open http://localhost:4422
-
-### Extract a graph from Bazel
+### Extract a graph
 ```bash
 cd cli
 go run ./cmd/buildscope extract \
   -target //your/package:target \
-  -workdir ~/path/to/bazel/workspace \
+  -workdir /path/to/bazel/workspace \
   -out /tmp/graph.json
 ```
 
-## Workflow
-
-**Quick workflow** (one command):
+### Serve a graph
 ```bash
-./buildscope.sh //your/package:target
+cd cli
+go run ./cmd/buildscope serve \
+  -dir ../ui/dist \
+  -graph /path/to/your/graph.json \
+  -addr :4422
 ```
 
-This does everything: extract → build UI → serve → visualize
+## Scripts
 
-**Manual workflow** (step by step):
-1) **Extract**: `buildscope extract -target //path:target -workdir <workspace> -out graph.json`
-   - Runs `bazel query 'deps(target)' --output=graph`
-   - Parses the graph output and emits normalized JSON
-2) **View**: `buildscope serve -dir ui/dist -graph graph.json -addr :4422`
-   - Serves the UI bundle and graph data
-   - Opens at http://localhost:4422
-3) **Interact**: Pan, zoom, search nodes, click to select and highlight dependencies
+### `dev.sh`
+Starts:
+- Vite dev server (UI)
+- Go server (graph API)
+- Go file watcher for auto-restart
 
-## Repository Structure
-- `cli/`: Go CLI with extract and serve commands
-  - `cmd/buildscope/main.go`: Main CLI entry point
-  - Parses Bazel query output and serves UI
-- `ui/`: Modern TypeScript UI with Pixi.js
-  - `src/main.ts`: UI application with Pixi.js renderer
-  - `src/graphLayout.ts`: Graph layout algorithms (layered layout, fit-to-view)
-  - `src/styles.css`: Modern design system with CSS variables
-  - Production build outputs to `ui/dist/`
+### `buildscope.sh`
+Runs: extract → build UI (if needed) → serve.
 
-## Features
+### Port overrides
+You can override default ports:
+```bash
+GO_PORT=4500 VITE_PORT=4501 ./dev.sh
+SERVER_PORT=4500 ./buildscope.sh //your/package:target
+```
 
-### Current
-- ✅ **Graph Extraction**: Parse Bazel query output into JSON
-- ✅ **Interactive Visualization**: Pan, zoom, hover, and click to explore
-- ✅ **Search**: Find nodes by label (press Enter in search box)
-- ✅ **Modern UI**: Professional design with status panels, zoom controls, and legend
-- ✅ **Layered Layout**: Automatic topological layout for dependency graphs
-- ✅ **Highlighting**: Hover or click nodes to see connected edges
-- ✅ **Responsive**: Works on desktop and mobile
+## Build
+```bash
+npm --prefix ui run build
+```
 
-### Roadmap
-1) **Performance data integration** (in progress)
-   - Parse BEP (Build Event Protocol) and profile.gz for timing data
-   - Show build duration, critical path, cache hits
-2) **Advanced visualizations**
-   - Heatmap by duration/size
-   - Critical path highlighting
-   - Top fan-in/fan-out analysis
-   - Package/target grouping and collapse
-3) **Analysis features**
-   - Diff mode to compare graphs
-   - Hotspot detection
-   - Export to PNG/SVG
-   - Bookmarks and saved views
-
-## Development
-
-### Prerequisites
-- Node.js v24.11.1 (use `fnm` or `nvm` to match `.node-version`)
-- Go 1.22.0+
-- Bazel workspace (optional, for extracting real graphs)
-
-### Running Tests
+## Tests
 ```bash
 cd ui
 npm test
 ```
 
-### UI Architecture
-- **Pixi.js**: Hardware-accelerated 2D rendering for smooth 60fps interactions
-- **TypeScript**: Type-safe graph manipulation and layout
-- **CSS Variables**: Consistent design system with dark theme
-- **Modular Design**: Separate concerns for rendering, layout, and interaction
+## Repository Structure
+- `cli/`: Go CLI (extract/serve)
+- `ui/`: TypeScript UI (Pixi.js renderer)
+- `scripts/`: Shared script helpers and runners
 
-### Next Steps
-- Add comprehensive UI tests for graph sanitization and layout algorithms
-- Implement BEP/profile parsing for build timing integration
-- Add performance benchmarks for large graphs (1000+ nodes)
-- Create docs for graph schema and CLI flags
-
-## Tooling
-- Node version pinned via `.node-version` (v24.11.1). Use `fnm`/`nvm` to match.
+## Contributing
+1) Make a focused change.
+2) Run relevant tests.
+3) Open a PR with a clear description.

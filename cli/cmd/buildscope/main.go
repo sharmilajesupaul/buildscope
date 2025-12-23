@@ -2,15 +2,19 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
-	"encoding/json"
 	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"syscall"
 )
 
 func usage() {
@@ -59,8 +63,60 @@ func serve(args []string) error {
 
 	log.Printf("Serving UI from %s", staticDir)
 	log.Printf("Serving graph from %s at /graph.json", graphPath)
-	log.Printf("Listening on %s", *addr)
-	return http.ListenAndServe(*addr, mux)
+
+	listener, listenAddr, fellBack, err := listenWithFallback(*addr, 20)
+	if err != nil {
+		return fmt.Errorf("listen on %s: %w", *addr, err)
+	}
+	if fellBack {
+		log.Printf("Port %s is in use; falling back to %s", *addr, listenAddr)
+	}
+	log.Printf("Listening on %s", listenAddr)
+	return http.Serve(listener, mux)
+}
+
+func listenWithFallback(addr string, maxTries int) (net.Listener, string, bool, error) {
+	listener, err := net.Listen("tcp", addr)
+	if err == nil {
+		return listener, addr, false, nil
+	}
+	if !isAddrInUse(err) {
+		return nil, "", false, err
+	}
+
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, "", false, err
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, "", false, err
+	}
+
+	for i := 1; i <= maxTries; i++ {
+		candidate := port + i
+		tryAddr := net.JoinHostPort(host, strconv.Itoa(candidate))
+		listener, err = net.Listen("tcp", tryAddr)
+		if err == nil {
+			return listener, tryAddr, true, nil
+		}
+		if !isAddrInUse(err) {
+			return nil, "", false, err
+		}
+	}
+
+	return nil, "", false, fmt.Errorf("no open port found starting at %s", addr)
+}
+
+func isAddrInUse(err error) bool {
+	if errors.Is(err, syscall.EADDRINUSE) {
+		return true
+	}
+	var opErr *net.OpError
+	if errors.As(err, &opErr) && errors.Is(opErr.Err, syscall.EADDRINUSE) {
+		return true
+	}
+	return false
 }
 
 type graph struct {
