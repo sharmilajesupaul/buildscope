@@ -8,6 +8,8 @@ import {
   createStatusPanel,
   createZoomControls,
 } from './ui';
+import { CustomDropdown } from './components/Dropdown';
+import { THEMES, DEFAULT_THEME_ID, getTheme, applyTheme } from './themes';
 
 function main() {
   const root = document.getElementById('app');
@@ -30,8 +32,6 @@ function main() {
   const searchInput = controlsPanel.querySelector('#search-input') as HTMLInputElement;
   const fitBtn = controlsPanel.querySelector('#fit-btn') as HTMLButtonElement;
   const resetBtn = controlsPanel.querySelector('#reset-btn') as HTMLButtonElement;
-  const weightModeSelect = controlsPanel.querySelector('#weight-mode-select') as HTMLSelectElement;
-
   const statusBadge = statusPanel.querySelector('#status-badge') as HTMLElement;
   const nodeCountEl = statusPanel.querySelector('#node-count') as HTMLElement;
   const edgeCountEl = statusPanel.querySelector('#edge-count') as HTMLElement;
@@ -59,6 +59,41 @@ function main() {
   canvas.style.zIndex = '0';
   root.appendChild(canvas);
 
+  // Initialize Theme
+  const defaultTheme = getTheme(DEFAULT_THEME_ID);
+  applyTheme(defaultTheme);
+
+  // Initialize Custom Dropdowns
+  // 1. Theme Dropdown
+  new CustomDropdown(
+    'theme-select-container',
+    THEMES.map(t => ({ value: t.id, label: t.label })),
+    DEFAULT_THEME_ID,
+    (value) => {
+      const theme = getTheme(value);
+      applyTheme(theme);
+      viz.setTheme(theme.colors);
+    }
+  );
+
+  // 2. Weight Mode Dropdown
+  new CustomDropdown(
+    'weight-mode-container',
+    [
+      { value: 'total', label: 'Direct: Total Connections' },
+      { value: 'inputs', label: 'Direct: Inputs Only' },
+      { value: 'outputs', label: 'Direct: Outputs Only' },
+      { value: 'transitive-total', label: 'Transitive: Total' },
+      { value: 'transitive-inputs', label: 'Transitive: Inputs' },
+      { value: 'transitive-outputs', label: 'Transitive: Outputs' },
+      { value: 'uniform', label: 'Uniform Size' },
+    ],
+    'total',
+    (value) => {
+      viz.setWeightMode(value as any);
+    }
+  );
+
   // Create graph visualization
   const viz = new GraphVisualization(app, {
     zoomLevelEl,
@@ -67,6 +102,7 @@ function main() {
     edgeCountEl,
     currentNodeEl,
     currentNodeStatus,
+    initialColors: defaultTheme.colors,
   });
 
   // Event listeners - Zoom controls
@@ -94,18 +130,6 @@ function main() {
     viz.search(term);
   });
 
-  // Event listeners - Weight mode
-  weightModeSelect.addEventListener('change', () => {
-    const mode = weightModeSelect.value as
-      | 'total'
-      | 'inputs'
-      | 'outputs'
-      | 'transitive-total'
-      | 'transitive-inputs'
-      | 'transitive-outputs'
-      | 'uniform';
-    viz.setWeightMode(mode);
-  });
 
   // Event listeners - Canvas interactions
   if (app.view instanceof HTMLCanvasElement) {
@@ -123,6 +147,21 @@ function main() {
   window.addEventListener('pointermove', (e) => viz.updatePan(e.clientX, e.clientY));
   window.addEventListener('resize', () => viz.handleResize());
 
+  // Create Layout Worker
+  const layoutWorker = new Worker(new URL('./layout.worker.ts', import.meta.url), {
+    type: 'module',
+  });
+
+  layoutWorker.onmessage = (e) => {
+    const { type, positioned, stats } = e.data;
+
+    if (type === 'layout-complete') {
+      console.log(`Main: Received layout for ${stats.nodes} nodes in ${stats.time.toFixed(0)}ms`);
+      viz.setStatus('Ready', 'success');
+      viz.setPositionedGraph(positioned);
+    }
+  };
+
   // Load and process graph
   loadGraph()
     .then((g) => {
@@ -132,26 +171,14 @@ function main() {
 
       viz.setStatus('Processing...', 'loading');
 
-      setTimeout(() => {
-        const clean = sanitizeGraph(g);
-        console.log(
-          `Sanitized to ${clean.nodes.length} nodes, ${clean.edges.length} edges`
-        );
+      // Send to worker
+      layoutWorker.postMessage(g);
 
-        if (clean.nodes.length > 10000) {
+      // If it takes too long, show a "computing" message
+       if (g.nodes.length > 5000) {
           viz.setStatus('Large graph - Computing layout...', 'loading');
-        }
+       }
 
-        setTimeout(() => {
-          const layoutStart = performance.now();
-          const positioned = layeredLayout(clean);
-          const layoutTime = performance.now() - layoutStart;
-          console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
-
-          viz.setStatus('Ready', 'success');
-          viz.setPositionedGraph(positioned);
-        }, 10);
-      }, 10);
     })
     .catch((err) => {
       console.error(err);

@@ -13,8 +13,8 @@ import {
   MAX_SCALE,
   ZOOM_FACTOR,
   EDGE_VISIBILITY_THRESHOLD,
-  COLORS,
 } from './constants';
+import { ThemeColors } from './themes';
 
 export interface UIElements {
   zoomLevelEl: HTMLElement;
@@ -23,6 +23,7 @@ export interface UIElements {
   edgeCountEl: HTMLElement;
   currentNodeEl: HTMLElement;
   currentNodeStatus: HTMLElement;
+  initialColors: ThemeColors;
 }
 
 export class GraphVisualization {
@@ -31,6 +32,7 @@ export class GraphVisualization {
   private nodesLayer: Container;
   private nodeGraphics: Map<string, Graphics>;
   private positioned: PositionedGraph | null = null;
+  private colors: ThemeColors;
 
   // State
   private currentScale = 1;
@@ -64,6 +66,57 @@ export class GraphVisualization {
     this.edgeCountEl = uiElements.edgeCountEl;
     this.currentNodeEl = uiElements.currentNodeEl;
     this.currentNodeStatus = uiElements.currentNodeStatus;
+    this.colors = uiElements.initialColors;
+  }
+
+  setTheme(colors: ThemeColors) {
+    this.colors = colors;
+
+    if (this.positioned) {
+      // Just update tint for all existing nodes using the new colors
+      // This is extremely fast compared to redrawing
+      this.nodeGraphics.forEach((g, nodeId) => {
+        const isHighlight = this.hoveredId === nodeId || this.selectedId === nodeId;
+        g.tint = isHighlight ? this.colors.graphNodeHighlight : this.colors.graphNode;
+      });
+
+      // We must redraw edges because their line style (color/alpha) is baked into the geometry
+      // But we can do this without touching the nodes
+      this.redrawEdges();
+    }
+  }
+
+  private redrawEdges() {
+    if (!this.positioned) return;
+
+    // Find existing edge graphics or create new one needed?
+    // Actually we child index 0 is always edges
+    let edgesGfx = this.graphContainer.children[0] as Graphics;
+    if (!(edgesGfx instanceof Graphics)) {
+       // Should not happen if initialized correctly, but safety check
+       edgesGfx = new Graphics();
+       this.graphContainer.addChildAt(edgesGfx, 0);
+    }
+
+    edgesGfx.clear();
+
+    const useCulling = this.positioned.nodes.length > LARGE_GRAPH_THRESHOLD;
+    const viewportBounds = useCulling ? this.getViewportBounds() : null;
+
+    const highlightSet = new Set<string>();
+    if (this.hoveredId) highlightSet.add(this.hoveredId);
+    if (this.selectedId) highlightSet.add(this.selectedId);
+
+    const visibleNodes = new Set<string>();
+    if (useCulling && viewportBounds) {
+      this.positioned.nodes.forEach((n) => {
+        if (this.isNodeVisible(n, viewportBounds!) || highlightSet.has(n.id)) {
+          visibleNodes.add(n.id);
+        }
+      });
+    }
+
+    this.drawEdges(this.positioned, edgesGfx, highlightSet, visibleNodes, useCulling);
   }
 
   // Viewport calculations
@@ -96,6 +149,9 @@ export class GraphVisualization {
     this.zoomLevelEl.innerText = `${Math.round(this.currentScale * 100)}%`;
   }
 
+  // Throttle zoom redraws
+  private zoomRedrawPending = false;
+
   zoom(delta: number, cx: number, cy: number) {
     if (!this.positioned) return;
 
@@ -119,7 +175,17 @@ export class GraphVisualization {
     this.graphContainer.position.y += (after.y - before.y) * this.currentScale;
 
     this.updateZoomLevel();
-    this.draw(this.positioned, false, false);
+
+    // Throttled redraw
+    if (!this.zoomRedrawPending) {
+        this.zoomRedrawPending = true;
+        requestAnimationFrame(() => {
+            if (this.positioned) {
+                this.draw(this.positioned, false, false);
+            }
+            this.zoomRedrawPending = false;
+        });
+    }
   }
 
   // Calculate transitive dependencies for a specific node
@@ -239,25 +305,33 @@ export class GraphVisualization {
   }
 
   // Node creation and management
-  private createOrUpdateNode(node: PositionedNode, isHighlight: boolean, pg: PositionedGraph) {
+  private createOrUpdateNode(node: PositionedNode, isHighlight: boolean, pg: PositionedGraph, isVisible: boolean) {
     let g = this.nodeGraphics.get(node.id);
+
+    if (g && !isVisible) {
+      g.visible = false;
+      return g;
+    }
 
     const core = this.calculateNodeSize(node, isHighlight);
     const halo = core * 1.8;
 
     if (!g) {
-      // Create new node
+      // Create new node - Draw in WHITE and use TINT for color
       g = new Graphics();
-      g.beginFill(COLORS.node, 0.22);
+      g.beginFill(0xffffff, 0.22);
       g.drawCircle(0, 0, halo);
       g.endFill();
-      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+      g.beginFill(0xffffff, 1);
       g.drawCircle(0, 0, core);
       g.endFill();
+      g.tint = isHighlight ? this.colors.graphNodeHighlight : this.colors.graphNode;
+
       g.x = node.x;
       g.y = node.y;
       g.eventMode = 'static';
       g.cursor = 'pointer';
+      (g as any)._lastHighlight = isHighlight;
 
       // Event handlers
       g.on('pointerover', () => {
@@ -279,17 +353,27 @@ export class GraphVisualization {
       this.nodeGraphics.set(node.id, g);
       this.nodesLayer.addChild(g);
     } else {
-      // Update existing node
-      g.clear();
-      g.beginFill(COLORS.node, 0.22);
-      g.drawCircle(0, 0, halo);
-      g.endFill();
-      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
-      g.drawCircle(0, 0, core);
-      g.endFill();
-
+      g.visible = true;
       g.x = node.x;
       g.y = node.y;
+
+      // OPTIMIZATION: Only redraw geometry if highlight state changed or weight mode changed
+      // We use duck typing to store last state
+      const lastHighlight = (g as any)._lastHighlight;
+
+      if (lastHighlight !== isHighlight) {
+        g.clear();
+        g.beginFill(0xffffff, 0.22);
+        g.drawCircle(0, 0, halo);
+        g.endFill();
+        g.beginFill(0xffffff, 1);
+        g.drawCircle(0, 0, core);
+        g.endFill();
+        (g as any)._lastHighlight = isHighlight;
+      }
+
+      // Always update tint as it's cheap and handles theme changes
+      g.tint = isHighlight ? this.colors.graphNodeHighlight : this.colors.graphNode;
     }
 
     return g;
@@ -312,7 +396,7 @@ export class GraphVisualization {
 
     // Draw normal edges
     if (showAllEdges) {
-      edgesGfx.lineStyle(1, COLORS.edge, 0.35);
+      edgesGfx.lineStyle(1, this.colors.graphEdge, 0.35);
       for (const e of pg.edges) {
         if (neighborEdges.has(e)) continue;
 
@@ -331,7 +415,7 @@ export class GraphVisualization {
 
     // Draw highlighted edges
     if (neighborEdges.size > 0) {
-      edgesGfx.lineStyle(2, COLORS.edgeHighlight, 0.85);
+      edgesGfx.lineStyle(2, this.colors.graphEdgeHighlight, 0.85);
       neighborEdges.forEach((e) => {
         const s = pg.idToNode.get(e.source);
         const t = pg.idToNode.get(e.target);
@@ -404,8 +488,8 @@ export class GraphVisualization {
       const isHighlight = highlightSet.has(n.id);
       const isVisible = !useCulling || visibleNodes.has(n.id);
 
-      const g = this.createOrUpdateNode(n, isHighlight, pg);
-      g.visible = isVisible;
+      const g = this.createOrUpdateNode(n, isHighlight, pg, isVisible);
+      if (g) g.visible = isVisible;
 
       if (isVisible) renderedNodes++;
     });
@@ -523,6 +607,11 @@ export class GraphVisualization {
 
     this.currentWeightMode = mode;
     recalculateWeights(this.positioned, mode);
+
+    // Clear graphics to force rebuild as sizes have changed
+    this.nodesLayer.removeChildren();
+    this.nodeGraphics.clear();
+
     this.draw(this.positioned, false, false);
   }
 
