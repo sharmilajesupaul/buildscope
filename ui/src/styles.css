@@ -164,22 +164,20 @@ body {
   z-index: 50;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: all var(--transition-slow);
-  overflow: hidden;
+  padding: var(--space-lg);
+  width: 320px;
+  transform-origin: top right;
+  transition: transform var(--transition-slow), border-radius var(--transition-slow);
+  will-change: transform;
 }
 
 .controls-panel.expanded {
-  padding: var(--space-lg);
-  min-width: 320px;
-  width: 320px;
+  transform: scale(1);
 }
 
 .controls-panel.collapsed {
-  padding: 0;
-  min-width: 48px;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
+  transform: scale(0.15);
+  border-radius: 50%;
 }
 
 .controls-toggle {
@@ -196,16 +194,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-base);
+  transition: background var(--transition-base), color var(--transition-base);
   z-index: 10;
-}
-
-.controls-panel.collapsed .controls-toggle {
-  position: relative;
-  top: 0;
-  right: 0;
-  width: 48px;
-  height: 48px;
 }
 
 .controls-toggle:hover {
@@ -215,12 +205,13 @@ body {
 
 .toggle-icon {
   position: absolute;
-  transition: all var(--transition-base);
+  transition: opacity var(--transition-base), transform var(--transition-base);
 }
 
 .controls-panel.expanded .toggle-icon-menu {
   opacity: 0;
-  transform: rotate(90deg) scale(0.8);
+  transform: rotate(180deg) scale(0.5);
+  pointer-events: none;
 }
 
 .controls-panel.expanded .toggle-icon-close {
@@ -235,13 +226,16 @@ body {
 
 .controls-panel.collapsed .toggle-icon-close {
   opacity: 0;
-  transform: rotate(-90deg) scale(0.8);
+  transform: rotate(-180deg) scale(0.5);
+  pointer-events: none;
 }
 
 .controls-content {
-  opacity: 1;
   transition: opacity var(--transition-slow);
-  pointer-events: auto;
+}
+
+.controls-panel.expanded .controls-content {
+  opacity: 1;
 }
 
 .controls-panel.collapsed .controls-content {
@@ -648,17 +642,10 @@ body {
     display: none;
   }
 
-  .controls-panel.expanded {
+  .controls-panel {
     right: var(--space-md);
     left: var(--space-md);
-    top: 76px;
-    min-width: unset;
     width: auto;
-  }
-
-  .controls-panel.collapsed {
-    right: var(--space-md);
-    left: auto;
   }
 
   .status-panel {
