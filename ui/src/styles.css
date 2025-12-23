@@ -164,28 +164,26 @@ body {
   z-index: 50;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: var(--space-lg);
-  width: 320px;
-  height: 320px;
-  transform-origin: top right;
-  transition: transform var(--transition-slow), border-radius var(--transition-slow);
-  will-change: transform;
+  transition: all var(--transition-slow);
+  will-change: transform, width, height, padding;
   overflow: hidden;
 }
 
 .controls-panel.expanded {
-  transform: scale(1);
+  padding: var(--space-lg);
+  width: 320px;
+  height: auto;
 }
 
 .controls-panel.collapsed {
-  transform: scale(0.15);
-  border-radius: 50%;
+  padding: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
 }
 
 .controls-toggle {
   position: absolute;
-  top: var(--space-sm);
-  right: var(--space-sm);
   width: 32px;
   height: 32px;
   background: transparent;
@@ -196,8 +194,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition-base), color var(--transition-base);
+  transition: all var(--transition-slow);
   z-index: 10;
+}
+
+.controls-panel.expanded .controls-toggle {
+  top: var(--space-sm);
+  right: var(--space-sm);
+}
+
+.controls-panel.collapsed .controls-toggle {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .controls-toggle:hover {
@@ -207,28 +216,24 @@ body {
 
 .toggle-icon {
   position: absolute;
-  transition: opacity var(--transition-base), transform var(--transition-base);
+  transition: opacity var(--transition-base);
 }
 
 .controls-panel.expanded .toggle-icon-menu {
   opacity: 0;
-  transform: rotate(180deg) scale(0.5);
   pointer-events: none;
 }
 
 .controls-panel.expanded .toggle-icon-close {
   opacity: 1;
-  transform: rotate(0deg) scale(1);
 }
 
 .controls-panel.collapsed .toggle-icon-menu {
   opacity: 1;
-  transform: rotate(0deg) scale(1);
 }
 
 .controls-panel.collapsed .toggle-icon-close {
   opacity: 0;
-  transform: rotate(-180deg) scale(0.5);
   pointer-events: none;
 }
 
