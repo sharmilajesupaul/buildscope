@@ -461,3 +461,22 @@ describe('main.ts - Highlight set logic', () => {
     expect(highlightSet.size).toBe(1);
   });
 });
+
+describe('Editable zoom percentage input feature', () => {
+  it('should be an input element, not a div', async () => {
+    const { createZoomControls } = await import('./ui');
+    const zoomControls = createZoomControls();
+    const zoomLevelEl = zoomControls.querySelector('#zoom-level');
+
+    expect(zoomLevelEl?.tagName).toBe('INPUT');
+    expect((zoomLevelEl as HTMLInputElement)?.type).toBe('text');
+  });
+
+  it('should have initial value of "100%"', async () => {
+    const { createZoomControls } = await import('./ui');
+    const zoomControls = createZoomControls();
+    const zoomLevelEl = zoomControls.querySelector('#zoom-level') as HTMLInputElement;
+
+    expect(zoomLevelEl.value).toBe('100%');
+  });
+});
