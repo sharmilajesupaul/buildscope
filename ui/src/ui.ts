@@ -30,17 +30,14 @@ export function createControlsPanel(): HTMLElement {
     </div>
     <div class="controls-section">
       <div class="controls-label">Node Size</div>
-      <select class="weight-mode-select" id="weight-mode-select">
-        <option value="total">Direct: Total Connections</option>
-        <option value="inputs">Direct: Inputs Only</option>
-        <option value="outputs">Direct: Outputs Only</option>
-        <option value="transitive-total">Transitive: Total</option>
-        <option value="transitive-inputs">Transitive: Inputs</option>
-        <option value="transitive-outputs">Transitive: Outputs</option>
-        <option value="uniform">Uniform Size</option>
-      </select>
+      <div id="weight-mode-container"></div>
     </div>
     <div class="controls-section">
+      <div class="controls-label">Theme</div>
+      <div id="theme-select-container"></div>
+    </div>
+    <div class="controls-section">
+
       <div class="controls-label">View Controls</div>
       <div class="button-group">
         <button class="btn btn-primary" id="fit-btn">
