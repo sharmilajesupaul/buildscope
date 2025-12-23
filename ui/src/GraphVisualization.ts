@@ -93,7 +93,8 @@ export class GraphVisualization {
 
   // Zoom management
   updateZoomLevel() {
-    this.zoomLevelEl.innerText = `${Math.round(this.currentScale * 100)}%`;
+    const input = this.zoomLevelEl as HTMLInputElement;
+    input.value = `${Math.round(this.currentScale * 100)}%`;
   }
 
   zoom(delta: number, cx: number, cy: number) {
@@ -120,6 +121,20 @@ export class GraphVisualization {
 
     this.updateZoomLevel();
     this.draw(this.positioned, false, false);
+  }
+
+  setZoomToPercentage(percentage: number) {
+    if (!this.positioned) return;
+
+    const newScale = Math.min(Math.max(percentage / 100, MIN_SCALE), MAX_SCALE);
+    this.currentScale = newScale;
+    this.graphContainer.scale.set(newScale);
+    this.updateZoomLevel();
+    this.draw(this.positioned, false, false);
+  }
+
+  getCurrentScale(): number {
+    return this.currentScale;
   }
 
   // Calculate transitive dependencies for a specific node

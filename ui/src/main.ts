@@ -82,6 +82,30 @@ function main() {
     viz.zoom(1, centerX, centerY);
   });
 
+  // Event listeners - Zoom level input
+  const handleZoomInput = () => {
+    const input = zoomLevelEl as HTMLInputElement;
+    const value = input.value.replace('%', '').trim();
+    const percentage = parseFloat(value);
+
+    if (!isNaN(percentage) && percentage > 0) {
+      viz.setZoomToPercentage(percentage);
+    } else {
+      // Restore current zoom if invalid input
+      viz.setZoomToPercentage(viz.getCurrentScale() * 100);
+    }
+  };
+
+  (zoomLevelEl as HTMLInputElement).addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleZoomInput();
+      (zoomLevelEl as HTMLInputElement).blur();
+    }
+  });
+
+  (zoomLevelEl as HTMLInputElement).addEventListener('blur', handleZoomInput);
+
   // Event listeners - View controls
   fitBtn.addEventListener('click', () => viz.fitView());
   resetBtn.addEventListener('click', () => viz.reset());

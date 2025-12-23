@@ -492,12 +492,33 @@ body {
 }
 
 .zoom-level {
-  padding: var(--space-sm);
+  width: 40px;
+  height: 40px;
+  padding: 0;
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   text-align: center;
+  border: none;
   border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-level:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-accent-bright);
+}
+
+.zoom-level:focus {
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  cursor: text;
 }
 
 /* Loading State */
