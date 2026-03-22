@@ -31,6 +31,7 @@
   --color-graph-node-highlight: #ffd98e;
   --color-graph-edge: rgba(91, 158, 255, 0.35);
   --color-graph-edge-highlight: rgba(255, 200, 87, 0.85);
+  --color-graph-hotspot: #ff6b6b;
 
   /* Spacing */
   --space-xs: 4px;
@@ -402,6 +403,10 @@ body {
 
 .legend-color.highlight {
   background: var(--color-graph-edge-highlight);
+}
+
+.legend-color.hotspot {
+  background: var(--color-graph-hotspot);
 }
 
 /* Canvas */

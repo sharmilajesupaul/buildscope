@@ -8,6 +8,11 @@ export type GraphNode = {
   transitiveInDegree?: number;
   transitiveOutDegree?: number;
   weight?: number;
+  sccId?: number;
+  sccSize?: number;
+  hotspotScore?: number;
+  hotspotRank?: number;
+  isHotspot?: boolean;
 };
 export type GraphEdge = { source: string; target: string };
 export type Graph = { nodes: GraphNode[]; edges: GraphEdge[] };
@@ -19,12 +24,32 @@ export type PositionedNode = GraphNode & {
   transitiveInDegree: number;
   transitiveOutDegree: number;
   weight: number;
+  sccId: number;
+  sccSize: number;
+  hotspotScore: number;
+  hotspotRank: number;
+  isHotspot: boolean;
 };
+
 export type PositionedGraph = {
   nodes: PositionedNode[];
   edges: GraphEdge[];
   idToNode: Map<string, PositionedNode>;
   neighbors: Map<string, GraphEdge[]>;
+  hotspotCount: number;
+  largestHotspotSize: number;
+};
+
+type ComponentInfo = {
+  id: number;
+  members: number[];
+  size: number;
+  selfLoop: boolean;
+  incoming: Set<number>;
+  outgoing: Set<number>;
+  hotspotScore: number;
+  hotspotRank: number;
+  isHotspot: boolean;
 };
 
 export type WeightMode =
@@ -34,6 +59,7 @@ export type WeightMode =
   | 'transitive-total'
   | 'transitive-inputs'
   | 'transitive-outputs'
+  | 'hotspots'
   | 'uniform';
 
 export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void {
@@ -57,6 +83,9 @@ export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void 
       case 'transitive-outputs':
         node.weight = node.transitiveOutDegree;
         break;
+      case 'hotspots':
+        node.weight = node.hotspotScore;
+        break;
       case 'uniform':
         node.weight = 1;
         break;
@@ -65,14 +94,10 @@ export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void 
 }
 
 // Calculate transitive closure using BFS
-function calculateTransitiveClosure(
-  nodes: PositionedNode[],
-  edges: GraphEdge[]
-): void {
+function calculateTransitiveClosure(nodes: PositionedNode[], edges: GraphEdge[]): void {
   const idIndex = new Map<string, number>();
   nodes.forEach((n, i) => idIndex.set(n.id, i));
 
-  // Build adjacency lists
   const outgoing: number[][] = nodes.map(() => []);
   const incoming: number[][] = nodes.map(() => []);
 
@@ -85,9 +110,7 @@ function calculateTransitiveClosure(
     }
   });
 
-  // Calculate transitive dependencies for each node
   nodes.forEach((node, nodeIdx) => {
-    // Transitive inputs (all ancestors via BFS on incoming edges)
     const visitedIn = new Set<number>();
     const queueIn = [...incoming[nodeIdx]];
     while (queueIn.length > 0) {
@@ -99,7 +122,6 @@ function calculateTransitiveClosure(
     }
     node.transitiveInDegree = visitedIn.size;
 
-    // Transitive outputs (all descendants via BFS on outgoing edges)
     const visitedOut = new Set<number>();
     const queueOut = [...outgoing[nodeIdx]];
     while (queueOut.length > 0) {
@@ -113,13 +135,122 @@ function calculateTransitiveClosure(
   });
 }
 
+function calculateStronglyConnectedComponents(
+  nodes: PositionedNode[],
+  edges: GraphEdge[]
+): ComponentInfo[] {
+  const idIndex = new Map<string, number>();
+  nodes.forEach((n, i) => idIndex.set(n.id, i));
+
+  const outgoing: number[][] = nodes.map(() => []);
+  const selfLoop = new Set<number>();
+
+  edges.forEach((e) => {
+    const s = idIndex.get(e.source);
+    const t = idIndex.get(e.target);
+    if (s === undefined || t === undefined) return;
+    outgoing[s].push(t);
+    if (s === t) selfLoop.add(s);
+  });
+
+  const indexByNode = new Array<number>(nodes.length).fill(-1);
+  const lowLink = new Array<number>(nodes.length).fill(0);
+  const onStack = new Array<boolean>(nodes.length).fill(false);
+  const stack: number[] = [];
+  const componentByNode = new Array<number>(nodes.length).fill(-1);
+  const components: ComponentInfo[] = [];
+  let index = 0;
+
+  const strongConnect = (nodeIdx: number) => {
+    indexByNode[nodeIdx] = index;
+    lowLink[nodeIdx] = index;
+    index += 1;
+    stack.push(nodeIdx);
+    onStack[nodeIdx] = true;
+
+    for (const next of outgoing[nodeIdx]) {
+      if (indexByNode[next] === -1) {
+        strongConnect(next);
+        lowLink[nodeIdx] = Math.min(lowLink[nodeIdx], lowLink[next]);
+      } else if (onStack[next]) {
+        lowLink[nodeIdx] = Math.min(lowLink[nodeIdx], indexByNode[next]);
+      }
+    }
+
+    if (lowLink[nodeIdx] === indexByNode[nodeIdx]) {
+      const members: number[] = [];
+      let member = -1;
+      while (member !== nodeIdx) {
+        member = stack.pop()!;
+        onStack[member] = false;
+        componentByNode[member] = components.length;
+        members.push(member);
+      }
+
+      components.push({
+        id: components.length,
+        members,
+        size: members.length,
+        selfLoop: members.some((idx) => selfLoop.has(idx)),
+        incoming: new Set(),
+        outgoing: new Set(),
+        hotspotScore: 0,
+        hotspotRank: 0,
+        isHotspot: false,
+      });
+    }
+  };
+
+  nodes.forEach((_, nodeIdx) => {
+    if (indexByNode[nodeIdx] === -1) {
+      strongConnect(nodeIdx);
+    }
+  });
+
+  edges.forEach((e) => {
+    const s = idIndex.get(e.source);
+    const t = idIndex.get(e.target);
+    if (s === undefined || t === undefined) return;
+    const sourceComponent = componentByNode[s];
+    const targetComponent = componentByNode[t];
+    if (sourceComponent === targetComponent) return;
+    components[sourceComponent].outgoing.add(targetComponent);
+    components[targetComponent].incoming.add(sourceComponent);
+  });
+
+  const ranked = [...components]
+    .map((component) => {
+      const degreeImpact = component.incoming.size + component.outgoing.size;
+      const cyclicityBonus = component.selfLoop || component.size > 1 ? component.size * 4 : 0;
+      component.hotspotScore = degreeImpact + cyclicityBonus;
+      component.isHotspot = component.hotspotScore > 0 && (component.size > 1 || component.selfLoop);
+      return component;
+    })
+    .sort((a, b) => b.hotspotScore - a.hotspotScore || b.size - a.size || a.id - b.id);
+
+  ranked.forEach((component, rank) => {
+    component.hotspotRank = rank + 1;
+  });
+
+  nodes.forEach((node, nodeIdx) => {
+    const component = components[componentByNode[nodeIdx]];
+    node.sccId = component.id;
+    node.sccSize = component.size;
+    node.hotspotScore = component.hotspotScore;
+    node.hotspotRank = component.hotspotRank;
+    node.isHotspot = component.isHotspot;
+  });
+
+  return components;
+}
+
 export function sanitizeGraph(raw: Graph): Graph {
   const isValidId = (s: string) =>
     s &&
-    !s.includes(" ") &&
-    !s.includes("[") &&
-    !s.includes("]") &&
-    (s.startsWith("//") || s.startsWith("@"));
+    !s.includes(' ') &&
+    !s.includes('[') &&
+    !s.includes(']') &&
+    (s.startsWith('//') || s.startsWith('@'));
   const nodeMap = new Map<string, GraphNode>();
   for (const n of raw.nodes) {
     if (isValidId(n.id)) {
@@ -136,8 +267,37 @@ export function sanitizeGraph(raw: Graph): Graph {
   return { nodes: Array.from(nodeMap.values()), edges };
 }
 
+function buildPositionedGraph(
+  nodes: PositionedNode[],
+  edges: GraphEdge[],
+  components: ComponentInfo[]
+): PositionedGraph {
+  const idToNode = new Map<string, PositionedNode>();
+  nodes.forEach((n) => idToNode.set(n.id, n));
+  const neighbors = new Map<string, GraphEdge[]>();
+  nodes.forEach((n) => neighbors.set(n.id, []));
+  edges.forEach((e) => {
+    neighbors.get(e.source)?.push(e);
+    neighbors.get(e.target)?.push(e);
+  });
+
+  const hotspotComponents = components.filter((component) => component.isHotspot);
+  const largestHotspotSize = hotspotComponents.reduce(
+    (largest, component) => Math.max(largest, component.size),
+    0
+  );
+
+  return {
+    nodes,
+    edges,
+    idToNode,
+    neighbors,
+    hotspotCount: hotspotComponents.length,
+    largestHotspotSize,
+  };
+}
+
 // Fast grid layout for very large graphs (50k+ nodes)
-// Arranges nodes in a compact grid, much faster than layered layout
 function compactGridLayout(graph: Graph): PositionedGraph {
   const nodes = graph.nodes.map((n) => ({
     ...n,
@@ -148,9 +308,13 @@ function compactGridLayout(graph: Graph): PositionedGraph {
     transitiveInDegree: 0,
     transitiveOutDegree: 0,
     weight: 0,
+    sccId: -1,
+    sccSize: 1,
+    hotspotScore: 0,
+    hotspotRank: 0,
+    isHotspot: false,
   }));
 
-  // Calculate degrees
   const idIndex = new Map<string, number>();
   nodes.forEach((n, i) => idIndex.set(n.id, i));
 
@@ -163,26 +327,29 @@ function compactGridLayout(graph: Graph): PositionedGraph {
     }
   });
 
-  // Calculate transitive closure
   calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
+  const components = calculateStronglyConnectedComponents(nodes as PositionedNode[], graph.edges);
 
-  // Calculate default weight (total degree)
   nodes.forEach((n) => {
     n.weight = n.inDegree + n.outDegree;
   });
 
-  // Arrange in a square grid
-  const gridSize = Math.ceil(Math.sqrt(nodes.length));
-  const spacing = 120; // Spacing between nodes (increased for larger node sizes)
+  const sortedNodes = [...nodes].sort((a, b) => {
+    if (a.hotspotRank !== b.hotspotRank) return a.hotspotRank - b.hotspotRank;
+    if (a.sccId !== b.sccId) return a.sccId - b.sccId;
+    return a.label.localeCompare(b.label);
+  });
 
-  nodes.forEach((n, i) => {
+  const gridSize = Math.ceil(Math.sqrt(sortedNodes.length));
+  const spacing = 120;
+
+  sortedNodes.forEach((n, i) => {
     const col = i % gridSize;
     const row = Math.floor(i / gridSize);
     n.x = col * spacing;
     n.y = row * spacing;
   });
 
-  // Center around origin
   const avgX = nodes.reduce((acc, n) => acc + n.x, 0) / nodes.length;
   const avgY = nodes.reduce((acc, n) => acc + n.y, 0) / nodes.length;
   nodes.forEach((n) => {
@@ -190,21 +357,10 @@ function compactGridLayout(graph: Graph): PositionedGraph {
     n.y -= avgY;
   });
 
-  const idToNode = new Map<string, PositionedNode>();
-  nodes.forEach((n) => idToNode.set(n.id, n));
-  const neighbors = new Map<string, GraphEdge[]>();
-  nodes.forEach((n) => neighbors.set(n.id, []));
-  graph.edges.forEach((e) => {
-    neighbors.get(e.source)?.push(e);
-    neighbors.get(e.target)?.push(e);
-  });
-
-  return { nodes: nodes as PositionedNode[], edges: graph.edges, idToNode, neighbors };
+  return buildPositionedGraph(nodes as PositionedNode[], graph.edges, components);
 }
 
 export function layeredLayout(graph: Graph): PositionedGraph {
-  // For very large graphs (>10k nodes), use fast grid layout instead
-  // The layered layout becomes impractical due to massive layer widths
   if (graph.nodes.length > 10000) {
     console.log(`Large graph detected (${graph.nodes.length} nodes), using fast grid layout`);
     return compactGridLayout(graph);
@@ -219,63 +375,92 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     transitiveInDegree: 0,
     transitiveOutDegree: 0,
     weight: 0,
+    sccId: -1,
+    sccSize: 1,
+    hotspotScore: 0,
+    hotspotRank: 0,
+    isHotspot: false,
   }));
   const idIndex = new Map<string, number>();
   nodes.forEach((n, i) => idIndex.set(n.id, i));
 
-  const outgoing = nodes.map(() => [] as number[]);
-  const indegree = nodes.map(() => 0);
   for (const e of graph.edges) {
     const s = idIndex.get(e.source);
     const t = idIndex.get(e.target);
     if (s === undefined || t === undefined) continue;
-    outgoing[s].push(t);
-    indegree[t]++;
-    // Track degrees in nodes
     nodes[s].outDegree++;
     nodes[t].inDegree++;
   }
 
-  // Calculate transitive closure
   calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
+  const components = calculateStronglyConnectedComponents(nodes as PositionedNode[], graph.edges);
 
-  // Calculate default weight (total degree)
   nodes.forEach((n) => {
     n.weight = n.inDegree + n.outDegree;
   });
 
-  const layer: number[] = new Array(nodes.length).fill(0);
+  const componentLayers = new Array<number>(components.length).fill(0);
+  const componentIndegree = components.map((component) => component.incoming.size);
   const queue: number[] = [];
-  indegree.forEach((d, i) => d === 0 && queue.push(i));
+  componentIndegree.forEach((degree, index) => {
+    if (degree === 0) queue.push(index);
+  });
+
   while (queue.length) {
-    const i = queue.shift()!;
-    for (const t of outgoing[i]) {
-      layer[t] = Math.max(layer[t], layer[i] + 1);
-      indegree[t]--;
-      if (indegree[t] === 0) queue.push(t);
+    const componentId = queue.shift()!;
+    for (const next of components[componentId].outgoing) {
+      componentLayers[next] = Math.max(componentLayers[next], componentLayers[componentId] + 1);
+      componentIndegree[next] -= 1;
+      if (componentIndegree[next] === 0) queue.push(next);
     }
   }
 
-  const layers: number[][] = [];
-  layer.forEach((lv, i) => {
-    if (!layers[lv]) layers[lv] = [];
-    layers[lv].push(i);
+  const groupedLayers = new Map<number, ComponentInfo[]>();
+  components.forEach((component) => {
+    const layer = componentLayers[component.id];
+    const existing = groupedLayers.get(layer) ?? [];
+    existing.push(component);
+    groupedLayers.set(layer, existing);
   });
 
-  const layerHeight = 180; // Increased for larger node sizes
-  const horizontalGap = 80; // Increased for larger node sizes
-  layers.forEach((idxs, lv) => {
-    const count = idxs.length;
-    const width = Math.max(1, (count - 1) * horizontalGap);
-    idxs.forEach((nodeIdx, j) => {
-      const x = j * horizontalGap - width / 2;
-      const y = lv * layerHeight;
-      nodes[nodeIdx].x = x;
-      nodes[nodeIdx].y = y;
+  const layerOrder = [...groupedLayers.keys()].sort((a, b) => a - b);
+  const componentPositions = new Map<number, { x: number; y: number }>();
+  const layerHeight = 240;
+  const horizontalGap = 220;
+
+  layerOrder.forEach((layerNumber) => {
+    const layerComponents = (groupedLayers.get(layerNumber) ?? []).sort((a, b) => {
+      if (a.hotspotRank !== b.hotspotRank) return a.hotspotRank - b.hotspotRank;
+      return a.id - b.id;
+    });
+    const width = Math.max(1, (layerComponents.length - 1) * horizontalGap);
+    layerComponents.forEach((component, index) => {
+      componentPositions.set(component.id, {
+        x: index * horizontalGap - width / 2,
+        y: layerNumber * layerHeight,
+      });
     });
   });
 
-  // Recenter around origin (use mean to avoid odd distributions)
+  components.forEach((component) => {
+    const center = componentPositions.get(component.id) ?? { x: 0, y: 0 };
+    const memberIds = [...component.members].sort((a, b) => nodes[a].label.localeCompare(nodes[b].label));
+
+    if (memberIds.length === 1) {
+      const onlyNode = nodes[memberIds[0]];
+      onlyNode.x = center.x;
+      onlyNode.y = center.y;
+      return;
+    }
+
+    const radius = 32 + Math.sqrt(memberIds.length) * 24;
+    memberIds.forEach((nodeIdx, memberIndex) => {
+      const angle = (Math.PI * 2 * memberIndex) / memberIds.length;
+      nodes[nodeIdx].x = center.x + Math.cos(angle) * radius;
+      nodes[nodeIdx].y = center.y + Math.sin(angle) * radius;
+    });
+  });
+
   const avgX = nodes.reduce((acc, n) => acc + n.x, 0) / nodes.length;
   const avgY = nodes.reduce((acc, n) => acc + n.y, 0) / nodes.length;
   nodes.forEach((n) => {
@@ -283,16 +468,7 @@ export function layeredLayout(graph: Graph): PositionedGraph {
     n.y -= avgY;
   });
 
-  const idToNode = new Map<string, PositionedNode>();
-  nodes.forEach((n) => idToNode.set(n.id, n));
-  const neighbors = new Map<string, GraphEdge[]>();
-  nodes.forEach((n) => neighbors.set(n.id, []));
-  graph.edges.forEach((e) => {
-    neighbors.get(e.source)?.push(e);
-    neighbors.get(e.target)?.push(e);
-  });
-
-  return { nodes: nodes as PositionedNode[], edges: graph.edges, idToNode, neighbors };
+  return buildPositionedGraph(nodes as PositionedNode[], graph.edges, components);
 }
 
 export function fitToView(

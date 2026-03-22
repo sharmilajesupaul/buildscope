@@ -127,6 +127,7 @@ function main() {
       | 'transitive-total'
       | 'transitive-inputs'
       | 'transitive-outputs'
+      | 'hotspots'
       | 'uniform';
     viz.setWeightMode(mode);
   });
@@ -172,7 +173,10 @@ function main() {
           const layoutTime = performance.now() - layoutStart;
           console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
 
-          viz.setStatus('Ready', 'success');
+          const hotspotSummary = positioned.hotspotCount
+            ? `Ready · ${positioned.hotspotCount} hotspots`
+            : 'Ready';
+          viz.setStatus(hotspotSummary, 'success');
           viz.setPositionedGraph(positioned);
         }, 10);
       }, 10);

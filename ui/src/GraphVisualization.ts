@@ -213,17 +213,29 @@ export class GraphVisualization {
 
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
-        this.currentNodeEl.innerText = node.label;
+        const hotspotSuffix = node.isHotspot
+          ? ` · hotspot #${node.hotspotRank} (SCC ${node.sccSize})`
+          : '';
+        this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
         this.currentNodeStatus.classList.remove('hidden');
       }
     } else {
-      this.nodeCountEl.innerText = totalNodes.toString();
-      this.edgeCountEl.innerText = totalEdges.toString();
+      const hotspotText = this.positioned.hotspotCount
+        ? ` (${this.positioned.hotspotCount} hotspots)`
+        : '';
+      const largestHotspotText = this.positioned.largestHotspotSize > 1
+        ? ` · largest SCC ${this.positioned.largestHotspotSize}`
+        : '';
+      this.nodeCountEl.innerText = `${totalNodes}${hotspotText}`;
+      this.edgeCountEl.innerText = `${totalEdges}${largestHotspotText}`;
 
       if (this.hoveredId) {
         const node = this.positioned.idToNode.get(this.hoveredId);
         if (node) {
-          this.currentNodeEl.innerText = node.label;
+          const hotspotSuffix = node.isHotspot
+            ? ` · hotspot #${node.hotspotRank} (SCC ${node.sccSize})`
+            : '';
+          this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
           this.currentNodeStatus.classList.remove('hidden');
         }
       } else {
@@ -253,20 +265,38 @@ export class GraphVisualization {
     return Math.min(Math.max(scaledSize, minSize), maxSize) + highlightBonus;
   }
 
+  private getNodeColors(node: PositionedNode, isHighlight: boolean) {
+    if (node.isHotspot) {
+      const glowAlpha = Math.min(0.42, 0.2 + node.sccSize * 0.04);
+      return {
+        haloColor: COLORS.hotspotGlow,
+        haloAlpha: glowAlpha,
+        coreColor: isHighlight ? COLORS.nodeHighlight : COLORS.hotspot,
+      };
+    }
+
+    return {
+      haloColor: COLORS.node,
+      haloAlpha: 0.22,
+      coreColor: isHighlight ? COLORS.nodeHighlight : COLORS.node,
+    };
+  }
+
   // Node creation and management
   private createOrUpdateNode(node: PositionedNode, isHighlight: boolean, pg: PositionedGraph) {
     let g = this.nodeGraphics.get(node.id);
 
     const core = this.calculateNodeSize(node, isHighlight);
-    const halo = core * 1.8;
+    const halo = node.isHotspot ? core * 2.4 : core * 1.8;
+    const { haloColor, haloAlpha, coreColor } = this.getNodeColors(node, isHighlight);
 
     if (!g) {
       // Create new node
       g = new Graphics();
-      g.beginFill(COLORS.node, 0.22);
+      g.beginFill(haloColor, haloAlpha);
       g.drawCircle(0, 0, halo);
       g.endFill();
-      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+      g.beginFill(coreColor, 1);
       g.drawCircle(0, 0, core);
       g.endFill();
       g.x = node.x;
@@ -296,10 +326,10 @@ export class GraphVisualization {
     } else {
       // Update existing node
       g.clear();
-      g.beginFill(COLORS.node, 0.22);
+      g.beginFill(haloColor, haloAlpha);
       g.drawCircle(0, 0, halo);
       g.endFill();
-      g.beginFill(isHighlight ? COLORS.nodeHighlight : COLORS.node, 1);
+      g.beginFill(coreColor, 1);
       g.drawCircle(0, 0, core);
       g.endFill();
 
@@ -400,6 +430,20 @@ export class GraphVisualization {
     const highlightSet = new Set<string>();
     if (this.hoveredId) highlightSet.add(this.hoveredId);
     if (this.selectedId) highlightSet.add(this.selectedId);
+
+    const expandHotspot = (nodeId: string | null) => {
+      if (!nodeId) return;
+      const node = pg.idToNode.get(nodeId);
+      if (!node?.isHotspot) return;
+      pg.nodes.forEach((candidate) => {
+        if (candidate.sccId === node.sccId) {
+          highlightSet.add(candidate.id);
+        }
+      });
+    };
+
+    expandHotspot(this.hoveredId);
+    expandHotspot(this.selectedId);
 
     const visibleNodes = new Set<string>();
     if (useCulling && viewportBounds) {

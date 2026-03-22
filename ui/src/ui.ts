@@ -37,6 +37,7 @@ export function createControlsPanel(): HTMLElement {
         <option value="transitive-total">Transitive: Total</option>
         <option value="transitive-inputs">Transitive: Inputs</option>
         <option value="transitive-outputs">Transitive: Outputs</option>
+        <option value="hotspots">Hotspots (SCC Cycles)</option>
         <option value="uniform">Uniform Size</option>
       </select>
     </div>
@@ -95,6 +96,10 @@ export function createStatusPanel(): HTMLElement {
         <div class="legend-item">
           <div class="legend-color highlight"></div>
           <span>Highlighted</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color hotspot"></div>
+          <span>Hotspots</span>
         </div>
       </div>
     </div>

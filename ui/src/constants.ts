@@ -15,4 +15,6 @@ export const COLORS = {
   edgeHighlight: 0xffc857,
   node: 0xffc857,
   nodeHighlight: 0xffd98e,
+  hotspot: 0xff6b6b,
+  hotspotGlow: 0xff8c69,
 };

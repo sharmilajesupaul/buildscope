@@ -1,41 +1,41 @@
-import { describe, expect, it } from "vitest";
-import { fitToView, layeredLayout, sanitizeGraph, Graph } from "./graphLayout";
+import { describe, expect, it } from 'vitest';
+import { fitToView, layeredLayout, sanitizeGraph, Graph, recalculateWeights } from './graphLayout';
 
-describe("sanitizeGraph", () => {
-  it("drops invalid ids and edges", () => {
+describe('sanitizeGraph', () => {
+  it('drops invalid ids and edges', () => {
     const raw: Graph = {
       nodes: [
-        { id: "//ok:one", label: "" },
-        { id: "[label=\"bad\"]", label: "bad" },
+        { id: '//ok:one', label: '' },
+        { id: '[label="bad"]', label: 'bad' },
       ],
       edges: [
-        { source: "//ok:one", target: "[label=\"bad\"]" },
-        { source: "//ok:one", target: "//ok:one" },
+        { source: '//ok:one', target: '[label="bad"]' },
+        { source: '//ok:one', target: '//ok:one' },
       ],
     };
     const clean = sanitizeGraph(raw);
     expect(clean.nodes.length).toBe(1);
     expect(clean.edges.length).toBe(1);
-    expect(clean.edges[0].target).toBe("//ok:one");
+    expect(clean.edges[0].target).toBe('//ok:one');
   });
 });
 
-describe("layeredLayout + fitToView", () => {
+describe('layeredLayout + fitToView', () => {
   const graph: Graph = {
     nodes: Array.from({ length: 6 }, (_, i) => ({
       id: `//n${i}`,
       label: `//n${i}`,
     })),
     edges: [
-      { source: "//n0", target: "//n1" },
-      { source: "//n1", target: "//n2" },
-      { source: "//n0", target: "//n3" },
-      { source: "//n3", target: "//n4" },
-      { source: "//n2", target: "//n5" },
+      { source: '//n0', target: '//n1' },
+      { source: '//n1', target: '//n2' },
+      { source: '//n0', target: '//n3' },
+      { source: '//n3', target: '//n4' },
+      { source: '//n2', target: '//n5' },
     ],
   };
 
-  it("centers nodes within view with padding", () => {
+  it('centers nodes within view with padding', () => {
     const laid = layeredLayout(graph);
     const fit = fitToView(laid.nodes, 1200, 800);
     const xs = laid.nodes.map((n) => n.x * fit.scale + fit.offsetX);
@@ -50,13 +50,50 @@ describe("layeredLayout + fitToView", () => {
     expect(maxY).toBeLessThan(800 - 50);
   });
 
-  it("re-centers layout around origin", () => {
+  it('re-centers layout around origin', () => {
     const laid = layeredLayout(graph);
-    const avgX =
-      laid.nodes.reduce((acc, n) => acc + n.x, 0) / laid.nodes.length;
-    const avgY =
-      laid.nodes.reduce((acc, n) => acc + n.y, 0) / laid.nodes.length;
+    const avgX = laid.nodes.reduce((acc, n) => acc + n.x, 0) / laid.nodes.length;
+    const avgY = laid.nodes.reduce((acc, n) => acc + n.y, 0) / laid.nodes.length;
     expect(Math.abs(avgX)).toBeLessThan(1e-6);
     expect(Math.abs(avgY)).toBeLessThan(1e-6);
+  });
+});
+
+describe('strongly connected hotspots', () => {
+  const graph: Graph = {
+    nodes: [
+      { id: '//cycle:a', label: 'A' },
+      { id: '//cycle:b', label: 'B' },
+      { id: '//cycle:c', label: 'C' },
+      { id: '//chain:d', label: 'D' },
+    ],
+    edges: [
+      { source: '//cycle:a', target: '//cycle:b' },
+      { source: '//cycle:b', target: '//cycle:c' },
+      { source: '//cycle:c', target: '//cycle:a' },
+      { source: '//cycle:c', target: '//chain:d' },
+    ],
+  };
+
+  it('marks cyclic SCCs as hotspots and clusters them in the same component', () => {
+    const laid = layeredLayout(graph);
+    const hotspotNodes = laid.nodes.filter((node) => node.isHotspot);
+
+    expect(laid.hotspotCount).toBe(1);
+    expect(laid.largestHotspotSize).toBe(3);
+    expect(hotspotNodes).toHaveLength(3);
+    expect(new Set(hotspotNodes.map((node) => node.sccId)).size).toBe(1);
+    expect(new Set(hotspotNodes.map((node) => node.sccSize))).toEqual(new Set([3]));
+  });
+
+  it('uses hotspot scores when hotspot sizing mode is enabled', () => {
+    const laid = layeredLayout(graph);
+    recalculateWeights(laid, 'hotspots');
+
+    const hotspotNode = laid.idToNode.get('//cycle:a');
+    const nonHotspotNode = laid.idToNode.get('//chain:d');
+
+    expect(hotspotNode?.weight).toBeGreaterThan(nonHotspotNode?.weight ?? 0);
+    expect(nonHotspotNode?.isHotspot).toBe(false);
   });
 });
