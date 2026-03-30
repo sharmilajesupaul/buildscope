@@ -4,7 +4,7 @@ import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
 import { applyTheme, isThemeName, loadThemePreference } from './constants';
 import { getTopBreakupCandidates, getTopImpactTargets } from './graphAnalysis';
-import { createHeader, createSidePanel } from './ui';
+import { createHeader, createSelectionInspector, createSidePanel } from './ui';
 
 type PrimaryWeightMode =
   | 'transitive-total'
@@ -36,12 +36,13 @@ function main() {
 
   const header = createHeader();
   const sidePanel = createSidePanel();
+  const selectionInspector = createSelectionInspector();
 
   root.appendChild(header);
   root.appendChild(sidePanel);
+  root.appendChild(selectionInspector);
 
   const panelToggle = sidePanel.querySelector('#panel-toggle') as HTMLButtonElement;
-  const sidePanelScrollEl = sidePanel.querySelector('#side-panel-scroll') as HTMLElement;
   const searchInput = sidePanel.querySelector('#search-input') as HTMLInputElement;
   const analysisFilterInput = sidePanel.querySelector('#analysis-filter-input') as HTMLInputElement;
   const themeSelect = sidePanel.querySelector('#theme-select') as HTMLSelectElement;
@@ -58,22 +59,21 @@ function main() {
   const edgeCountEl = sidePanel.querySelector('#edge-count') as HTMLElement;
   const hotspotCountEl = sidePanel.querySelector('#hotspot-count') as HTMLElement;
   const largestSccEl = sidePanel.querySelector('#largest-scc') as HTMLElement;
-  const currentNodeEl = sidePanel.querySelector('#current-node') as HTMLElement;
-  const currentNodeStatus = sidePanel.querySelector('#current-node-status') as HTMLElement;
-  const currentNodeSubtitleEl = sidePanel.querySelector('#current-node-subtitle') as HTMLElement;
-  const currentNodeEmptyEl = sidePanel.querySelector('#current-node-empty') as HTMLElement;
-  const selectionPanelGroupEl = sidePanel.querySelector('#selection-panel-group') as HTMLElement;
-  const directInputsEl = sidePanel.querySelector('#direct-inputs') as HTMLElement;
-  const directOutputsEl = sidePanel.querySelector('#direct-outputs') as HTMLElement;
-  const transitiveInputsEl = sidePanel.querySelector('#transitive-inputs') as HTMLElement;
-  const transitiveOutputsEl = sidePanel.querySelector('#transitive-outputs') as HTMLElement;
-  const sccSizeEl = sidePanel.querySelector('#scc-size') as HTMLElement;
-  const hotspotRankEl = sidePanel.querySelector('#hotspot-rank') as HTMLElement;
-  const weightModeLabelEl = sidePanel.querySelector('#weight-mode-label') as HTMLElement;
   const impactAnalysisListEl = sidePanel.querySelector('#impact-analysis-list') as HTMLElement;
   const pressureAnalysisListEl = sidePanel.querySelector('#pressure-analysis-list') as HTMLElement;
   const impactAnalysisCountEl = sidePanel.querySelector('#impact-analysis-count') as HTMLElement;
   const pressureAnalysisCountEl = sidePanel.querySelector('#pressure-analysis-count') as HTMLElement;
+  const currentNodeEl = selectionInspector.querySelector('#current-node') as HTMLElement;
+  const currentNodeStatus = selectionInspector.querySelector('#current-node-status') as HTMLElement;
+  const currentNodeSubtitleEl = selectionInspector.querySelector('#current-node-subtitle') as HTMLElement;
+  const currentNodeEmptyEl = selectionInspector.querySelector('#current-node-empty') as HTMLElement;
+  const directInputsEl = selectionInspector.querySelector('#direct-inputs') as HTMLElement;
+  const directOutputsEl = selectionInspector.querySelector('#direct-outputs') as HTMLElement;
+  const transitiveInputsEl = selectionInspector.querySelector('#transitive-inputs') as HTMLElement;
+  const transitiveOutputsEl = selectionInspector.querySelector('#transitive-outputs') as HTMLElement;
+  const sccSizeEl = selectionInspector.querySelector('#scc-size') as HTMLElement;
+  const hotspotRankEl = selectionInspector.querySelector('#hotspot-rank') as HTMLElement;
+  const weightModeLabelEl = selectionInspector.querySelector('#weight-mode-label') as HTMLElement;
 
   const zoomInBtn = sidePanel.querySelector('#zoom-in') as HTMLButtonElement;
   const zoomOutBtn = sidePanel.querySelector('#zoom-out') as HTMLButtonElement;
@@ -106,8 +106,6 @@ function main() {
     currentNodeStatus,
     currentNodeSubtitleEl,
     currentNodeEmptyEl,
-    sidePanelScrollEl,
-    selectionPanelGroupEl,
     directInputsEl,
     directOutputsEl,
     transitiveInputsEl,
@@ -276,11 +274,35 @@ function main() {
   });
 
   panelToggle.addEventListener('click', () => {
+    const first = sidePanel.getBoundingClientRect();
+    sidePanel.getAnimations().forEach((animation) => animation.cancel());
     const collapsed = sidePanel.classList.toggle('is-collapsed');
     const label = collapsed ? 'Expand panel' : 'Collapse panel';
     panelToggle.setAttribute('aria-expanded', String(!collapsed));
     panelToggle.setAttribute('aria-label', label);
     panelToggle.setAttribute('title', label);
+    const last = sidePanel.getBoundingClientRect();
+    const deltaX = first.left - last.left;
+    const deltaY = first.top - last.top;
+    const scaleX = first.width / Math.max(last.width, 1);
+    const scaleY = first.height / Math.max(last.height, 1);
+
+    sidePanel.animate(
+      [
+        {
+          transformOrigin: 'top left',
+          transform: `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`,
+        },
+        {
+          transformOrigin: 'top left',
+          transform: 'translate(0, 0) scale(1, 1)',
+        },
+      ],
+      {
+        duration: 180,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      }
+    );
     viz.handleResize();
   });
 

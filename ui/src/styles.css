@@ -260,10 +260,10 @@ body {
 
 .side-panel {
   position: fixed;
-  top: 68px;
+  top: 82px;
   left: 14px;
   width: 344px;
-  max-height: calc(100vh - 82px);
+  max-height: calc(100vh - 96px);
   padding: 10px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -271,18 +271,30 @@ body {
   background: linear-gradient(180deg, var(--panel-strong), var(--panel));
   box-shadow: var(--shadow);
   z-index: 20;
+  will-change: transform;
+  transition:
+    width 180ms ease,
+    max-height 180ms ease,
+    padding 180ms ease,
+    border-radius 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .side-panel-scroll {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(100vh - 124px);
+  max-height: calc(100vh - 138px);
   margin-top: 42px;
+  padding-right: 2px;
+  padding-bottom: 18px;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 120ms ease, transform 180ms ease;
 }
 
 .side-panel-scroll::-webkit-scrollbar {
@@ -296,6 +308,7 @@ body {
 
 .side-panel.is-collapsed {
   top: 14px;
+  left: auto;
   right: 14px;
   bottom: auto;
   width: 120px;
@@ -306,7 +319,9 @@ body {
 }
 
 .side-panel.is-collapsed .side-panel-scroll {
-  display: none;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
 }
 
 .panel-toggle {
@@ -381,6 +396,49 @@ body {
 
 .panel-group + .panel-group {
   margin-top: 8px;
+}
+
+.menu-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.menu-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.menu-summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu-summary-title {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.menu-summary-copy {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.menu-section[open] .menu-summary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.menu-body {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
 }
 
 .controls-label {
@@ -574,7 +632,10 @@ body {
 }
 
 .focus-card {
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, var(--panel-soft), rgba(255, 255, 255, 0.02));
 }
 
 .selection-slot {
@@ -821,12 +882,7 @@ body {
 }
 
 .advanced-group summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  list-style: none;
+  margin: 0;
 }
 
 .advanced-group summary::-webkit-details-marker {
@@ -841,7 +897,26 @@ body {
 .advanced-body {
   display: grid;
   gap: 6px;
-  margin-top: 10px;
+}
+
+.selection-inspector {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  width: 344px;
+  max-width: calc(100vw - 28px);
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  z-index: 18;
+}
+
+.selection-inspector .summary-header {
+  margin-bottom: 0;
 }
 
 .hidden {
@@ -853,6 +928,10 @@ body {
     width: 320px;
   }
 
+  .selection-inspector {
+    width: 320px;
+  }
+
   .app-header {
     max-width: calc(100vw - 28px);
   }
@@ -860,16 +939,24 @@ body {
 
 @media (max-width: 760px) {
   .side-panel {
-    top: auto;
-    width: calc(100vw - 24px);
-    max-height: 52vh;
+    top: 82px;
+    width: min(320px, calc(100vw - 24px));
+    max-height: min(44vh, calc(100vh - 320px));
     left: 12px;
-    right: 12px;
-    bottom: 12px;
+    right: auto;
+    bottom: auto;
   }
 
   .side-panel-scroll {
-    max-height: calc(52vh - 56px);
+    max-height: calc(44vh - 56px);
+  }
+
+  .selection-inspector {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-height: 220px;
   }
 
   .shortcut-grid-primary,
@@ -892,8 +979,9 @@ body {
   }
 
   .side-panel.is-collapsed {
-    top: auto;
+    top: 12px;
+    left: auto;
     right: 12px;
-    bottom: 12px;
+    bottom: auto;
   }
 }

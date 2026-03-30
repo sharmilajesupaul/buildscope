@@ -28,8 +28,6 @@ export interface UIElements {
   currentNodeStatus: HTMLElement;
   currentNodeSubtitleEl: HTMLElement;
   currentNodeEmptyEl: HTMLElement;
-  sidePanelScrollEl: HTMLElement;
-  selectionPanelGroupEl: HTMLElement;
   directInputsEl: HTMLElement;
   directOutputsEl: HTMLElement;
   transitiveInputsEl: HTMLElement;
@@ -83,8 +81,6 @@ export class GraphVisualization {
   private currentNodeStatus: HTMLElement;
   private currentNodeSubtitleEl: HTMLElement;
   private currentNodeEmptyEl: HTMLElement;
-  private sidePanelScrollEl: HTMLElement;
-  private selectionPanelGroupEl: HTMLElement;
   private directInputsEl: HTMLElement;
   private directOutputsEl: HTMLElement;
   private transitiveInputsEl: HTMLElement;
@@ -123,8 +119,6 @@ export class GraphVisualization {
     this.currentNodeStatus = uiElements.currentNodeStatus;
     this.currentNodeSubtitleEl = uiElements.currentNodeSubtitleEl;
     this.currentNodeEmptyEl = uiElements.currentNodeEmptyEl;
-    this.sidePanelScrollEl = uiElements.sidePanelScrollEl;
-    this.selectionPanelGroupEl = uiElements.selectionPanelGroupEl;
     this.directInputsEl = uiElements.directInputsEl;
     this.directOutputsEl = uiElements.directOutputsEl;
     this.transitiveInputsEl = uiElements.transitiveInputsEl;
@@ -498,6 +492,7 @@ export class GraphVisualization {
 
     const header = document.querySelector('.app-header') as HTMLElement | null;
     const sidePanel = document.querySelector('.side-panel') as HTMLElement | null;
+    const selectionInspector = document.querySelector('.selection-inspector') as HTMLElement | null;
 
     if (header) {
       const rect = header.getBoundingClientRect();
@@ -508,10 +503,25 @@ export class GraphVisualization {
 
     if (sidePanel) {
       const rect = sidePanel.getBoundingClientRect();
-      if (rect.left < viewW * 0.35 && rect.height < viewH * 0.92) {
-        left = Math.max(left, rect.right + 18);
-      } else if (rect.right > viewW * 0.65 && rect.height < viewH * 0.92) {
-        right = Math.min(right, rect.left - 18);
+      const isCollapsed = sidePanel.classList.contains('is-collapsed');
+      if (!isCollapsed) {
+        if (rect.left < viewW * 0.35 && rect.height < viewH * 0.92) {
+          left = Math.max(left, rect.right + 18);
+        } else if (rect.right > viewW * 0.65 && rect.height < viewH * 0.92) {
+          right = Math.min(right, rect.left - 18);
+        }
+      }
+    }
+
+    if (selectionInspector) {
+      const rect = selectionInspector.getBoundingClientRect();
+      if (rect.width < viewW * 0.42) {
+        if (rect.left > viewW * 0.52) {
+          right = Math.min(right, rect.left - 18);
+        }
+        if (rect.top > viewH * 0.48) {
+          bottom = Math.min(bottom, rect.top - 18);
+        }
       }
     }
 
@@ -631,11 +641,6 @@ export class GraphVisualization {
       primary: label.slice(separatorIndex + 1),
       secondary: label.slice(0, separatorIndex),
     };
-  }
-
-  private scrollSelectionIntoView() {
-    const top = Math.max(0, this.selectionPanelGroupEl.offsetTop - 8);
-    this.sidePanelScrollEl.scrollTo({ top, behavior: 'smooth' });
   }
 
   private setInspectorEmptyState(message: string) {
@@ -1105,7 +1110,6 @@ export class GraphVisualization {
     this.selectedId = node.id;
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
-    this.scrollSelectionIntoView();
   }
 
   focusNode(nodeId: string) {
@@ -1118,7 +1122,6 @@ export class GraphVisualization {
     this.hoveredId = node.id;
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
-    this.scrollSelectionIntoView();
   }
 
   handleResize() {
@@ -1223,7 +1226,6 @@ export class GraphVisualization {
     this.hoveredId = pickedId;
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
-    this.scrollSelectionIntoView();
   }
 
   clearSelection() {
