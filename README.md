@@ -2,6 +2,31 @@
 
 BuildScope is a local-first Bazel build graph explorer. It extracts dependency graphs from Bazel and renders them in a fast 2D UI for inspection.
 
+## Architecture
+
+```mermaid
+graph LR
+  Workspace[Bazel workspace] --> Extract[Go CLI: extract]
+  Extract --> GraphJson[Graph JSON]
+
+  GraphJson --> Serve[Go CLI: serve]
+  Dev[dev.sh / buildscope.sh] --> Serve
+  Dev --> Vite[Vite dev/build pipeline]
+
+  Serve -->|/graph.json| Browser[Browser UI]
+  Vite --> Browser
+
+  Browser --> Main[main.ts]
+  Main --> Worker[graphWorker.ts]
+  Worker --> Layout[graphLayout.ts]
+  Main --> Viz[GraphVisualization.ts]
+  Main --> Controls[ui.ts]
+  Layout --> Viz
+  Controls --> Viz
+```
+
+For large-graph UX direction, see [docs/large-graph-ui-plan.md](docs/large-graph-ui-plan.md).
+
 ## Prerequisites
 - Node.js v24.11.1 (see `.node-version`)
 - Go 1.22+
