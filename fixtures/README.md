@@ -1,56 +1,56 @@
 # Fixture Corpus
 
-BuildScope now keeps a pinned graph corpus so UI and performance work can be evaluated against real Bazel graphs instead of ad hoc screenshots.
+BuildScope keeps a small, pinned corpus of Bazel graphs so layout and UI changes can be tested against repeatable data.
 
-`fixtures/manifest.json` is the source of truth for the corpus. It records which fixtures are checked in, which ones are generated on demand, and the exact repository / commit / Bazel target used for extraction.
+`fixtures/manifest.json` is the source of truth. It records which fixtures are checked in, which ones are generated on demand, and the exact upstream commit and Bazel target used for extraction.
 
-## Checked-in Fixtures
+## Checked-In Fixtures
 
-| ID | Graph | Nodes | Edges | Why it exists |
+| ID | Graph | Nodes | Edges | Purpose |
 | --- | --- | ---: | ---: | --- |
-| `sample_graph` | `ui/public/sample-graph.json` | 20 | 36 | Tiny fallback graph for fast local iteration and demos. |
-| `buildscope_logger` | `fixtures/buildscope_logger.json` | 601 | 1675 | Medium internal graph for interaction tuning. |
-| `buildscope_large_angular_app` | `fixtures/buildscope_large_angular_app.json` | 3386 | 8751 | Main large in-repo stress fixture. |
-| `examples_java_tutorial_projectrunner` | `fixtures/examples_java_tutorial_projectrunner.json` | 22 | 22 | Real Java Bazel graph with toolchain edges. |
-| `examples_cpp_tutorial_stage3_hello_world` | `fixtures/examples_cpp_tutorial_stage3_hello_world.json` | 27 | 38 | Real C++ Bazel graph with platform / toolchain structure. |
-| `examples_go_tutorial_stage3_print_fortune` | `fixtures/examples_go_tutorial_stage3_print_fortune.json` | 70 | 91 | Real Go Bazel graph with `rules_go` structure. |
+| `sample_graph` | `ui/public/sample-graph.json` | 20 | 36 | Tiny fallback graph for local iteration and demos. |
+| `buildscope_logger` | `fixtures/buildscope_logger.json` | 601 | 1675 | Medium-sized in-repo reference graph. |
+| `buildscope_large_angular_app` | `fixtures/buildscope_large_angular_app.json` | 3386 | 8751 | Large in-repo stress graph for layout and navigation work. |
+| `examples_java_tutorial_projectrunner` | `fixtures/examples_java_tutorial_projectrunner.json` | 22 | 22 | Small Java graph with toolchain edges. |
+| `examples_cpp_tutorial_stage3_hello_world` | `fixtures/examples_cpp_tutorial_stage3_hello_world.json` | 27 | 38 | Small C++ graph with platform and toolchain structure. |
+| `examples_go_tutorial_stage3_print_fortune` | `fixtures/examples_go_tutorial_stage3_print_fortune.json` | 70 | 91 | Small Go graph with `rules_go` structure. |
 
 ## Generated On Demand
 
-| ID | Output path | Nodes | Edges | Why it is generated |
+| ID | Output Path | Nodes | Edges | Purpose |
 | --- | --- | ---: | ---: | --- |
-| `openai_codex_cli` | `fixtures/generated/openai_codex_cli.json` | 13053 | 65066 | Real-world large graph from `openai/codex`; too large to check in by default. |
-| `zml_mnist` | `fixtures/generated/zml_mnist.json` | 5147 | 15277 | Real-world ML-oriented graph from `zml/zml`; useful as a second stress shape. |
+| `openai_codex_cli` | `fixtures/generated/openai_codex_cli.json` | 13053 | 65066 | Large real-world workspace for stress testing. |
+| `zml_mnist` | `fixtures/generated/zml_mnist.json` | 5147 | 15277 | Medium-large ML-oriented workspace for contrast testing. |
 
-## Refresh Workflow
+## Refreshing Fixtures
 
-Refresh the pinned small external fixtures:
+Refresh the default upstream fixtures:
 
 ```bash
 ./scripts/refresh-fixtures.sh
 ```
 
-Refresh a specific fixture:
+Refresh one fixture:
 
 ```bash
 ./scripts/refresh-fixtures.sh examples_go_tutorial_stage3_print_fortune
 ```
 
-Generate the large Codex stress fixture:
+Refresh every fixture with an upstream source:
+
+```bash
+./scripts/refresh-fixtures.sh --all
+```
+
+Generate one of the large on-demand fixtures:
 
 ```bash
 ./scripts/refresh-fixtures.sh openai_codex_cli
 ```
 
-Generate the ZML fixture:
+By default, the script clones sources under `/tmp/buildscope-fixture-sources`, checks out the pinned commit from the manifest, and reruns `buildscope extract`.
 
-```bash
-./scripts/refresh-fixtures.sh zml_mnist
-```
-
-The script clones upstream sources under `/tmp/buildscope-fixture-sources` by default, checks out the exact commit from the manifest, and reruns `buildscope extract`.
-
-## Benchmark Workflow
+## Benchmarking Fixtures
 
 Run the default benchmark set:
 
@@ -64,27 +64,10 @@ Include generated fixtures that already exist on disk:
 ./scripts/benchmark-fixtures.sh --include-generated
 ```
 
-Benchmark a specific fixture:
-
-```bash
-./scripts/benchmark-fixtures.sh openai_codex_cli --include-generated
-```
-
-Benchmark multiple generated stress fixtures:
+Benchmark specific fixtures:
 
 ```bash
 ./scripts/benchmark-fixtures.sh openai_codex_cli zml_mnist --include-generated --iterations=1
 ```
 
-The benchmark harness measures `sanitizeGraph` and `layeredLayout` separately so UI work can be compared against repeatable layout numbers before and after a change.
-
-## External Repos In Scope
-
-The current corpus intentionally covers:
-
-- internal BuildScope graphs for regression testing
-- `bazelbuild/examples` for small, legible reference graphs across Java, C++, and Go
-- `openai/codex` for a large real-world graph that stresses both layout and navigation
-- `zml/zml` for a second large graph shape from an ML-focused Bazel workspace
-
-This is enough to keep the next UI pass grounded in real Bazel usage without bloating the repo.
+The benchmark harness measures `sanitizeGraph` and `layeredLayout` separately so layout changes can be compared before and after a UI or algorithm update.

@@ -1,66 +1,42 @@
+<p align="center">
+  <img src="ui/public/brand/buildscope-badge.svg" alt="BuildScope" width="360" />
+</p>
+
 # BuildScope
 
-BuildScope is a local-first Bazel build graph explorer. It extracts dependency graphs from Bazel and renders them in a fast 2D UI for inspection.
+BuildScope is a local-first Bazel dependency explorer. Point it at a Bazel target, stream the graph out of `bazel query`, and inspect the result in a fast WebGL UI.
 
-## Architecture
+## Why BuildScope
 
-```mermaid
-graph LR
-  Workspace[Bazel workspace] --> Extract[Go CLI: extract]
-  Extract --> GraphJson[Graph JSON]
-
-  GraphJson --> Serve[Go CLI: serve]
-  Dev[dev.sh / buildscope.sh] --> Serve
-  Dev --> Vite[Vite dev/build pipeline]
-
-  Serve -->|/graph.json| Browser[Browser UI]
-  Vite --> Browser
-
-  Browser --> Main[main.ts]
-  Main --> Worker[graphWorker.ts]
-  Worker --> Layout[graphLayout.ts]
-  Main --> Viz[GraphVisualization.ts]
-  Main --> Controls[ui.ts]
-  Layout --> Viz
-  Controls --> Viz
-```
-
-For large-graph UX direction, see [docs/large-graph-ui-plan.md](docs/large-graph-ui-plan.md).
-For the broader UI/product roadmap, see [docs/ui-vision-roadmap.md](docs/ui-vision-roadmap.md).
-For the current implementation brief, see [docs/ui-execution-plan.md](docs/ui-execution-plan.md).
-
-## Prerequisites
-- Node.js v24.11.1 (see `.node-version`)
-- Go 1.22+
-- Bazel workspace (only required for `extract`)
+- Runs entirely on your machine. No hosted backend, database, or repo upload.
+- Extracts real Bazel dependency graphs instead of relying on hand-built metadata.
+- Keeps layout work off the main thread so large graphs stay navigable.
+- Ships with a small fixture corpus for repeatable UI and performance checks.
 
 ## Quick Start
 
-### Visualize a Bazel target
+From the root of a Bazel workspace:
+
 ```bash
-# From your Bazel workspace root
 /path/to/buildscope/buildscope.sh //your/package:target
 ```
 
-This extracts the graph, builds the UI if needed, and starts the viewer.
+That command:
 
-### Development
+1. runs the graph extraction step against your current workspace
+2. builds the UI if needed
+3. starts the local viewer on `http://localhost:4422` by default
+
+Override the port with `SERVER_PORT` if needed:
+
 ```bash
-# Install UI dependencies
-cd ui && npm install && cd ..
-
-# Start dev servers with sample graph
-./dev.sh
-
-# Or pass a custom graph
-./dev.sh path/to/your/graph.json
+SERVER_PORT=4500 /path/to/buildscope/buildscope.sh //your/package:target
 ```
 
-Default URLs are printed on startup. Ports will fall back if defaults are busy.
+## How It Gets The Graph
 
-## CLI Usage
+The core extraction path is the `extract` command:
 
-### Extract a graph
 ```bash
 cd cli
 go run ./cmd/buildscope extract \
@@ -69,68 +45,78 @@ go run ./cmd/buildscope extract \
   -out /tmp/graph.json
 ```
 
-### Serve a graph
+Under the hood, that command shells out to:
+
 ```bash
-cd cli
-go run ./cmd/buildscope serve \
-  -dir ../ui/dist \
-  -graph /path/to/your/graph.json \
-  -addr :4422
+bazel query 'deps(//your/package:target)' --output=graph --keep_going
 ```
 
-## Scripts
+BuildScope streams Bazel's graph output, converts it into a plain JSON shape, and writes:
 
-### `dev.sh`
-Starts:
-- Vite dev server (UI)
-- Go server (graph API)
-- Go file watcher for auto-restart
-
-### `buildscope.sh`
-Runs: extract → build UI (if needed) → serve.
-
-### Port overrides
-You can override default ports:
-```bash
-GO_PORT=4500 VITE_PORT=4501 ./dev.sh
-SERVER_PORT=4500 ./buildscope.sh //your/package:target
+```json
+{
+  "nodes": [
+    { "id": "//app:bin", "label": "//app:bin" },
+    { "id": "//lib:core", "label": "//lib:core" }
+  ],
+  "edges": [
+    { "source": "//app:bin", "target": "//lib:core" }
+  ]
+}
 ```
 
-## Build
+The viewer then loads `/graph.json`, sanitizes the graph, computes layout in a worker, and renders the result with Pixi.js.
+
+## Development
+
+Prerequisites:
+
+- Node.js `24.11.1` or newer
+- Go `1.22+`
+- Bazel, if you want to extract graphs from a live workspace
+
+Install UI dependencies:
+
 ```bash
+npm --prefix ui install
+```
+
+Start the local development stack:
+
+```bash
+./dev.sh
+```
+
+Or point the UI at a specific graph JSON file:
+
+```bash
+./dev.sh path/to/graph.json
+```
+
+Direct commands:
+
+```bash
+npm --prefix ui run dev
 npm --prefix ui run build
+npm --prefix ui test
+cd cli && go test ./...
 ```
 
-## Tests
-```bash
-cd ui
-npm test
-```
+Ports can be overridden with `GO_PORT`, `VITE_PORT`, and `SERVER_PORT`.
 
 ## Fixture Corpus
 
-BuildScope keeps a pinned fixture corpus so UI and performance changes can be tested against real Bazel graphs.
+BuildScope keeps a small fixture corpus in-repo so UI changes and layout changes can be checked against repeatable graphs instead of ad hoc screenshots.
 
-See [fixtures/README.md](fixtures/README.md) for the full corpus and provenance, then use:
+See [fixtures/README.md](fixtures/README.md) for the corpus and refresh workflow.
 
-```bash
-./scripts/refresh-fixtures.sh
-./scripts/benchmark-fixtures.sh
-```
+## Repository Layout
 
-Generate and benchmark the large Codex stress fixture when needed:
-
-```bash
-./scripts/refresh-fixtures.sh openai_codex_cli
-./scripts/benchmark-fixtures.sh openai_codex_cli --include-generated
-```
-
-## Repository Structure
-- `cli/`: Go CLI (extract/serve)
-- `ui/`: TypeScript UI (Pixi.js renderer)
-- `scripts/`: Shared script helpers and runners
+- `cli/` Go CLI for graph extraction and local serving
+- `ui/` TypeScript frontend and Pixi.js renderer
+- `fixtures/` checked-in sample graphs and fixture metadata
+- `scripts/` helper scripts for local development and fixture maintenance
 
 ## Contributing
-1) Make a focused change.
-2) Run relevant tests.
-3) Open a PR with a clear description.
+
+Keep changes focused, run the relevant checks, and include enough context in a PR for someone new to the project to understand the user-facing impact.

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -18,17 +19,17 @@ import (
 )
 
 func usage() {
-	fmt.Println("BuildScope CLI (MVP)")
+	fmt.Println("BuildScope CLI")
 	fmt.Println()
 	fmt.Println("Commands:")
 	fmt.Println("  extract -target //pkg:rule [-workdir <bazel workspace>] [-out graph.json]")
-	fmt.Println("    Run bazel query deps(target) and emit a simple graph JSON.")
-	fmt.Println("  serve [-dir ui/dist] [-graph ui/public/sample-graph.json] [-addr :4400]")
+	fmt.Println("    Run bazel query 'deps(target)' --output=graph --keep_going and emit graph JSON.")
+	fmt.Println("  serve [-dir ui/dist] [-graph ui/public/sample-graph.json] [-addr :4422]")
 	fmt.Println("    Serve the static UI assets and expose /graph.json for the viewer.")
 	fmt.Println()
 	fmt.Println("Examples:")
 	fmt.Println("  buildscope serve")
-	fmt.Println("  buildscope serve -dir ../ui/dist -graph ../ui/public/sample-graph.json -addr :8080")
+	fmt.Println("  buildscope serve -dir ../ui/dist -graph ../ui/public/sample-graph.json -addr :4422")
 	fmt.Println("  buildscope extract -target //speller/main:spell -workdir ~/code/repos/bazel-examples -out /tmp/graph.json")
 }
 
@@ -36,7 +37,7 @@ func serve(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	dir := fs.String("dir", "ui/dist", "path to static UI assets (run npm run build first)")
 	graph := fs.String("graph", "ui/public/sample-graph.json", "graph JSON to serve at /graph.json")
-	addr := fs.String("addr", ":4400", "listen address (e.g. :4400)")
+	addr := fs.String("addr", ":4422", "listen address (e.g. :4422)")
 	_ = fs.Parse(args)
 
 	staticDir, err := filepath.Abs(*dir)
@@ -136,7 +137,7 @@ type graphEdge struct {
 
 // parseQueryGraphStreaming parses `bazel query --output=graph` from a streaming reader.
 // This avoids loading the entire output into memory, critical for large graphs (50k+ nodes).
-func parseQueryGraphStreaming(r interface{ Read([]byte) (int, error) }) graph {
+func parseQueryGraphStreaming(r io.Reader) graph {
 	nodes := make(map[string]struct{})
 	edgeSet := make(map[string]graphEdge)
 
@@ -196,6 +197,9 @@ func parseQueryGraphStreaming(r interface{ Read([]byte) (int, error) }) graph {
 			}
 		}
 	}
+	if err := sc.Err(); err != nil {
+		log.Printf("Warning: failed while scanning bazel query output: %v", err)
+	}
 
 	out := graph{}
 	for n := range nodes {
@@ -205,12 +209,6 @@ func parseQueryGraphStreaming(r interface{ Read([]byte) (int, error) }) graph {
 		out.Edges = append(out.Edges, e)
 	}
 	return out
-}
-
-// parseQueryGraph parses `bazel query --output=graph` output from a string.
-// Deprecated: Use parseQueryGraphStreaming for large graphs.
-func parseQueryGraph(data string) graph {
-	return parseQueryGraphStreaming(strings.NewReader(data))
 }
 
 func splitLabels(raw string) []string {
@@ -274,13 +272,6 @@ func extract(args []string) error {
 
 	log.Printf("Wrote %s with %d nodes, %d edges", *outPath, len(g.Nodes), len(g.Edges))
 	return nil
-}
-
-// runCmdCapture runs a shell command and returns stdout.
-func runCmdCapture(cmd string) ([]byte, error) {
-	// Use /bin/sh -c for simplicity
-	command := exec.Command("/bin/sh", "-c", cmd)
-	return command.Output()
 }
 
 func main() {

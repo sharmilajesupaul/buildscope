@@ -1,4 +1,4 @@
-import { Graph } from './graphLayout';
+import type { Graph } from './graphLayout';
 
 export async function loadGraph(): Promise<Graph> {
   try {

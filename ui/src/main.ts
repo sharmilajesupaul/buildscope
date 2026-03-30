@@ -2,7 +2,7 @@ import { Application } from 'pixi.js';
 import { rehydratePositionedGraph, type WeightMode } from './graphLayout';
 import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
-import { applyTheme, isThemeName, loadThemePreference, type ThemeName } from './constants';
+import { applyTheme, isThemeName, loadThemePreference } from './constants';
 import { getTopBreakupCandidates, getTopImpactTargets } from './graphAnalysis';
 import {
   createHeader,
@@ -111,7 +111,7 @@ function main() {
   themeSelect.addEventListener('change', () => {
     const theme = themeSelect.value;
     if (!isThemeName(theme)) return;
-    applyTheme(theme as ThemeName);
+    applyTheme(theme);
     viz.refreshTheme();
   });
 
@@ -289,9 +289,6 @@ function main() {
       return;
     }
 
-    const layoutTime = performance.now() - layoutStart;
-    console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
-
     const pg = rehydratePositionedGraph(data.nodes, data.edges, data.hotspotCount, data.largestHotspotSize);
     const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
     viz.setStatus(impactSummary, 'success');
@@ -308,13 +305,9 @@ function main() {
     worker.terminate();
   };
 
-  let layoutStart = 0;
-
   loadGraph()
     .then((g) => {
-      console.log(`Loaded graph with ${g.nodes.length} nodes, ${g.edges.length} edges`);
       viz.setStatus('Computing layout…', 'loading');
-      layoutStart = performance.now();
       worker.postMessage(g);
     })
     .catch((err) => {

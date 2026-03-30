@@ -13,13 +13,13 @@
         "nodes": 20,
         "edges": 36
       },
-      "notes": "Tiny fallback graph used by the dev UI."
+      "notes": "Tiny fallback graph used by the development UI."
     },
     {
       "id": "buildscope_logger",
       "title": "BuildScope logger target",
       "path": "fixtures/buildscope_logger.json",
-      "category": "internal",
+      "category": "reference",
       "checkedIn": true,
       "benchmarkDefault": true,
       "refreshDefault": false,
@@ -27,13 +27,13 @@
         "nodes": 601,
         "edges": 1675
       },
-      "notes": "Medium internal graph used for day-to-day interaction tuning."
+      "notes": "Medium-sized in-repo reference graph."
     },
     {
       "id": "buildscope_large_angular_app",
       "title": "BuildScope large Angular app target",
       "path": "fixtures/buildscope_large_angular_app.json",
-      "category": "internal",
+      "category": "reference",
       "checkedIn": true,
       "benchmarkDefault": true,
       "refreshDefault": false,
@@ -41,7 +41,7 @@
         "nodes": 3386,
         "edges": 8751
       },
-      "notes": "Primary large in-repo stress fixture."
+      "notes": "Large in-repo stress graph for layout and navigation work."
     },
     {
       "id": "examples_java_tutorial_projectrunner",
@@ -125,7 +125,7 @@
         "workspaceDir": ".",
         "target": "//codex-rs/cli:codex"
       },
-      "notes": "Large real-world stress graph. Generated on demand because it is too large to check in."
+      "notes": "Large real-world workspace graph. Generated on demand because it is too large to check in."
     },
     {
       "id": "zml_mnist",
