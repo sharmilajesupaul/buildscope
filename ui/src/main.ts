@@ -1,5 +1,5 @@
 import { Application } from 'pixi.js';
-import { sanitizeGraph, layeredLayout } from './graphLayout';
+import { rehydratePositionedGraph } from './graphLayout';
 import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
 import {
@@ -148,43 +148,50 @@ function main() {
   window.addEventListener('pointermove', (e) => viz.updatePan(e.clientX, e.clientY));
   window.addEventListener('resize', () => viz.handleResize());
 
-  // Load and process graph
+  // Load and process graph via Web Worker so the main thread stays responsive
+  const worker = new Worker(new URL('./graphWorker.ts', import.meta.url), { type: 'module' });
+
+  worker.onmessage = (e) => {
+    const data = e.data;
+    if (data.error) {
+      console.error('Worker error:', data.error);
+      viz.setStatus('Error', 'error');
+      viz.setNodeCount('Failed to process graph');
+      worker.terminate();
+      return;
+    }
+
+    const layoutTime = performance.now() - layoutStart;
+    console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
+
+    const pg = rehydratePositionedGraph(data.nodes, data.edges, data.hotspotCount, data.largestHotspotSize);
+    const hotspotSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} hotspots` : 'Ready';
+    viz.setStatus(hotspotSummary, 'success');
+    viz.setPositionedGraph(pg);
+    worker.terminate();
+  };
+
+  worker.onerror = (err) => {
+    console.error('Worker crashed:', err);
+    viz.setStatus('Error', 'error');
+    viz.setNodeCount('Failed to process graph');
+    worker.terminate();
+  };
+
+  let layoutStart = 0;
+
   loadGraph()
     .then((g) => {
-      console.log(
-        `Loaded graph with ${g.nodes.length} nodes, ${g.edges.length} edges`
-      );
-
-      viz.setStatus('Processing...', 'loading');
-
-      setTimeout(() => {
-        const clean = sanitizeGraph(g);
-        console.log(
-          `Sanitized to ${clean.nodes.length} nodes, ${clean.edges.length} edges`
-        );
-
-        if (clean.nodes.length > 10000) {
-          viz.setStatus('Large graph - Computing layout...', 'loading');
-        }
-
-        setTimeout(() => {
-          const layoutStart = performance.now();
-          const positioned = layeredLayout(clean);
-          const layoutTime = performance.now() - layoutStart;
-          console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
-
-          const hotspotSummary = positioned.hotspotCount
-            ? `Ready · ${positioned.hotspotCount} hotspots`
-            : 'Ready';
-          viz.setStatus(hotspotSummary, 'success');
-          viz.setPositionedGraph(positioned);
-        }, 10);
-      }, 10);
+      console.log(`Loaded graph with ${g.nodes.length} nodes, ${g.edges.length} edges`);
+      viz.setStatus('Computing layout…', 'loading');
+      layoutStart = performance.now();
+      worker.postMessage(g);
     })
     .catch((err) => {
       console.error(err);
       viz.setStatus('Error', 'error');
       viz.setNodeCount('Failed to load graph');
+      worker.terminate();
     });
 }
 

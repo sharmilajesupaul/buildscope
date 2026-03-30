@@ -1,6 +1,7 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import {
   fitToView,
+  GraphEdge,
   PositionedGraph,
   PositionedNode,
   WeightMode,
@@ -28,9 +29,13 @@ export interface UIElements {
 export class GraphVisualization {
   private app: Application;
   private graphContainer: Container;
+  private edgesGfx: Graphics;       // persistent — cleared and redrawn, never recreated
   private nodesLayer: Container;
   private nodeGraphics: Map<string, Graphics>;
   private positioned: PositionedGraph | null = null;
+
+  // Precomputed index: sccId → Set<nodeId> for O(1) cycle expansion on hover/click
+  private sccMembers = new Map<number, Set<string>>();
 
   // State
   private currentScale = 1;
@@ -38,7 +43,9 @@ export class GraphVisualization {
   private lastPan = { x: 0, y: 0 };
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
-  private panRedrawPending = false;
+  private drawScheduled = false;
+  private lastShowAllEdges = false;
+  private lastEdgeHighlightSignature = '';
   private currentWeightMode: WeightMode = 'total';
 
   // UI Elements
@@ -52,10 +59,14 @@ export class GraphVisualization {
   constructor(app: Application, uiElements: UIElements) {
     this.app = app;
     this.graphContainer = new Container();
+    this.edgesGfx = new Graphics();
     this.nodesLayer = new Container();
     this.nodeGraphics = new Map();
 
     this.app.stage.addChild(this.graphContainer);
+    // Fixed layer order: edges behind nodes — set up once, never changed
+    this.graphContainer.addChild(this.edgesGfx);
+    this.graphContainer.addChild(this.nodesLayer);
 
     // Assign UI elements
     this.zoomLevelEl = uiElements.zoomLevelEl;
@@ -120,7 +131,19 @@ export class GraphVisualization {
     this.graphContainer.position.y += (after.y - before.y) * this.currentScale;
 
     this.updateZoomLevel();
-    this.draw(this.positioned, false, false);
+    // Pixi re-renders the scaled container immediately; schedule one culling pass per frame
+    this.scheduleDraw();
+  }
+
+  // Schedules a single draw on the next animation frame — deduplicated so rapid zoom/pan
+  // events coalesce into one redraw instead of hammering the draw path.
+  private scheduleDraw() {
+    if (this.drawScheduled) return;
+    this.drawScheduled = true;
+    requestAnimationFrame(() => {
+      this.drawScheduled = false;
+      if (this.positioned) this.draw(this.positioned, false, false, true);
+    });
   }
 
   setZoomToPercentage(percentage: number) {
@@ -144,28 +167,24 @@ export class GraphVisualization {
   } {
     const transitiveNodes = new Set<string>();
     const transitiveEdges = new Set<string>();
-    const visited = new Set<string>();
+    const visited = new Set<string>([nodeId]);
     const queue: string[] = [nodeId];
+    let head = 0;
 
-    while (queue.length > 0) {
-      const currentId = queue.shift()!;
-      if (visited.has(currentId)) continue;
-      visited.add(currentId);
-
-      // Find all edges connected to this node
-      pg.edges.forEach((e) => {
+    while (head < queue.length) {
+      const currentId = queue[head++];
+      const incidentEdges = pg.neighbors.get(currentId) ?? [];
+      for (const e of incidentEdges) {
         const edgeKey = `${e.source}->${e.target}`;
-        if (e.source === currentId || e.target === currentId) {
-          transitiveEdges.add(edgeKey);
+        transitiveEdges.add(edgeKey);
 
-          // Add connected nodes to queue
-          const connectedId = e.source === currentId ? e.target : e.source;
-          if (!visited.has(connectedId)) {
-            transitiveNodes.add(connectedId);
-            queue.push(connectedId);
-          }
+        const connectedId = e.source === currentId ? e.target : e.source;
+        if (!visited.has(connectedId)) {
+          visited.add(connectedId);
+          transitiveNodes.add(connectedId);
+          queue.push(connectedId);
         }
-      });
+      }
     }
 
     return { transitiveNodes, transitiveEdges };
@@ -180,9 +199,7 @@ export class GraphVisualization {
 
     if (this.selectedId) {
       // Direct connections
-      const selectedEdges = this.positioned.edges.filter(
-        (e) => e.source === this.selectedId || e.target === this.selectedId
-      );
+      const selectedEdges = this.positioned.neighbors.get(this.selectedId) ?? [];
 
       const connectedNodeIds = new Set<string>();
       selectedEdges.forEach((e) => {
@@ -214,7 +231,7 @@ export class GraphVisualization {
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
         const hotspotSuffix = node.isHotspot
-          ? ` · hotspot #${node.hotspotRank} (SCC ${node.sccSize})`
+          ? ` · hotspot #${node.hotspotRank} (${node.sccSize > 1 ? `cycle of ${node.sccSize}` : `${node.transitiveInDegree} dependents`})`
           : '';
         this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
         this.currentNodeStatus.classList.remove('hidden');
@@ -233,7 +250,7 @@ export class GraphVisualization {
         const node = this.positioned.idToNode.get(this.hoveredId);
         if (node) {
           const hotspotSuffix = node.isHotspot
-            ? ` · hotspot #${node.hotspotRank} (SCC ${node.sccSize})`
+            ? ` · hotspot #${node.hotspotRank} (${node.sccSize > 1 ? `cycle of ${node.sccSize}` : `${node.transitiveInDegree} dependents`})`
             : '';
           this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
           this.currentNodeStatus.classList.remove('hidden');
@@ -341,23 +358,24 @@ export class GraphVisualization {
   }
 
   // Edge drawing
+  private getNeighborEdges(pg: PositionedGraph, highlightSet: Set<string>) {
+    const neighborEdges = new Set<GraphEdge>();
+    highlightSet.forEach((nodeId) => {
+      (pg.neighbors.get(nodeId) ?? []).forEach((edge) => neighborEdges.add(edge));
+    });
+    return neighborEdges;
+  }
+
   private drawEdges(
     pg: PositionedGraph,
-    edgesGfx: Graphics,
-    highlightSet: Set<string>,
+    neighborEdges: Set<GraphEdge>,
     visibleNodes: Set<string>,
-    useCulling: boolean
+    useCulling: boolean,
+    showAllEdges: boolean
   ) {
-    const showAllEdges = this.currentScale > EDGE_VISIBILITY_THRESHOLD;
-    const neighborEdges = new Set(
-      pg.edges.filter(
-        (e) => highlightSet.has(e.source) || highlightSet.has(e.target)
-      )
-    );
-
     // Draw normal edges
     if (showAllEdges) {
-      edgesGfx.lineStyle(1, COLORS.edge, 0.35);
+      this.edgesGfx.lineStyle(1, COLORS.edge, 0.35);
       for (const e of pg.edges) {
         if (neighborEdges.has(e)) continue;
 
@@ -369,41 +387,29 @@ export class GraphVisualization {
         const t = pg.idToNode.get(e.target);
         if (!s || !t) continue;
 
-        edgesGfx.moveTo(s.x, s.y);
-        edgesGfx.lineTo(t.x, t.y);
+        this.edgesGfx.moveTo(s.x, s.y);
+        this.edgesGfx.lineTo(t.x, t.y);
       }
     }
 
     // Draw highlighted edges
     if (neighborEdges.size > 0) {
-      edgesGfx.lineStyle(2, COLORS.edgeHighlight, 0.85);
+      this.edgesGfx.lineStyle(2, COLORS.edgeHighlight, 0.85);
       neighborEdges.forEach((e) => {
         const s = pg.idToNode.get(e.source);
         const t = pg.idToNode.get(e.target);
         if (!s || !t) return;
 
-        edgesGfx.moveTo(s.x, s.y);
-        edgesGfx.lineTo(t.x, t.y);
+        this.edgesGfx.moveTo(s.x, s.y);
+        this.edgesGfx.lineTo(t.x, t.y);
       });
     }
   }
 
-  // Main drawing function
-  draw(pg: PositionedGraph, applyFit = true, centerOnSelection = false) {
-    // Remove old edges graphics
-    const oldEdgesGfx = this.graphContainer.children.find(c => c instanceof Graphics);
-    if (oldEdgesGfx) {
-      this.graphContainer.removeChild(oldEdgesGfx);
-    }
-
-    const edgesGfx = new Graphics();
-    this.graphContainer.addChildAt(edgesGfx, 0);
-
-    // Add nodes layer if needed
-    if (!this.graphContainer.children.includes(this.nodesLayer)) {
-      this.graphContainer.addChild(this.nodesLayer);
-    }
-
+  // Main drawing function.
+  // lightUpdate=true (zoom/pan): skip per-node Graphics redraws — only update visibility and edges.
+  // Pixi re-renders the scaled/translated container natively; we only need culling updates.
+  draw(pg: PositionedGraph, applyFit = true, centerOnSelection = false, lightUpdate = false) {
     const viewW = this.app.renderer.screen.width;
     const viewH = this.app.renderer.screen.height;
 
@@ -426,22 +432,18 @@ export class GraphVisualization {
     const useCulling = pg.nodes.length > LARGE_GRAPH_THRESHOLD;
     const viewportBounds = useCulling ? this.getViewportBounds() : null;
 
-    // Build highlight and visible node sets
+    // Build highlight set
     const highlightSet = new Set<string>();
     if (this.hoveredId) highlightSet.add(this.hoveredId);
     if (this.selectedId) highlightSet.add(this.selectedId);
 
+    // Expand hovered/selected hotspot to its full SCC using precomputed index — O(members), not O(V)
     const expandHotspot = (nodeId: string | null) => {
       if (!nodeId) return;
       const node = pg.idToNode.get(nodeId);
-      if (!node?.isHotspot) return;
-      pg.nodes.forEach((candidate) => {
-        if (candidate.sccId === node.sccId) {
-          highlightSet.add(candidate.id);
-        }
-      });
+      if (!node?.isHotspot || node.sccSize <= 1) return;
+      this.sccMembers.get(node.sccId)?.forEach((id) => highlightSet.add(id));
     };
-
     expandHotspot(this.hoveredId);
     expandHotspot(this.selectedId);
 
@@ -454,25 +456,36 @@ export class GraphVisualization {
       });
     }
 
-    // Draw edges
-    this.drawEdges(pg, edgesGfx, highlightSet, visibleNodes, useCulling);
+    const showAllEdges = this.currentScale > EDGE_VISIBILITY_THRESHOLD;
+    const edgeHighlightSignature = `${this.hoveredId ?? ''}|${this.selectedId ?? ''}`;
+    const shouldRedrawEdges =
+      !lightUpdate ||
+      useCulling ||
+      showAllEdges !== this.lastShowAllEdges ||
+      edgeHighlightSignature !== this.lastEdgeHighlightSignature;
 
-    // Draw nodes
-    let renderedNodes = 0;
-    pg.nodes.forEach((n) => {
-      const isHighlight = highlightSet.has(n.id);
-      const isVisible = !useCulling || visibleNodes.has(n.id);
+    if (shouldRedrawEdges) {
+      this.edgesGfx.clear();
+      const neighborEdges = this.getNeighborEdges(pg, highlightSet);
+      this.drawEdges(pg, neighborEdges, visibleNodes, useCulling, showAllEdges);
+      this.lastShowAllEdges = showAllEdges;
+      this.lastEdgeHighlightSignature = edgeHighlightSignature;
+    }
 
-      const g = this.createOrUpdateNode(n, isHighlight, pg);
-      g.visible = isVisible;
-
-      if (isVisible) renderedNodes++;
-    });
-
-    if (useCulling) {
-      console.log(
-        `Rendered ${renderedNodes} / ${pg.nodes.length} nodes (viewport culling enabled)`
-      );
+    if (lightUpdate) {
+      if (useCulling) {
+        pg.nodes.forEach((n) => {
+          const g = this.nodeGraphics.get(n.id);
+          if (g) g.visible = visibleNodes.has(n.id);
+        });
+      }
+    } else {
+      pg.nodes.forEach((n) => {
+        const isHighlight = highlightSet.has(n.id);
+        const isVisible = !useCulling || visibleNodes.has(n.id);
+        const g = this.createOrUpdateNode(n, isHighlight, pg);
+        g.visible = isVisible;
+      });
     }
 
     this.updateStatus();
@@ -481,6 +494,23 @@ export class GraphVisualization {
   // Public methods for external control
   setPositionedGraph(pg: PositionedGraph) {
     this.positioned = pg;
+
+    // Clear old node graphics when loading a new graph
+    this.nodesLayer.removeChildren();
+    this.nodeGraphics.clear();
+
+    // Precompute sccId → Set<nodeId> for O(1) SCC expansion on hover/click
+    this.sccMembers.clear();
+    for (const n of pg.nodes) {
+      if (n.sccSize > 1) {
+        let members = this.sccMembers.get(n.sccId);
+        if (!members) { members = new Set(); this.sccMembers.set(n.sccId, members); }
+        members.add(n.id);
+      }
+    }
+
+    this.lastShowAllEdges = false;
+    this.lastEdgeHighlightSignature = '';
     this.draw(pg, true, false);
   }
 
@@ -542,30 +572,14 @@ export class GraphVisualization {
     this.graphContainer.position.x += x - this.lastPan.x;
     this.graphContainer.position.y += y - this.lastPan.y;
     this.lastPan = { x, y };
-
-    // Throttled redraw for large graphs
-    if (
-      this.positioned &&
-      this.positioned.nodes.length > LARGE_GRAPH_THRESHOLD &&
-      !this.panRedrawPending
-    ) {
-      this.panRedrawPending = true;
-      requestAnimationFrame(() => {
-        if (this.positioned) {
-          this.draw(this.positioned, false, false);
-        }
-        this.panRedrawPending = false;
-      });
-    }
+    // Pixi re-renders the translated container immediately; schedule one culling pass per frame
+    this.scheduleDraw();
   }
 
   endPan() {
     this.isPanning = false;
-
-    // Final redraw after pan ends for large graphs
-    if (this.positioned && this.positioned.nodes.length > LARGE_GRAPH_THRESHOLD) {
-      this.draw(this.positioned, false, false);
-    }
+    // Ensure culling is updated after pan settles
+    if (this.positioned) this.draw(this.positioned, false, false, true);
   }
 
   setStatus(text: string, className: string) {

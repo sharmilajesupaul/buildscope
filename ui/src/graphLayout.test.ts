@@ -77,13 +77,15 @@ describe('strongly connected hotspots', () => {
 
   it('marks cyclic SCCs as hotspots and clusters them in the same component', () => {
     const laid = layeredLayout(graph);
-    const hotspotNodes = laid.nodes.filter((node) => node.isHotspot);
+    const cycleNodes = ['//cycle:a', '//cycle:b', '//cycle:c'].map((id) => laid.idToNode.get(id)!);
 
-    expect(laid.hotspotCount).toBe(1);
+    // All cycle members should be hotspots; hotspotCount counts nodes
+    expect(cycleNodes.every((n) => n.isHotspot)).toBe(true);
+    expect(laid.hotspotCount).toBe(3);
     expect(laid.largestHotspotSize).toBe(3);
-    expect(hotspotNodes).toHaveLength(3);
-    expect(new Set(hotspotNodes.map((node) => node.sccId)).size).toBe(1);
-    expect(new Set(hotspotNodes.map((node) => node.sccSize))).toEqual(new Set([3]));
+    // All cycle members share the same SCC
+    expect(new Set(cycleNodes.map((n) => n.sccId)).size).toBe(1);
+    expect(new Set(cycleNodes.map((n) => n.sccSize))).toEqual(new Set([3]));
   });
 
   it('uses hotspot scores when hotspot sizing mode is enabled', () => {
@@ -93,6 +95,7 @@ describe('strongly connected hotspots', () => {
     const hotspotNode = laid.idToNode.get('//cycle:a');
     const nonHotspotNode = laid.idToNode.get('//chain:d');
 
+    // Cycle members get an SCC bonus on top of transitiveInDegree, so they outweigh chain:d
     expect(hotspotNode?.weight).toBeGreaterThan(nonHotspotNode?.weight ?? 0);
     expect(nonHotspotNode?.isHotspot).toBe(false);
   });

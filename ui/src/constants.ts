@@ -1,5 +1,5 @@
 // Rendering thresholds
-export const LARGE_GRAPH_THRESHOLD = 5000;
+export const LARGE_GRAPH_THRESHOLD = 1000;
 export const VIEWPORT_PADDING = 200;
 
 // Zoom settings

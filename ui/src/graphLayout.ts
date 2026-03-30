@@ -84,7 +84,8 @@ export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void 
         node.weight = node.transitiveOutDegree;
         break;
       case 'hotspots':
-        node.weight = node.hotspotScore;
+        // Size by downstream impact; cycle members get a bonus so they stand out
+        node.weight = node.transitiveInDegree + (node.sccSize > 1 ? node.sccSize * 2 : 0);
         break;
       case 'uniform':
         node.weight = 1;
@@ -111,24 +112,31 @@ function calculateTransitiveClosure(nodes: PositionedNode[], edges: GraphEdge[])
   });
 
   nodes.forEach((node, nodeIdx) => {
+    // Use an index pointer instead of shift() — shift() is O(n) and causes O(V²) total work
     const visitedIn = new Set<number>();
-    const queueIn = [...incoming[nodeIdx]];
-    while (queueIn.length > 0) {
-      const curr = queueIn.shift()!;
-      if (!visitedIn.has(curr)) {
-        visitedIn.add(curr);
-        queueIn.push(...incoming[curr]);
+    const queueIn: number[] = [];
+    let headIn = 0;
+    for (const n of incoming[nodeIdx]) {
+      if (!visitedIn.has(n)) { visitedIn.add(n); queueIn.push(n); }
+    }
+    while (headIn < queueIn.length) {
+      const curr = queueIn[headIn++];
+      for (const next of incoming[curr]) {
+        if (!visitedIn.has(next)) { visitedIn.add(next); queueIn.push(next); }
       }
     }
     node.transitiveInDegree = visitedIn.size;
 
     const visitedOut = new Set<number>();
-    const queueOut = [...outgoing[nodeIdx]];
-    while (queueOut.length > 0) {
-      const curr = queueOut.shift()!;
-      if (!visitedOut.has(curr)) {
-        visitedOut.add(curr);
-        queueOut.push(...outgoing[curr]);
+    const queueOut: number[] = [];
+    let headOut = 0;
+    for (const n of outgoing[nodeIdx]) {
+      if (!visitedOut.has(n)) { visitedOut.add(n); queueOut.push(n); }
+    }
+    while (headOut < queueOut.length) {
+      const curr = queueOut[headOut++];
+      for (const next of outgoing[curr]) {
+        if (!visitedOut.has(next)) { visitedOut.add(next); queueOut.push(next); }
       }
     }
     node.transitiveOutDegree = visitedOut.size;
@@ -161,43 +169,67 @@ function calculateStronglyConnectedComponents(
   const components: ComponentInfo[] = [];
   let index = 0;
 
-  const strongConnect = (nodeIdx: number) => {
-    indexByNode[nodeIdx] = index;
-    lowLink[nodeIdx] = index;
-    index += 1;
-    stack.push(nodeIdx);
-    onStack[nodeIdx] = true;
+  // Iterative Tarjan — avoids call stack overflow on deep linear chains (10k+ nodes)
+  const strongConnect = (startIdx: number) => {
+    type Frame = { nodeIdx: number; childIdx: number };
+    const callStack: Frame[] = [];
 
-    for (const next of outgoing[nodeIdx]) {
-      if (indexByNode[next] === -1) {
-        strongConnect(next);
-        lowLink[nodeIdx] = Math.min(lowLink[nodeIdx], lowLink[next]);
-      } else if (onStack[next]) {
-        lowLink[nodeIdx] = Math.min(lowLink[nodeIdx], indexByNode[next]);
+    const enter = (nodeIdx: number) => {
+      indexByNode[nodeIdx] = index;
+      lowLink[nodeIdx] = index;
+      index++;
+      stack.push(nodeIdx);
+      onStack[nodeIdx] = true;
+      callStack.push({ nodeIdx, childIdx: 0 });
+    };
+
+    enter(startIdx);
+
+    while (callStack.length > 0) {
+      const frame = callStack[callStack.length - 1];
+      const { nodeIdx } = frame;
+      let pushed = false;
+
+      while (frame.childIdx < outgoing[nodeIdx].length) {
+        const next = outgoing[nodeIdx][frame.childIdx];
+        frame.childIdx++;
+        if (indexByNode[next] === -1) {
+          enter(next);
+          pushed = true;
+          break;
+        } else if (onStack[next]) {
+          lowLink[nodeIdx] = Math.min(lowLink[nodeIdx], indexByNode[next]);
+        }
       }
-    }
 
-    if (lowLink[nodeIdx] === indexByNode[nodeIdx]) {
-      const members: number[] = [];
-      let member = -1;
-      while (member !== nodeIdx) {
-        member = stack.pop()!;
-        onStack[member] = false;
-        componentByNode[member] = components.length;
-        members.push(member);
+      if (!pushed) {
+        callStack.pop();
+        if (callStack.length > 0) {
+          const parent = callStack[callStack.length - 1].nodeIdx;
+          lowLink[parent] = Math.min(lowLink[parent], lowLink[nodeIdx]);
+        }
+        if (lowLink[nodeIdx] === indexByNode[nodeIdx]) {
+          const members: number[] = [];
+          let member = -1;
+          while (member !== nodeIdx) {
+            member = stack.pop()!;
+            onStack[member] = false;
+            componentByNode[member] = components.length;
+            members.push(member);
+          }
+          components.push({
+            id: components.length,
+            members,
+            size: members.length,
+            selfLoop: members.some((idx) => selfLoop.has(idx)),
+            incoming: new Set(),
+            outgoing: new Set(),
+            hotspotScore: 0,
+            hotspotRank: 0,
+            isHotspot: false,
+          });
+        }
       }
-
-      components.push({
-        id: components.length,
-        members,
-        size: members.length,
-        selfLoop: members.some((idx) => selfLoop.has(idx)),
-        incoming: new Set(),
-        outgoing: new Set(),
-        hotspotScore: 0,
-        hotspotRank: 0,
-        isHotspot: false,
-      });
     }
   };
 
@@ -244,6 +276,21 @@ function calculateStronglyConnectedComponents(
   return components;
 }
 
+// Mark nodes in the top 10% by transitiveInDegree as hotspots.
+// This makes the hotspot feature meaningful for acyclic graphs (e.g. Bazel DAGs)
+// where SCC-based detection finds nothing. Nodes already marked via SCC are left alone.
+function markHighImpactHotspots(nodes: PositionedNode[]): void {
+  const sorted = nodes.map((n) => n.transitiveInDegree).sort((a, b) => a - b);
+  const threshold = sorted[Math.floor(sorted.length * 0.9)] ?? 0;
+  if (threshold === 0) return;
+  nodes.forEach((n) => {
+    if (!n.isHotspot && n.transitiveInDegree > threshold) {
+      n.isHotspot = true;
+      n.hotspotScore = n.transitiveInDegree;
+    }
+  });
+}
+
 export function sanitizeGraph(raw: Graph): Graph {
   const isValidId = (s: string) =>
     s &&
@@ -281,18 +328,18 @@ function buildPositionedGraph(
     neighbors.get(e.target)?.push(e);
   });
 
-  const hotspotComponents = components.filter((component) => component.isHotspot);
-  const largestHotspotSize = hotspotComponents.reduce(
-    (largest, component) => Math.max(largest, component.size),
-    0
-  );
+  const hotspotNodeCount = nodes.filter((n) => n.isHotspot).length;
+  // largestHotspotSize tracks the biggest cycle cluster (SCC), not individual DAG hotspots
+  const largestHotspotSize = components
+    .filter((c) => c.isHotspot)
+    .reduce((max, c) => Math.max(max, c.size), 0);
 
   return {
     nodes,
     edges,
     idToNode,
     neighbors,
-    hotspotCount: hotspotComponents.length,
+    hotspotCount: hotspotNodeCount,
     largestHotspotSize,
   };
 }
@@ -329,6 +376,7 @@ function compactGridLayout(graph: Graph): PositionedGraph {
 
   calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
   const components = calculateStronglyConnectedComponents(nodes as PositionedNode[], graph.edges);
+  markHighImpactHotspots(nodes as PositionedNode[]);
 
   nodes.forEach((n) => {
     n.weight = n.inDegree + n.outDegree;
@@ -394,6 +442,7 @@ export function layeredLayout(graph: Graph): PositionedGraph {
 
   calculateTransitiveClosure(nodes as PositionedNode[], graph.edges);
   const components = calculateStronglyConnectedComponents(nodes as PositionedNode[], graph.edges);
+  markHighImpactHotspots(nodes as PositionedNode[]);
 
   nodes.forEach((n) => {
     n.weight = n.inDegree + n.outDegree;
@@ -425,8 +474,8 @@ export function layeredLayout(graph: Graph): PositionedGraph {
 
   const layerOrder = [...groupedLayers.keys()].sort((a, b) => a - b);
   const componentPositions = new Map<number, { x: number; y: number }>();
-  const layerHeight = 240;
-  const horizontalGap = 220;
+  const layerHeight = 180;
+  const horizontalGap = 80;
 
   layerOrder.forEach((layerNumber) => {
     const layerComponents = (groupedLayers.get(layerNumber) ?? []).sort((a, b) => {
@@ -497,4 +546,23 @@ export function fitToView(
   const offsetX = viewW / 2 - cx * clamped;
   const offsetY = viewH / 2 - cy * clamped;
   return { scale: clamped, offsetX, offsetY };
+}
+
+// Reconstructs the Map fields of a PositionedGraph from plain serializable arrays.
+// Used to reassemble the result sent back from the layout Web Worker.
+export function rehydratePositionedGraph(
+  nodes: PositionedNode[],
+  edges: GraphEdge[],
+  hotspotCount: number,
+  largestHotspotSize: number
+): PositionedGraph {
+  const idToNode = new Map<string, PositionedNode>();
+  nodes.forEach((n) => idToNode.set(n.id, n));
+  const neighbors = new Map<string, GraphEdge[]>();
+  nodes.forEach((n) => neighbors.set(n.id, []));
+  edges.forEach((e) => {
+    neighbors.get(e.source)?.push(e);
+    neighbors.get(e.target)?.push(e);
+  });
+  return { nodes, edges, idToNode, neighbors, hotspotCount, largestHotspotSize };
 }

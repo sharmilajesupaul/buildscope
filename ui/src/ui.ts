@@ -37,7 +37,7 @@ export function createControlsPanel(): HTMLElement {
         <option value="transitive-total">Transitive: Total</option>
         <option value="transitive-inputs">Transitive: Inputs</option>
         <option value="transitive-outputs">Transitive: Outputs</option>
-        <option value="hotspots">Hotspots (SCC Cycles)</option>
+        <option value="hotspots">Hotspots</option>
         <option value="uniform">Uniform Size</option>
       </select>
     </div>
