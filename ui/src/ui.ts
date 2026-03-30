@@ -81,7 +81,23 @@ export function createStatusPanel(): HTMLElement {
     </div>
     <div class="status-item hidden" id="current-node-status">
       <span class="status-label">Selected:</span>
-      <span class="status-value font-size-sm" id="current-node"></span>
+      <div class="status-content">
+        <div class="status-value font-size-sm" id="current-node"></div>
+        <div class="status-details" id="current-node-details"></div>
+      </div>
+    </div>
+    <div class="analysis-panel">
+      <div class="controls-label">Analysis</div>
+      <div class="analysis-group">
+        <div class="analysis-heading">Top Impact</div>
+        <div class="analysis-copy">Best for blast radius. Click to focus the graph.</div>
+        <div class="analysis-list" id="impact-analysis-list"></div>
+      </div>
+      <div class="analysis-group">
+        <div class="analysis-heading">Break-up Candidates</div>
+        <div class="analysis-copy">Shared hubs with broad direct dependency surface.</div>
+        <div class="analysis-list" id="pressure-analysis-list"></div>
+      </div>
     </div>
     <div class="legend">
       <div class="legend-items">

@@ -2,6 +2,7 @@ import { Application } from 'pixi.js';
 import { rehydratePositionedGraph } from './graphLayout';
 import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
+import { getTopBreakupCandidates, getTopImpactTargets } from './graphAnalysis';
 import {
   createHeader,
   createControlsPanel,
@@ -36,7 +37,10 @@ function main() {
   const nodeCountEl = statusPanel.querySelector('#node-count') as HTMLElement;
   const edgeCountEl = statusPanel.querySelector('#edge-count') as HTMLElement;
   const currentNodeEl = statusPanel.querySelector('#current-node') as HTMLElement;
+  const currentNodeDetailsEl = statusPanel.querySelector('#current-node-details') as HTMLElement;
   const currentNodeStatus = statusPanel.querySelector('#current-node-status') as HTMLElement;
+  const impactAnalysisListEl = statusPanel.querySelector('#impact-analysis-list') as HTMLElement;
+  const pressureAnalysisListEl = statusPanel.querySelector('#pressure-analysis-list') as HTMLElement;
 
   const zoomInBtn = zoomControls.querySelector('#zoom-in') as HTMLButtonElement;
   const zoomOutBtn = zoomControls.querySelector('#zoom-out') as HTMLButtonElement;
@@ -66,10 +70,61 @@ function main() {
     nodeCountEl,
     edgeCountEl,
     currentNodeEl,
+    currentNodeDetailsEl,
     currentNodeStatus,
   });
 
   weightModeSelect.value = viz.getWeightMode();
+
+  const focusFromAnalysis = (nodeId: string, mode: 'transitive-total' | 'pressure') => {
+    weightModeSelect.value = mode;
+    viz.setWeightMode(mode);
+    viz.focusNode(nodeId);
+  };
+
+  const renderAnalysisList = (
+    listEl: HTMLElement,
+    entries: ReturnType<typeof getTopImpactTargets>,
+    mode: 'transitive-total' | 'pressure'
+  ) => {
+    listEl.replaceChildren();
+
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'analysis-empty';
+      empty.innerText = 'No ranked targets for this graph.';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    entries.forEach((entry, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'analysis-item';
+      button.addEventListener('click', () => focusFromAnalysis(entry.id, mode));
+
+      const rank = document.createElement('span');
+      rank.className = 'analysis-item-rank';
+      rank.innerText = `#${index + 1}`;
+
+      const body = document.createElement('span');
+      body.className = 'analysis-item-body';
+
+      const title = document.createElement('span');
+      title.className = 'analysis-item-title';
+      title.innerText = entry.label;
+
+      const meta = document.createElement('span');
+      meta.className = 'analysis-item-meta';
+      meta.innerText = entry.summary;
+
+      body.appendChild(title);
+      body.appendChild(meta);
+      button.appendChild(rank);
+      button.appendChild(body);
+      listEl.appendChild(button);
+    });
+  };
 
   // Event listeners - Zoom controls
   zoomInBtn.addEventListener('click', () => {
@@ -171,6 +226,8 @@ function main() {
     const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
     viz.setStatus(impactSummary, 'success');
     viz.setPositionedGraph(pg);
+    renderAnalysisList(impactAnalysisListEl, getTopImpactTargets(pg.nodes), 'transitive-total');
+    renderAnalysisList(pressureAnalysisListEl, getTopBreakupCandidates(pg.nodes), 'pressure');
     worker.terminate();
   };
 

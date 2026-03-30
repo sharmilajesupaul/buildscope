@@ -16,6 +16,7 @@ import {
   EDGE_VISIBILITY_THRESHOLD,
   COLORS,
 } from './constants';
+import { formatAnalysisScore, getBreakupCandidateScore } from './graphAnalysis';
 
 export interface UIElements {
   zoomLevelEl: HTMLElement;
@@ -23,6 +24,7 @@ export interface UIElements {
   nodeCountEl: HTMLElement;
   edgeCountEl: HTMLElement;
   currentNodeEl: HTMLElement;
+  currentNodeDetailsEl: HTMLElement;
   currentNodeStatus: HTMLElement;
 }
 
@@ -61,6 +63,7 @@ export class GraphVisualization {
   private nodeCountEl: HTMLElement;
   private edgeCountEl: HTMLElement;
   private currentNodeEl: HTMLElement;
+  private currentNodeDetailsEl: HTMLElement;
   private currentNodeStatus: HTMLElement;
 
   constructor(app: Application, uiElements: UIElements) {
@@ -81,6 +84,7 @@ export class GraphVisualization {
     this.nodeCountEl = uiElements.nodeCountEl;
     this.edgeCountEl = uiElements.edgeCountEl;
     this.currentNodeEl = uiElements.currentNodeEl;
+    this.currentNodeDetailsEl = uiElements.currentNodeDetailsEl;
     this.currentNodeStatus = uiElements.currentNodeStatus;
   }
 
@@ -220,6 +224,16 @@ export class GraphVisualization {
   }
 
   // Status updates
+  private formatNodeDetails(node: PositionedNode): string {
+    const impactText = node.isHotspot ? `impact #${node.hotspotRank}` : 'not high-impact';
+    const clusterText = node.sccSize > 1 ? ` · cluster ${node.sccSize}` : '';
+    return [
+      `${node.inDegree} direct dependents · ${node.transitiveInDegree} transitive dependents`,
+      `${node.outDegree} direct deps · ${node.transitiveOutDegree} transitive deps`,
+      `break-up score ${formatAnalysisScore(getBreakupCandidateScore(node))} · ${impactText}${clusterText}`,
+    ].join('\n');
+  }
+
   updateStatus() {
     if (!this.positioned) return;
 
@@ -275,6 +289,7 @@ export class GraphVisualization {
           ? ` · impact #${node.hotspotRank} (${node.transitiveInDegree} dependents${node.sccSize > 1 ? `, cluster ${node.sccSize}` : ''})`
           : '';
         this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
+        this.currentNodeDetailsEl.innerText = this.formatNodeDetails(node);
         this.currentNodeStatus.classList.remove('hidden');
       }
     } else {
@@ -294,9 +309,11 @@ export class GraphVisualization {
             ? ` · impact #${node.hotspotRank} (${node.transitiveInDegree} dependents${node.sccSize > 1 ? `, cluster ${node.sccSize}` : ''})`
             : '';
           this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
+          this.currentNodeDetailsEl.innerText = this.formatNodeDetails(node);
           this.currentNodeStatus.classList.remove('hidden');
         }
       } else {
+        this.currentNodeDetailsEl.innerText = '';
         this.currentNodeStatus.classList.add('hidden');
       }
     }
@@ -595,12 +612,25 @@ export class GraphVisualization {
     if (!node) {
       this.lastStatusSignature = '';
       this.currentNodeEl.innerText = `Not found: ${term}`;
+      this.currentNodeDetailsEl.innerText = 'Try a full or partial target label.';
       this.currentNodeStatus.classList.remove('hidden');
       return;
     }
 
     this.selectedId = node.id;
     this.draw(this.positioned, true, true);
+  }
+
+  focusNode(nodeId: string) {
+    if (!this.positioned) return;
+
+    const node = this.positioned.idToNode.get(nodeId);
+    if (!node) return;
+
+    this.selectedId = node.id;
+    this.hoveredId = node.id;
+    this.lastStatusSignature = '';
+    this.draw(this.positioned, false, true);
   }
 
   handleResize() {
