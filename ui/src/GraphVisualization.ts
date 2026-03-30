@@ -44,8 +44,15 @@ export class GraphVisualization {
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
   private drawScheduled = false;
+  private hoverSuppressed = false;
+  private hoverResumeTimeout: number | null = null;
   private lastShowAllEdges = false;
   private lastEdgeHighlightSignature = '';
+  private lastStatusSignature = '';
+  private transitiveDepsCache = new Map<
+    string,
+    { transitiveNodes: Set<string>; transitiveEdges: Set<string> }
+  >();
   private currentWeightMode: WeightMode = 'total';
 
   // UI Elements
@@ -131,6 +138,7 @@ export class GraphVisualization {
     this.graphContainer.position.y += (after.y - before.y) * this.currentScale;
 
     this.updateZoomLevel();
+    this.suppressHoverForNavigation();
     // Pixi re-renders the scaled container immediately; schedule one culling pass per frame
     this.scheduleDraw();
   }
@@ -144,6 +152,22 @@ export class GraphVisualization {
       this.drawScheduled = false;
       if (this.positioned) this.draw(this.positioned, false, false, true);
     });
+  }
+
+  // Suppress hover updates while the viewport is moving so pointerover/out does not
+  // trigger full redraws as nodes slide under the cursor during pan/zoom.
+  private suppressHoverForNavigation() {
+    this.hoverSuppressed = true;
+    if (this.hoveredId) {
+      this.hoveredId = null;
+    }
+    if (this.hoverResumeTimeout !== null) {
+      window.clearTimeout(this.hoverResumeTimeout);
+    }
+    this.hoverResumeTimeout = window.setTimeout(() => {
+      this.hoverSuppressed = false;
+      this.hoverResumeTimeout = null;
+    }, 120);
   }
 
   setZoomToPercentage(percentage: number) {
@@ -161,10 +185,13 @@ export class GraphVisualization {
   }
 
   // Calculate transitive dependencies for a specific node
-  private calculateTransitiveDeps(nodeId: string, pg: PositionedGraph): {
+  private getTransitiveDeps(nodeId: string, pg: PositionedGraph): {
     transitiveNodes: Set<string>;
     transitiveEdges: Set<string>;
   } {
+    const cached = this.transitiveDepsCache.get(nodeId);
+    if (cached) return cached;
+
     const transitiveNodes = new Set<string>();
     const transitiveEdges = new Set<string>();
     const visited = new Set<string>([nodeId]);
@@ -187,12 +214,26 @@ export class GraphVisualization {
       }
     }
 
-    return { transitiveNodes, transitiveEdges };
+    const result = { transitiveNodes, transitiveEdges };
+    this.transitiveDepsCache.set(nodeId, result);
+    return result;
   }
 
   // Status updates
   updateStatus() {
     if (!this.positioned) return;
+
+    const statusSignature = [
+      this.selectedId ?? '',
+      this.hoveredId ?? '',
+      this.currentWeightMode,
+      this.positioned.hotspotCount,
+      this.positioned.largestHotspotSize,
+      this.positioned.nodes.length,
+      this.positioned.edges.length,
+    ].join('|');
+    if (statusSignature === this.lastStatusSignature) return;
+    this.lastStatusSignature = statusSignature;
 
     const totalNodes = this.positioned.nodes.length;
     const totalEdges = this.positioned.edges.length;
@@ -214,7 +255,7 @@ export class GraphVisualization {
         this.currentWeightMode === 'transitive-outputs';
 
       if (isTransitiveMode) {
-        const { transitiveNodes, transitiveEdges } = this.calculateTransitiveDeps(
+        const { transitiveNodes, transitiveEdges } = this.getTransitiveDeps(
           this.selectedId,
           this.positioned
         );
@@ -323,11 +364,15 @@ export class GraphVisualization {
 
       // Event handlers
       g.on('pointerover', () => {
+        if (this.hoverSuppressed) return;
+        if (this.hoveredId === node.id) return;
         this.hoveredId = node.id;
         this.updateStatus();
         this.draw(pg, false, false);
       });
       g.on('pointerout', () => {
+        if (this.hoverSuppressed) return;
+        if (this.hoveredId !== node.id) return;
         this.hoveredId = null;
         this.updateStatus();
         this.draw(pg, false, false);
@@ -498,6 +543,7 @@ export class GraphVisualization {
     // Clear old node graphics when loading a new graph
     this.nodesLayer.removeChildren();
     this.nodeGraphics.clear();
+    this.transitiveDepsCache.clear();
 
     // Precompute sccId → Set<nodeId> for O(1) SCC expansion on hover/click
     this.sccMembers.clear();
@@ -511,6 +557,7 @@ export class GraphVisualization {
 
     this.lastShowAllEdges = false;
     this.lastEdgeHighlightSignature = '';
+    this.lastStatusSignature = '';
     this.draw(pg, true, false);
   }
 
@@ -545,6 +592,7 @@ export class GraphVisualization {
     );
 
     if (!node) {
+      this.lastStatusSignature = '';
       this.currentNodeEl.innerText = `Not found: ${term}`;
       this.currentNodeStatus.classList.remove('hidden');
       return;
@@ -564,6 +612,7 @@ export class GraphVisualization {
   startPan(x: number, y: number) {
     this.isPanning = true;
     this.lastPan = { x, y };
+    this.suppressHoverForNavigation();
   }
 
   updatePan(x: number, y: number) {
@@ -572,6 +621,7 @@ export class GraphVisualization {
     this.graphContainer.position.x += x - this.lastPan.x;
     this.graphContainer.position.y += y - this.lastPan.y;
     this.lastPan = { x, y };
+    this.suppressHoverForNavigation();
     // Pixi re-renders the translated container immediately; schedule one culling pass per frame
     this.scheduleDraw();
   }
