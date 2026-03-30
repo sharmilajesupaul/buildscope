@@ -46,6 +46,7 @@ function main() {
   const analysisFilterInput = sidePanel.querySelector('#analysis-filter-input') as HTMLInputElement;
   const themeSelect = sidePanel.querySelector('#theme-select') as HTMLSelectElement;
   const fitBtn = sidePanel.querySelector('#fit-btn') as HTMLButtonElement;
+  const resetBtn = sidePanel.querySelector('#reset-btn') as HTMLButtonElement;
   const advancedModeSelect = sidePanel.querySelector('#advanced-mode-select') as HTMLSelectElement;
   const focusModeCopyEl = sidePanel.querySelector('#focus-mode-copy') as HTMLElement;
   const shortcutButtons = Array.from(
@@ -268,6 +269,7 @@ function main() {
   (zoomLevelEl as HTMLInputElement).addEventListener('blur', handleZoomInput);
 
   fitBtn.addEventListener('click', () => viz.fitView());
+  resetBtn.addEventListener('click', () => viz.clearSelection());
   advancedModeSelect.addEventListener('change', () => {
     advancedMode = advancedModeSelect.value as AdvancedWeightMode;
     applyWeightMode();

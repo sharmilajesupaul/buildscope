@@ -700,7 +700,6 @@ export class GraphVisualization {
         this.sccSizeEl.innerText = String(node.sccSize);
         this.hotspotRankEl.innerText = node.isHotspot ? `#${node.hotspotRank}` : 'Not ranked';
         this.currentNodeStatus.classList.remove('hidden');
-        this.scrollSelectionIntoView();
       }
     } else {
       if (this.hoveredId) {
@@ -1060,7 +1059,7 @@ export class GraphVisualization {
     if (this.positioned) {
       this.hoveredId = null;
       this.lastStatusSignature = '';
-      this.draw(this.positioned, !this.selectedId, Boolean(this.selectedId));
+      this.draw(this.positioned, true, false);
     }
   }
 
@@ -1106,6 +1105,7 @@ export class GraphVisualization {
     this.selectedId = node.id;
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
+    this.scrollSelectionIntoView();
   }
 
   focusNode(nodeId: string) {
@@ -1118,6 +1118,7 @@ export class GraphVisualization {
     this.hoveredId = node.id;
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
+    this.scrollSelectionIntoView();
   }
 
   handleResize() {
@@ -1222,6 +1223,7 @@ export class GraphVisualization {
     this.hoveredId = pickedId;
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
+    this.scrollSelectionIntoView();
   }
 
   clearSelection() {

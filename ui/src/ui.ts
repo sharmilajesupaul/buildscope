@@ -165,9 +165,10 @@ export function createSidePanel(): HTMLElement {
       </div>
 
       <div class="panel-group">
-        <div class="controls-label">Canvas</div>
+      <div class="controls-label">Canvas</div>
         <div class="button-group">
           <button class="btn btn-primary" id="fit-btn">Fit View</button>
+          <button class="btn btn-secondary" id="reset-btn">Reset</button>
         </div>
         <div class="zoom-inline">
           <button class="zoom-btn" id="zoom-out" title="Zoom Out">-</button>
