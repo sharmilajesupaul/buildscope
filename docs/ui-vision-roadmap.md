@@ -1,5 +1,7 @@
 # UI Vision Roadmap
 
+For immediate implementation order, use `docs/ui-execution-plan.md`. This document remains the broader vision/background note.
+
 This document describes the next major UI direction for BuildScope. The goal is not only to make the graph prettier, but to make it more useful for real dependency debugging while keeping large graphs fast.
 
 This roadmap complements `docs/large-graph-ui-plan.md`, which focuses on large-graph structure and interaction. This document focuses on product feel, visual direction, workflows, and performance guardrails.

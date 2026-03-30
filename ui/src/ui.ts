@@ -1,62 +1,85 @@
 // UI Creation Functions
 
 export function createHeader(): HTMLElement {
-  const header = document.createElement('div');
+  const header = document.createElement('header');
   header.className = 'app-header';
   header.innerHTML = `
-    <div class="app-title">
+    <div class="brand-lockup">
       <div class="app-logo">B</div>
-      <div>
-        <div class="app-name">BuildScope</div>
-      </div>
-      <div class="app-subtitle">Bazel Build Graph Explorer</div>
+      <div class="app-name">BuildScope</div>
     </div>
   `;
   return header;
 }
 
 export function createControlsPanel(): HTMLElement {
-  const controlsPanel = document.createElement('div');
+  const controlsPanel = document.createElement('aside');
   controlsPanel.className = 'controls-panel';
   controlsPanel.innerHTML = `
-    <div class="controls-section">
-      <div class="controls-label">Search</div>
+    <div class="panel-group">
+      <div class="toolbar-row">
+        <div class="controls-label">Search</div>
+        <label class="inline-theme-picker" for="theme-select">
+          <span class="theme-picker-label">Theme</span>
+          <select class="theme-select" id="theme-select">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="colorblind">Colorblind</option>
+          </select>
+        </label>
+      </div>
       <div class="search-container">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
         </svg>
-        <input type="text" class="search-input" id="search-input" placeholder="Search nodes..." />
+        <input type="text" class="search-input" id="search-input" placeholder="Find a target..." />
       </div>
     </div>
-    <div class="controls-section">
-      <div class="controls-label">Node Size</div>
+
+    <div class="panel-group">
+      <div class="summary-header">
+        <div class="controls-label">Focus Mode</div>
+        <span class="mode-pill" id="focus-mode-copy">Impact</span>
+      </div>
+      <div class="shortcut-grid">
+        <button class="shortcut-btn is-active" type="button" data-weight-mode="transitive-total">
+          <span class="shortcut-title">Impact</span>
+          <span class="shortcut-copy">Broad reach</span>
+        </button>
+        <button class="shortcut-btn" type="button" data-weight-mode="transitive-inputs">
+          <span class="shortcut-title">Upstream</span>
+          <span class="shortcut-copy">Who depends on it</span>
+        </button>
+        <button class="shortcut-btn" type="button" data-weight-mode="transitive-outputs">
+          <span class="shortcut-title">Downstream</span>
+          <span class="shortcut-copy">What it reaches</span>
+        </button>
+        <button class="shortcut-btn" type="button" data-weight-mode="total">
+          <span class="shortcut-title">Direct</span>
+          <span class="shortcut-copy">Immediate links</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-group">
+      <div class="controls-label">Node Emphasis</div>
       <select class="weight-mode-select" id="weight-mode-select">
-        <option value="total">Direct: Total Connections</option>
-        <option value="inputs">Direct: Inputs Only</option>
-        <option value="outputs">Direct: Outputs Only</option>
-        <option value="transitive-total">Impact: Total Reach</option>
-        <option value="transitive-inputs">Impact: Dependents</option>
-        <option value="transitive-outputs">Reach: Dependencies</option>
-        <option value="pressure">Break-up Candidates</option>
-        <option value="uniform">Uniform Size</option>
+        <option value="transitive-total">Transitive total</option>
+        <option value="transitive-inputs">Transitive inputs</option>
+        <option value="transitive-outputs">Transitive outputs</option>
+        <option value="total">Direct total connections</option>
+        <option value="inputs">Direct inputs only</option>
+        <option value="outputs">Direct outputs only</option>
+        <option value="hotspots">High impact ranking</option>
+        <option value="uniform">Uniform size</option>
       </select>
     </div>
-    <div class="controls-section">
-      <div class="controls-label">View Controls</div>
+
+    <div class="panel-group">
+      <div class="controls-label">Canvas</div>
       <div class="button-group">
-        <button class="btn btn-primary" id="fit-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3zm13 0A1.5 1.5 0 0 0 12.5 1h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 1 0v-3zM.5 10.5A.5.5 0 0 1 1 10v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 1 13v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 0 0 1h3a1.5 1.5 0 0 0 1.5-1.5v-3a.5.5 0 0 0-.5-.5z"/>
-          </svg>
-          Fit View
-        </button>
-        <button class="btn btn-secondary" id="reset-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-          </svg>
-          Reset
-        </button>
+        <button class="btn btn-primary" id="fit-btn">Fit</button>
+        <button class="btn btn-secondary" id="reset-btn">Reset</button>
       </div>
     </div>
   `;
@@ -64,58 +87,65 @@ export function createControlsPanel(): HTMLElement {
 }
 
 export function createStatusPanel(): HTMLElement {
-  const statusPanel = document.createElement('div');
+  const statusPanel = document.createElement('aside');
   statusPanel.className = 'status-panel';
   statusPanel.innerHTML = `
-    <div class="status-item">
-      <span class="status-label">Status:</span>
-      <span class="status-badge loading" id="status-badge">Loading</span>
-    </div>
-    <div class="status-item">
-      <span class="status-label">Nodes:</span>
-      <span class="status-value" id="node-count">0</span>
-    </div>
-    <div class="status-item">
-      <span class="status-label">Edges:</span>
-      <span class="status-value" id="edge-count">0</span>
-    </div>
-    <div class="status-item hidden" id="current-node-status">
-      <span class="status-label">Selected:</span>
-      <div class="status-content">
-        <div class="status-value font-size-sm" id="current-node"></div>
-        <div class="status-details" id="current-node-details"></div>
+    <div class="panel-group">
+      <div class="summary-header">
+        <div class="controls-label">Graph</div>
+        <span class="status-badge loading" id="status-badge">Loading</span>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Targets</div>
+          <div class="summary-value" id="node-count">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Edges</div>
+          <div class="summary-value" id="edge-count">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">High impact</div>
+          <div class="summary-value" id="hotspot-count">0</div>
+        </div>
+      </div>
+      <div class="compact-meta-row">
+        <span class="compact-meta-label">Largest cluster</span>
+        <span class="compact-meta-value" id="largest-scc">None</span>
       </div>
     </div>
-    <div class="analysis-panel">
-      <div class="controls-label">Analysis</div>
-      <div class="analysis-group">
-        <div class="analysis-heading">Top Impact</div>
-        <div class="analysis-copy">Best for blast radius. Click to focus the graph.</div>
-        <div class="analysis-list" id="impact-analysis-list"></div>
+
+    <div class="panel-group">
+      <div class="summary-header">
+        <div class="controls-label">Selection</div>
+        <span class="mode-pill" id="weight-mode-label">Impact</span>
       </div>
-      <div class="analysis-group">
-        <div class="analysis-heading">Break-up Candidates</div>
-        <div class="analysis-copy">Shared hubs with broad direct dependency surface.</div>
-        <div class="analysis-list" id="pressure-analysis-list"></div>
-      </div>
-    </div>
-    <div class="legend">
-      <div class="legend-items">
-        <div class="legend-item">
-          <div class="legend-color node"></div>
-          <span>Nodes</span>
+      <div class="focus-empty" id="current-node-empty">Search, hover, or click a target to inspect its neighborhood.</div>
+      <div class="focus-card hidden" id="current-node-status">
+        <div class="focus-title" id="current-node"></div>
+        <div class="focus-subtitle" id="current-node-subtitle"></div>
+        <div class="focus-metric-grid">
+          <div class="focus-metric">
+            <span class="focus-metric-label">Direct in</span>
+            <span class="focus-metric-value" id="direct-inputs">0</span>
+          </div>
+          <div class="focus-metric">
+            <span class="focus-metric-label">Direct out</span>
+            <span class="focus-metric-value" id="direct-outputs">0</span>
+          </div>
+          <div class="focus-metric">
+            <span class="focus-metric-label">Transitive in</span>
+            <span class="focus-metric-value" id="transitive-inputs">0</span>
+          </div>
+          <div class="focus-metric">
+            <span class="focus-metric-label">Transitive out</span>
+            <span class="focus-metric-value" id="transitive-outputs">0</span>
+          </div>
         </div>
-        <div class="legend-item">
-          <div class="legend-color edge"></div>
-          <span>Dependencies</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color highlight"></div>
-          <span>Highlighted</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color hotspot"></div>
-          <span>High Impact</span>
+        <div class="compact-meta-row">
+          <span class="compact-meta-label">Cluster</span>
+          <span class="compact-meta-value" id="scc-size">1</span>
+          <span class="hidden" id="hotspot-rank">Not ranked</span>
         </div>
       </div>
     </div>
@@ -127,17 +157,9 @@ export function createZoomControls(): HTMLElement {
   const zoomControls = document.createElement('div');
   zoomControls.className = 'zoom-controls';
   zoomControls.innerHTML = `
-    <button class="zoom-btn" id="zoom-in" title="Zoom In">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-      </svg>
-    </button>
+    <button class="zoom-btn" id="zoom-out" title="Zoom Out">-</button>
     <input type="text" class="zoom-level" id="zoom-level" value="100%" />
-    <button class="zoom-btn" id="zoom-out" title="Zoom Out">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
-      </svg>
-    </button>
+    <button class="zoom-btn" id="zoom-in" title="Zoom In">+</button>
   `;
   return zoomControls;
 }

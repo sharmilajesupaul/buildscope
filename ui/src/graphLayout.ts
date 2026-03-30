@@ -36,6 +36,8 @@ export type PositionedGraph = {
   edges: GraphEdge[];
   idToNode: Map<string, PositionedNode>;
   neighbors: Map<string, GraphEdge[]>;
+  incoming: Map<string, GraphEdge[]>;
+  outgoing: Map<string, GraphEdge[]>;
   hotspotCount: number;
   largestHotspotSize: number;
 };
@@ -340,10 +342,16 @@ function buildPositionedGraph(
   const idToNode = new Map<string, PositionedNode>();
   nodes.forEach((n) => idToNode.set(n.id, n));
   const neighbors = new Map<string, GraphEdge[]>();
+  const incoming = new Map<string, GraphEdge[]>();
+  const outgoing = new Map<string, GraphEdge[]>();
   nodes.forEach((n) => neighbors.set(n.id, []));
+  nodes.forEach((n) => incoming.set(n.id, []));
+  nodes.forEach((n) => outgoing.set(n.id, []));
   edges.forEach((e) => {
     neighbors.get(e.source)?.push(e);
     neighbors.get(e.target)?.push(e);
+    outgoing.get(e.source)?.push(e);
+    incoming.get(e.target)?.push(e);
   });
 
   const hotspotNodeCount = nodes.filter((n) => n.isHotspot).length;
@@ -357,6 +365,8 @@ function buildPositionedGraph(
     edges,
     idToNode,
     neighbors,
+    incoming,
+    outgoing,
     hotspotCount: hotspotNodeCount,
     largestHotspotSize,
   };
@@ -577,10 +587,16 @@ export function rehydratePositionedGraph(
   const idToNode = new Map<string, PositionedNode>();
   nodes.forEach((n) => idToNode.set(n.id, n));
   const neighbors = new Map<string, GraphEdge[]>();
+  const incoming = new Map<string, GraphEdge[]>();
+  const outgoing = new Map<string, GraphEdge[]>();
   nodes.forEach((n) => neighbors.set(n.id, []));
+  nodes.forEach((n) => incoming.set(n.id, []));
+  nodes.forEach((n) => outgoing.set(n.id, []));
   edges.forEach((e) => {
     neighbors.get(e.source)?.push(e);
     neighbors.get(e.target)?.push(e);
+    outgoing.get(e.source)?.push(e);
+    incoming.get(e.target)?.push(e);
   });
-  return { nodes, edges, idToNode, neighbors, hotspotCount, largestHotspotSize };
+  return { nodes, edges, idToNode, neighbors, incoming, outgoing, hotspotCount, largestHotspotSize };
 }

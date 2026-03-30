@@ -1,8 +1,8 @@
 import { Application } from 'pixi.js';
-import { rehydratePositionedGraph } from './graphLayout';
+import { rehydratePositionedGraph, type WeightMode } from './graphLayout';
 import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
-import { getTopBreakupCandidates, getTopImpactTargets } from './graphAnalysis';
+import { applyTheme, isThemeName, loadThemePreference, type ThemeName } from './constants';
 import {
   createHeader,
   createControlsPanel,
@@ -15,8 +15,8 @@ function main() {
   if (!root) return;
 
   root.innerHTML = '';
+  applyTheme(loadThemePreference(), false);
 
-  // Create UI elements
   const header = createHeader();
   const controlsPanel = createControlsPanel();
   const statusPanel = createStatusPanel();
@@ -27,26 +27,37 @@ function main() {
   root.appendChild(statusPanel);
   root.appendChild(zoomControls);
 
-  // Get DOM references
   const searchInput = controlsPanel.querySelector('#search-input') as HTMLInputElement;
+  const themeSelect = controlsPanel.querySelector('#theme-select') as HTMLSelectElement;
   const fitBtn = controlsPanel.querySelector('#fit-btn') as HTMLButtonElement;
   const resetBtn = controlsPanel.querySelector('#reset-btn') as HTMLButtonElement;
   const weightModeSelect = controlsPanel.querySelector('#weight-mode-select') as HTMLSelectElement;
+  const focusModeCopyEl = controlsPanel.querySelector('#focus-mode-copy') as HTMLElement;
+  const shortcutButtons = Array.from(
+    controlsPanel.querySelectorAll('[data-weight-mode]')
+  ) as HTMLButtonElement[];
 
   const statusBadge = statusPanel.querySelector('#status-badge') as HTMLElement;
   const nodeCountEl = statusPanel.querySelector('#node-count') as HTMLElement;
   const edgeCountEl = statusPanel.querySelector('#edge-count') as HTMLElement;
+  const hotspotCountEl = statusPanel.querySelector('#hotspot-count') as HTMLElement;
+  const largestSccEl = statusPanel.querySelector('#largest-scc') as HTMLElement;
   const currentNodeEl = statusPanel.querySelector('#current-node') as HTMLElement;
-  const currentNodeDetailsEl = statusPanel.querySelector('#current-node-details') as HTMLElement;
   const currentNodeStatus = statusPanel.querySelector('#current-node-status') as HTMLElement;
-  const impactAnalysisListEl = statusPanel.querySelector('#impact-analysis-list') as HTMLElement;
-  const pressureAnalysisListEl = statusPanel.querySelector('#pressure-analysis-list') as HTMLElement;
+  const currentNodeSubtitleEl = statusPanel.querySelector('#current-node-subtitle') as HTMLElement;
+  const currentNodeEmptyEl = statusPanel.querySelector('#current-node-empty') as HTMLElement;
+  const directInputsEl = statusPanel.querySelector('#direct-inputs') as HTMLElement;
+  const directOutputsEl = statusPanel.querySelector('#direct-outputs') as HTMLElement;
+  const transitiveInputsEl = statusPanel.querySelector('#transitive-inputs') as HTMLElement;
+  const transitiveOutputsEl = statusPanel.querySelector('#transitive-outputs') as HTMLElement;
+  const sccSizeEl = statusPanel.querySelector('#scc-size') as HTMLElement;
+  const hotspotRankEl = statusPanel.querySelector('#hotspot-rank') as HTMLElement;
+  const weightModeLabelEl = statusPanel.querySelector('#weight-mode-label') as HTMLElement;
 
   const zoomInBtn = zoomControls.querySelector('#zoom-in') as HTMLButtonElement;
   const zoomOutBtn = zoomControls.querySelector('#zoom-out') as HTMLButtonElement;
   const zoomLevelEl = zoomControls.querySelector('#zoom-level') as HTMLElement;
 
-  // Create PixiJS application
   const app = new Application({
     resizeTo: window,
     backgroundAlpha: 0,
@@ -63,70 +74,44 @@ function main() {
   canvas.style.zIndex = '0';
   root.appendChild(canvas);
 
-  // Create graph visualization
   const viz = new GraphVisualization(app, {
     zoomLevelEl,
     statusBadge,
     nodeCountEl,
     edgeCountEl,
+    hotspotCountEl,
+    largestSccEl,
     currentNodeEl,
-    currentNodeDetailsEl,
     currentNodeStatus,
+    currentNodeSubtitleEl,
+    currentNodeEmptyEl,
+    directInputsEl,
+    directOutputsEl,
+    transitiveInputsEl,
+    transitiveOutputsEl,
+    sccSizeEl,
+    hotspotRankEl,
+    weightModeLabelEl,
   });
 
-  weightModeSelect.value = viz.getWeightMode();
-
-  const focusFromAnalysis = (nodeId: string, mode: 'transitive-total' | 'pressure') => {
+  const syncWeightModeControls = (mode: WeightMode) => {
     weightModeSelect.value = mode;
-    viz.setWeightMode(mode);
-    viz.focusNode(nodeId);
-  };
-
-  const renderAnalysisList = (
-    listEl: HTMLElement,
-    entries: ReturnType<typeof getTopImpactTargets>,
-    mode: 'transitive-total' | 'pressure'
-  ) => {
-    listEl.replaceChildren();
-
-    if (!entries.length) {
-      const empty = document.createElement('div');
-      empty.className = 'analysis-empty';
-      empty.innerText = 'No ranked targets for this graph.';
-      listEl.appendChild(empty);
-      return;
-    }
-
-    entries.forEach((entry, index) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'analysis-item';
-      button.addEventListener('click', () => focusFromAnalysis(entry.id, mode));
-
-      const rank = document.createElement('span');
-      rank.className = 'analysis-item-rank';
-      rank.innerText = `#${index + 1}`;
-
-      const body = document.createElement('span');
-      body.className = 'analysis-item-body';
-
-      const title = document.createElement('span');
-      title.className = 'analysis-item-title';
-      title.innerText = entry.label;
-
-      const meta = document.createElement('span');
-      meta.className = 'analysis-item-meta';
-      meta.innerText = entry.summary;
-
-      body.appendChild(title);
-      body.appendChild(meta);
-      button.appendChild(rank);
-      button.appendChild(body);
-      listEl.appendChild(button);
+    focusModeCopyEl.innerText = viz.getWeightModeLabel(mode);
+    shortcutButtons.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.weightMode === mode);
     });
   };
 
-  // Event listeners - Zoom controls
+  themeSelect.value = loadThemePreference();
+  syncWeightModeControls(viz.getWeightMode());
+
+  themeSelect.addEventListener('change', () => {
+    const theme = themeSelect.value;
+    if (!isThemeName(theme)) return;
+    applyTheme(theme as ThemeName);
+    viz.refreshTheme();
+  });
+
   zoomInBtn.addEventListener('click', () => {
     const centerX = app.renderer.screen.width / 2;
     const centerY = app.renderer.screen.height / 2;
@@ -139,7 +124,6 @@ function main() {
     viz.zoom(1, centerX, centerY);
   });
 
-  // Event listeners - Zoom level input
   const handleZoomInput = () => {
     const input = zoomLevelEl as HTMLInputElement;
     const value = input.value.replace('%', '').trim();
@@ -148,7 +132,6 @@ function main() {
     if (!isNaN(percentage) && percentage > 0) {
       viz.setZoomToPercentage(percentage);
     } else {
-      // Restore current zoom if invalid input
       viz.setZoomToPercentage(viz.getCurrentScale() * 100);
     }
   };
@@ -163,11 +146,9 @@ function main() {
 
   (zoomLevelEl as HTMLInputElement).addEventListener('blur', handleZoomInput);
 
-  // Event listeners - View controls
   fitBtn.addEventListener('click', () => viz.fitView());
   resetBtn.addEventListener('click', () => viz.reset());
 
-  // Event listeners - Search
   searchInput.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     const term = searchInput.value.trim();
@@ -175,7 +156,6 @@ function main() {
     viz.search(term);
   });
 
-  // Event listeners - Weight mode
   weightModeSelect.addEventListener('change', () => {
     const mode = weightModeSelect.value as
       | 'total'
@@ -188,9 +168,28 @@ function main() {
       | 'hotspots'
       | 'uniform';
     viz.setWeightMode(mode);
+    syncWeightModeControls(mode);
   });
 
-  // Event listeners - Canvas interactions
+  shortcutButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.weightMode as
+        | 'total'
+        | 'inputs'
+        | 'outputs'
+        | 'transitive-total'
+        | 'transitive-inputs'
+        | 'transitive-outputs'
+        | 'pressure'
+        | 'hotspots'
+        | 'uniform'
+        | undefined;
+      if (!mode) return;
+      viz.setWeightMode(mode);
+      syncWeightModeControls(mode);
+    });
+  });
+
   if (app.view instanceof HTMLCanvasElement) {
     app.view.addEventListener('wheel', (e) => {
       e.preventDefault();
@@ -200,13 +199,30 @@ function main() {
     app.view.addEventListener('pointerdown', (e) => {
       viz.startPan(e.clientX, e.clientY);
     });
+
+    app.view.addEventListener('pointermove', (e) => {
+      viz.handlePointerMove(e.clientX, e.clientY);
+    });
+
+    app.view.addEventListener('pointerleave', () => {
+      viz.clearHover();
+    });
   }
 
-  window.addEventListener('pointerup', () => viz.endPan());
+  window.addEventListener('pointerup', (e) => {
+    const shouldSelect = viz.endPan();
+    if (shouldSelect && e.target === app.view) {
+      viz.selectAt(e.clientX, e.clientY);
+    }
+  });
   window.addEventListener('pointermove', (e) => viz.updatePan(e.clientX, e.clientY));
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      viz.clearSelection();
+    }
+  });
   window.addEventListener('resize', () => viz.handleResize());
 
-  // Load and process graph via Web Worker so the main thread stays responsive
   const worker = new Worker(new URL('./graphWorker.ts', import.meta.url), { type: 'module' });
 
   worker.onmessage = (e) => {
@@ -226,8 +242,6 @@ function main() {
     const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
     viz.setStatus(impactSummary, 'success');
     viz.setPositionedGraph(pg);
-    renderAnalysisList(impactAnalysisListEl, getTopImpactTargets(pg.nodes), 'transitive-total');
-    renderAnalysisList(pressureAnalysisListEl, getTopBreakupCandidates(pg.nodes), 'pressure');
     worker.terminate();
   };
 

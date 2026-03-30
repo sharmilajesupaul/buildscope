@@ -27,6 +27,7 @@ graph LR
 
 For large-graph UX direction, see [docs/large-graph-ui-plan.md](docs/large-graph-ui-plan.md).
 For the broader UI/product roadmap, see [docs/ui-vision-roadmap.md](docs/ui-vision-roadmap.md).
+For the current implementation brief, see [docs/ui-execution-plan.md](docs/ui-execution-plan.md).
 
 ## Prerequisites
 - Node.js v24.11.1 (see `.node-version`)
@@ -104,6 +105,24 @@ npm --prefix ui run build
 ```bash
 cd ui
 npm test
+```
+
+## Fixture Corpus
+
+BuildScope keeps a pinned fixture corpus so UI and performance changes can be tested against real Bazel graphs.
+
+See [fixtures/README.md](fixtures/README.md) for the full corpus and provenance, then use:
+
+```bash
+./scripts/refresh-fixtures.sh
+./scripts/benchmark-fixtures.sh
+```
+
+Generate and benchmark the large Codex stress fixture when needed:
+
+```bash
+./scripts/refresh-fixtures.sh openai_codex_cli
+./scripts/benchmark-fixtures.sh openai_codex_cli --include-generated
 ```
 
 ## Repository Structure

@@ -21,3 +21,7 @@ bazel-*
 *.jsonpb
 *.aquery.json
 *.query.pb
+
+# Generated benchmark fixtures
+fixtures/generated/*.json
+!fixtures/generated/.gitkeep
