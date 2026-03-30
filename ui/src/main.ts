@@ -3,6 +3,7 @@ import { rehydratePositionedGraph, type WeightMode } from './graphLayout';
 import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
 import { applyTheme, isThemeName, loadThemePreference, type ThemeName } from './constants';
+import { getTopBreakupCandidates, getTopImpactTargets } from './graphAnalysis';
 import {
   createHeader,
   createControlsPanel,
@@ -53,6 +54,8 @@ function main() {
   const sccSizeEl = statusPanel.querySelector('#scc-size') as HTMLElement;
   const hotspotRankEl = statusPanel.querySelector('#hotspot-rank') as HTMLElement;
   const weightModeLabelEl = statusPanel.querySelector('#weight-mode-label') as HTMLElement;
+  const impactAnalysisListEl = statusPanel.querySelector('#impact-analysis-list') as HTMLElement;
+  const pressureAnalysisListEl = statusPanel.querySelector('#pressure-analysis-list') as HTMLElement;
 
   const zoomInBtn = zoomControls.querySelector('#zoom-in') as HTMLButtonElement;
   const zoomOutBtn = zoomControls.querySelector('#zoom-out') as HTMLButtonElement;
@@ -111,6 +114,57 @@ function main() {
     applyTheme(theme as ThemeName);
     viz.refreshTheme();
   });
+
+  const focusFromAnalysis = (nodeId: string, mode: 'transitive-total' | 'pressure') => {
+    weightModeSelect.value = mode;
+    viz.setWeightMode(mode);
+    syncWeightModeControls(mode);
+    viz.focusNode(nodeId);
+  };
+
+  const renderAnalysisList = (
+    listEl: HTMLElement,
+    entries: ReturnType<typeof getTopImpactTargets>,
+    mode: 'transitive-total' | 'pressure'
+  ) => {
+    listEl.replaceChildren();
+
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'analysis-empty';
+      empty.innerText = 'No ranked targets for this graph.';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    entries.slice(0, 5).forEach((entry, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'analysis-item';
+      button.addEventListener('click', () => focusFromAnalysis(entry.id, mode));
+
+      const rank = document.createElement('span');
+      rank.className = 'analysis-item-rank';
+      rank.innerText = `#${index + 1}`;
+
+      const body = document.createElement('span');
+      body.className = 'analysis-item-body';
+
+      const title = document.createElement('span');
+      title.className = 'analysis-item-title';
+      title.innerText = entry.label;
+
+      const meta = document.createElement('span');
+      meta.className = 'analysis-item-meta';
+      meta.innerText = entry.summary;
+
+      body.appendChild(title);
+      body.appendChild(meta);
+      button.appendChild(rank);
+      button.appendChild(body);
+      listEl.appendChild(button);
+    });
+  };
 
   zoomInBtn.addEventListener('click', () => {
     const centerX = app.renderer.screen.width / 2;
@@ -242,6 +296,8 @@ function main() {
     const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
     viz.setStatus(impactSummary, 'success');
     viz.setPositionedGraph(pg);
+    renderAnalysisList(impactAnalysisListEl, getTopImpactTargets(pg.nodes), 'transitive-total');
+    renderAnalysisList(pressureAnalysisListEl, getTopBreakupCandidates(pg.nodes), 'pressure');
     worker.terminate();
   };
 

@@ -70,6 +70,7 @@ export function createControlsPanel(): HTMLElement {
         <option value="total">Direct total connections</option>
         <option value="inputs">Direct inputs only</option>
         <option value="outputs">Direct outputs only</option>
+        <option value="pressure">Break-up candidates</option>
         <option value="hotspots">High impact ranking</option>
         <option value="uniform">Uniform size</option>
       </select>
@@ -147,6 +148,18 @@ export function createStatusPanel(): HTMLElement {
           <span class="compact-meta-value" id="scc-size">1</span>
           <span class="hidden" id="hotspot-rank">Not ranked</span>
         </div>
+      </div>
+    </div>
+
+    <div class="panel-group">
+      <div class="controls-label">Analysis</div>
+      <div class="analysis-group">
+        <div class="analysis-heading">Top impact</div>
+        <div class="analysis-list" id="impact-analysis-list"></div>
+      </div>
+      <div class="analysis-group">
+        <div class="analysis-heading">Break-up candidates</div>
+        <div class="analysis-list" id="pressure-analysis-list"></div>
       </div>
     </div>
   `;
