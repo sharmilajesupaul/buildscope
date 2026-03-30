@@ -26,6 +26,7 @@ graph LR
 ```
 
 For large-graph UX direction, see [docs/large-graph-ui-plan.md](docs/large-graph-ui-plan.md).
+For the broader UI/product roadmap, see [docs/ui-vision-roadmap.md](docs/ui-vision-roadmap.md).
 
 ## Prerequisites
 - Node.js v24.11.1 (see `.node-version`)
