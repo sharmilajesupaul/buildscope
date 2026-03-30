@@ -4,12 +4,28 @@ import { loadGraph } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
 import { applyTheme, isThemeName, loadThemePreference } from './constants';
 import { getTopBreakupCandidates, getTopImpactTargets } from './graphAnalysis';
-import {
-  createHeader,
-  createControlsPanel,
-  createStatusPanel,
-  createZoomControls,
-} from './ui';
+import { createHeader, createSidePanel } from './ui';
+
+type PrimaryWeightMode =
+  | 'transitive-total'
+  | 'pressure'
+  | 'transitive-inputs'
+  | 'transitive-outputs'
+  | 'total';
+
+type AdvancedWeightMode = 'follow-focus' | 'hotspots' | 'uniform';
+
+function splitTargetLabel(label: string) {
+  const separatorIndex = label.lastIndexOf(':');
+  if (separatorIndex <= 0 || separatorIndex === label.length - 1) {
+    return { primary: label, secondary: '' };
+  }
+
+  return {
+    primary: label.slice(separatorIndex + 1),
+    secondary: label.slice(0, separatorIndex),
+  };
+}
 
 function main() {
   const root = document.getElementById('app');
@@ -19,47 +35,43 @@ function main() {
   applyTheme(loadThemePreference(), false);
 
   const header = createHeader();
-  const controlsPanel = createControlsPanel();
-  const statusPanel = createStatusPanel();
-  const zoomControls = createZoomControls();
+  const sidePanel = createSidePanel();
 
   root.appendChild(header);
-  root.appendChild(controlsPanel);
-  root.appendChild(statusPanel);
-  root.appendChild(zoomControls);
+  root.appendChild(sidePanel);
 
-  const searchInput = controlsPanel.querySelector('#search-input') as HTMLInputElement;
-  const themeSelect = controlsPanel.querySelector('#theme-select') as HTMLSelectElement;
-  const fitBtn = controlsPanel.querySelector('#fit-btn') as HTMLButtonElement;
-  const resetBtn = controlsPanel.querySelector('#reset-btn') as HTMLButtonElement;
-  const weightModeSelect = controlsPanel.querySelector('#weight-mode-select') as HTMLSelectElement;
-  const focusModeCopyEl = controlsPanel.querySelector('#focus-mode-copy') as HTMLElement;
+  const panelToggle = sidePanel.querySelector('#panel-toggle') as HTMLButtonElement;
+  const searchInput = sidePanel.querySelector('#search-input') as HTMLInputElement;
+  const themeSelect = sidePanel.querySelector('#theme-select') as HTMLSelectElement;
+  const fitBtn = sidePanel.querySelector('#fit-btn') as HTMLButtonElement;
+  const advancedModeSelect = sidePanel.querySelector('#advanced-mode-select') as HTMLSelectElement;
+  const focusModeCopyEl = sidePanel.querySelector('#focus-mode-copy') as HTMLElement;
   const shortcutButtons = Array.from(
-    controlsPanel.querySelectorAll('[data-weight-mode]')
+    sidePanel.querySelectorAll('[data-weight-mode]')
   ) as HTMLButtonElement[];
 
-  const statusBadge = statusPanel.querySelector('#status-badge') as HTMLElement;
-  const nodeCountEl = statusPanel.querySelector('#node-count') as HTMLElement;
-  const edgeCountEl = statusPanel.querySelector('#edge-count') as HTMLElement;
-  const hotspotCountEl = statusPanel.querySelector('#hotspot-count') as HTMLElement;
-  const largestSccEl = statusPanel.querySelector('#largest-scc') as HTMLElement;
-  const currentNodeEl = statusPanel.querySelector('#current-node') as HTMLElement;
-  const currentNodeStatus = statusPanel.querySelector('#current-node-status') as HTMLElement;
-  const currentNodeSubtitleEl = statusPanel.querySelector('#current-node-subtitle') as HTMLElement;
-  const currentNodeEmptyEl = statusPanel.querySelector('#current-node-empty') as HTMLElement;
-  const directInputsEl = statusPanel.querySelector('#direct-inputs') as HTMLElement;
-  const directOutputsEl = statusPanel.querySelector('#direct-outputs') as HTMLElement;
-  const transitiveInputsEl = statusPanel.querySelector('#transitive-inputs') as HTMLElement;
-  const transitiveOutputsEl = statusPanel.querySelector('#transitive-outputs') as HTMLElement;
-  const sccSizeEl = statusPanel.querySelector('#scc-size') as HTMLElement;
-  const hotspotRankEl = statusPanel.querySelector('#hotspot-rank') as HTMLElement;
-  const weightModeLabelEl = statusPanel.querySelector('#weight-mode-label') as HTMLElement;
-  const impactAnalysisListEl = statusPanel.querySelector('#impact-analysis-list') as HTMLElement;
-  const pressureAnalysisListEl = statusPanel.querySelector('#pressure-analysis-list') as HTMLElement;
+  const statusBadge = sidePanel.querySelector('#status-badge') as HTMLElement;
+  const nodeCountEl = sidePanel.querySelector('#node-count') as HTMLElement;
+  const edgeCountEl = sidePanel.querySelector('#edge-count') as HTMLElement;
+  const hotspotCountEl = sidePanel.querySelector('#hotspot-count') as HTMLElement;
+  const largestSccEl = sidePanel.querySelector('#largest-scc') as HTMLElement;
+  const currentNodeEl = sidePanel.querySelector('#current-node') as HTMLElement;
+  const currentNodeStatus = sidePanel.querySelector('#current-node-status') as HTMLElement;
+  const currentNodeSubtitleEl = sidePanel.querySelector('#current-node-subtitle') as HTMLElement;
+  const currentNodeEmptyEl = sidePanel.querySelector('#current-node-empty') as HTMLElement;
+  const directInputsEl = sidePanel.querySelector('#direct-inputs') as HTMLElement;
+  const directOutputsEl = sidePanel.querySelector('#direct-outputs') as HTMLElement;
+  const transitiveInputsEl = sidePanel.querySelector('#transitive-inputs') as HTMLElement;
+  const transitiveOutputsEl = sidePanel.querySelector('#transitive-outputs') as HTMLElement;
+  const sccSizeEl = sidePanel.querySelector('#scc-size') as HTMLElement;
+  const hotspotRankEl = sidePanel.querySelector('#hotspot-rank') as HTMLElement;
+  const weightModeLabelEl = sidePanel.querySelector('#weight-mode-label') as HTMLElement;
+  const impactAnalysisListEl = sidePanel.querySelector('#impact-analysis-list') as HTMLElement;
+  const pressureAnalysisListEl = sidePanel.querySelector('#pressure-analysis-list') as HTMLElement;
 
-  const zoomInBtn = zoomControls.querySelector('#zoom-in') as HTMLButtonElement;
-  const zoomOutBtn = zoomControls.querySelector('#zoom-out') as HTMLButtonElement;
-  const zoomLevelEl = zoomControls.querySelector('#zoom-level') as HTMLElement;
+  const zoomInBtn = sidePanel.querySelector('#zoom-in') as HTMLButtonElement;
+  const zoomOutBtn = sidePanel.querySelector('#zoom-out') as HTMLButtonElement;
+  const zoomLevelEl = sidePanel.querySelector('#zoom-level') as HTMLElement;
 
   const app = new Application({
     resizeTo: window,
@@ -97,16 +109,29 @@ function main() {
     weightModeLabelEl,
   });
 
-  const syncWeightModeControls = (mode: WeightMode) => {
-    weightModeSelect.value = mode;
-    focusModeCopyEl.innerText = viz.getWeightModeLabel(mode);
+  let primaryMode: PrimaryWeightMode = 'transitive-total';
+  let advancedMode: AdvancedWeightMode = 'follow-focus';
+
+  const getEffectiveWeightMode = (): WeightMode => {
+    if (advancedMode === 'follow-focus') return primaryMode;
+    return advancedMode;
+  };
+
+  const syncWeightModeControls = () => {
+    focusModeCopyEl.innerText = viz.getWeightModeLabel(primaryMode);
+    advancedModeSelect.value = advancedMode;
     shortcutButtons.forEach((button) => {
-      button.classList.toggle('is-active', button.dataset.weightMode === mode);
+      button.classList.toggle('is-active', button.dataset.weightMode === primaryMode);
     });
   };
 
+  const applyWeightMode = () => {
+    viz.setWeightMode(getEffectiveWeightMode());
+    syncWeightModeControls();
+  };
+
   themeSelect.value = loadThemePreference();
-  syncWeightModeControls(viz.getWeightMode());
+  syncWeightModeControls();
 
   themeSelect.addEventListener('change', () => {
     const theme = themeSelect.value;
@@ -116,9 +141,9 @@ function main() {
   });
 
   const focusFromAnalysis = (nodeId: string, mode: 'transitive-total' | 'pressure') => {
-    weightModeSelect.value = mode;
-    viz.setWeightMode(mode);
-    syncWeightModeControls(mode);
+    primaryMode = mode;
+    advancedMode = 'follow-focus';
+    applyWeightMode();
     viz.focusNode(nodeId);
   };
 
@@ -137,10 +162,11 @@ function main() {
       return;
     }
 
-    entries.slice(0, 5).forEach((entry, index) => {
+    entries.slice(0, 4).forEach((entry, index) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'analysis-item';
+      button.title = entry.label;
       button.addEventListener('click', () => focusFromAnalysis(entry.id, mode));
 
       const rank = document.createElement('span');
@@ -150,13 +176,14 @@ function main() {
       const body = document.createElement('span');
       body.className = 'analysis-item-body';
 
+      const { primary, secondary } = splitTargetLabel(entry.label);
       const title = document.createElement('span');
       title.className = 'analysis-item-title';
-      title.innerText = entry.label;
+      title.innerText = primary;
 
       const meta = document.createElement('span');
       meta.className = 'analysis-item-meta';
-      meta.innerText = entry.summary;
+      meta.innerText = secondary ? `${secondary} · ${entry.summary}` : entry.summary;
 
       body.appendChild(title);
       body.appendChild(meta);
@@ -201,7 +228,17 @@ function main() {
   (zoomLevelEl as HTMLInputElement).addEventListener('blur', handleZoomInput);
 
   fitBtn.addEventListener('click', () => viz.fitView());
-  resetBtn.addEventListener('click', () => viz.reset());
+  advancedModeSelect.addEventListener('change', () => {
+    advancedMode = advancedModeSelect.value as AdvancedWeightMode;
+    applyWeightMode();
+  });
+
+  panelToggle.addEventListener('click', () => {
+    const collapsed = sidePanel.classList.toggle('is-collapsed');
+    panelToggle.setAttribute('aria-expanded', String(!collapsed));
+    panelToggle.setAttribute('aria-label', collapsed ? 'Expand panel' : 'Collapse panel');
+    viz.handleResize();
+  });
 
   searchInput.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
@@ -210,37 +247,13 @@ function main() {
     viz.search(term);
   });
 
-  weightModeSelect.addEventListener('change', () => {
-    const mode = weightModeSelect.value as
-      | 'total'
-      | 'inputs'
-      | 'outputs'
-      | 'transitive-total'
-      | 'transitive-inputs'
-      | 'transitive-outputs'
-      | 'pressure'
-      | 'hotspots'
-      | 'uniform';
-    viz.setWeightMode(mode);
-    syncWeightModeControls(mode);
-  });
-
   shortcutButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      const mode = button.dataset.weightMode as
-        | 'total'
-        | 'inputs'
-        | 'outputs'
-        | 'transitive-total'
-        | 'transitive-inputs'
-        | 'transitive-outputs'
-        | 'pressure'
-        | 'hotspots'
-        | 'uniform'
-        | undefined;
+      const mode = button.dataset.weightMode as PrimaryWeightMode | undefined;
       if (!mode) return;
-      viz.setWeightMode(mode);
-      syncWeightModeControls(mode);
+      primaryMode = mode;
+      advancedMode = 'follow-focus';
+      applyWeightMode();
     });
   });
 

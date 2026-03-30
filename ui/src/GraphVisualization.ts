@@ -491,9 +491,7 @@ export class GraphVisualization {
     let bottom = viewH - 20;
 
     const header = document.querySelector('.app-header') as HTMLElement | null;
-    const controls = document.querySelector('.controls-panel') as HTMLElement | null;
-    const status = document.querySelector('.status-panel') as HTMLElement | null;
-    const zoomControls = document.querySelector('.zoom-controls') as HTMLElement | null;
+    const sidePanel = document.querySelector('.side-panel') as HTMLElement | null;
 
     if (header) {
       const rect = header.getBoundingClientRect();
@@ -502,24 +500,10 @@ export class GraphVisualization {
       }
     }
 
-    if (controls) {
-      const rect = controls.getBoundingClientRect();
-      if (rect.left < viewW * 0.25 && rect.height < viewH * 0.92) {
-        left = Math.max(left, rect.right + 18);
-      }
-    }
-
-    if (status) {
-      const rect = status.getBoundingClientRect();
+    if (sidePanel) {
+      const rect = sidePanel.getBoundingClientRect();
       if (rect.right > viewW * 0.75 && rect.height < viewH * 0.92) {
         right = Math.min(right, rect.left - 18);
-      }
-    }
-
-    if (zoomControls) {
-      const rect = zoomControls.getBoundingClientRect();
-      if (rect.bottom > viewH * 0.7) {
-        bottom = Math.min(bottom, rect.top - 16);
       }
     }
 
@@ -608,11 +592,24 @@ export class GraphVisualization {
     }
   }
 
+  private splitTargetLabel(label: string) {
+    const separatorIndex = label.lastIndexOf(':');
+    if (separatorIndex <= 0 || separatorIndex === label.length - 1) {
+      return { primary: label, secondary: '' };
+    }
+
+    return {
+      primary: label.slice(separatorIndex + 1),
+      secondary: label.slice(0, separatorIndex),
+    };
+  }
+
   private setInspectorEmptyState(message: string) {
     this.currentNodeStatus.classList.add('hidden');
     this.currentNodeEmptyEl.classList.remove('hidden');
     this.currentNodeEmptyEl.innerText = message;
     this.currentNodeEl.innerText = '';
+    this.currentNodeEl.removeAttribute('title');
     this.currentNodeSubtitleEl.innerText = '';
     this.directInputsEl.innerText = '0';
     this.directOutputsEl.innerText = '0';
@@ -653,8 +650,12 @@ export class GraphVisualization {
         const focusType = node.isHotspot
           ? 'Selected high-impact target'
           : 'Selected target';
-        this.currentNodeEl.innerText = node.label;
-        this.currentNodeSubtitleEl.innerText = `${focusType} · ${this.getWeightModeLabel(this.currentWeightMode)} view`;
+        const { primary, secondary } = this.splitTargetLabel(node.label);
+        this.currentNodeEl.innerText = primary;
+        this.currentNodeEl.title = node.label;
+        this.currentNodeSubtitleEl.innerText = secondary
+          ? `${focusType} · ${secondary}`
+          : focusType;
         this.currentNodeStatus.classList.remove('hidden');
         this.currentNodeEmptyEl.classList.add('hidden');
         this.directInputsEl.innerText = String(node.inDegree);
@@ -672,8 +673,12 @@ export class GraphVisualization {
           const focusType = node.isHotspot
             ? 'Hovered high-impact target'
             : 'Hovered target';
-          this.currentNodeEl.innerText = node.label;
-          this.currentNodeSubtitleEl.innerText = `${focusType} · ${this.getWeightModeLabel(this.currentWeightMode)} view`;
+          const { primary, secondary } = this.splitTargetLabel(node.label);
+          this.currentNodeEl.innerText = primary;
+          this.currentNodeEl.title = node.label;
+          this.currentNodeSubtitleEl.innerText = secondary
+            ? `${focusType} · ${secondary}`
+            : focusType;
           this.directInputsEl.innerText = String(node.inDegree);
           this.directOutputsEl.innerText = String(node.outDegree);
           this.transitiveInputsEl.innerText = String(node.transitiveInDegree);
@@ -1049,6 +1054,7 @@ export class GraphVisualization {
     if (!node) {
       this.lastStatusSignature = '';
       this.currentNodeEl.innerText = 'No matching target';
+      this.currentNodeEl.removeAttribute('title');
       this.currentNodeSubtitleEl.innerText = `Search term: ${term}`;
       this.currentNodeEmptyEl.classList.add('hidden');
       this.currentNodeStatus.classList.remove('hidden');
