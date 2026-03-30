@@ -161,8 +161,8 @@ body {
   align-items: center;
   gap: 10px;
   width: auto;
-  min-height: 46px;
-  padding: 8px 12px;
+  min-height: 54px;
+  padding: 9px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)), var(--panel);
@@ -173,28 +173,38 @@ body {
 .brand-lockup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
 .app-logo {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
+  width: 36px;
+  height: 36px;
   flex: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 18%, white));
-  color: color-mix(in srgb, var(--bg-top) 82%, black);
-  font-weight: 800;
-  font-family: var(--font-display);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(2, 12, 10, 0.28));
 }
 
 .app-name {
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.03em;
+}
+
+.app-tagline {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .theme-picker,

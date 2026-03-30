@@ -5,8 +5,11 @@ export function createHeader(): HTMLElement {
   header.className = 'app-header';
   header.innerHTML = `
     <div class="brand-lockup">
-      <div class="app-logo">B</div>
-      <div class="app-name">BuildScope</div>
+      <img class="app-logo" src="/brand/buildscope-mark.svg" alt="" />
+      <div class="brand-copy">
+        <div class="app-name">BuildScope</div>
+        <div class="app-tagline">Bazel dependency explorer</div>
+      </div>
     </div>
   `;
   return header;

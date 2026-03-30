@@ -874,8 +874,6 @@ export class GraphVisualization {
     lightUpdate = false,
     skipEdgeRedraw = false
   ) {
-    const viewW = this.app.renderer.screen.width;
-    const viewH = this.app.renderer.screen.height;
     const selectionScope = this.getSelectionScope(pg);
     const selectionScopeNodes = this.getScopeNodes(pg, selectionScope);
 

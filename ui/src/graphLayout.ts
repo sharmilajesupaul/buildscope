@@ -438,7 +438,6 @@ function compactGridLayout(graph: Graph): PositionedGraph {
 
 export function layeredLayout(graph: Graph): PositionedGraph {
   if (graph.nodes.length > 10000) {
-    console.log(`Large graph detected (${graph.nodes.length} nodes), using fast grid layout`);
     return compactGridLayout(graph);
   }
 
