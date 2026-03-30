@@ -458,6 +458,10 @@ body {
   border-radius: var(--radius-sm);
 }
 
+.selection-slot {
+  min-height: 220px;
+}
+
 .focus-empty,
 .focus-subtitle {
   color: var(--text-soft);
@@ -466,14 +470,24 @@ body {
 }
 
 .focus-title {
+  display: -webkit-box;
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.45;
+  min-height: calc(1.45em * 2);
+  overflow: hidden;
   overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .focus-subtitle {
+  display: -webkit-box;
   margin-top: 6px;
+  min-height: calc(1.45em * 2);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .focus-metric-grid {
@@ -532,13 +546,12 @@ body {
   color: var(--text);
   text-align: left;
   cursor: pointer;
-  transition: border-color 120ms ease, transform 120ms ease, background-color 120ms ease;
+  transition: border-color 120ms ease, background-color 120ms ease;
 }
 
 .analysis-item:hover {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--surface-strong) 88%, var(--accent-soft));
-  transform: translateY(-1px);
 }
 
 .analysis-item-rank {

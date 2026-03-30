@@ -121,32 +121,34 @@ export function createStatusPanel(): HTMLElement {
         <div class="controls-label">Selection</div>
         <span class="mode-pill" id="weight-mode-label">Impact</span>
       </div>
-      <div class="focus-empty" id="current-node-empty">Search, hover, or click a target to inspect its neighborhood.</div>
-      <div class="focus-card hidden" id="current-node-status">
-        <div class="focus-title" id="current-node"></div>
-        <div class="focus-subtitle" id="current-node-subtitle"></div>
-        <div class="focus-metric-grid">
-          <div class="focus-metric">
-            <span class="focus-metric-label">Direct in</span>
-            <span class="focus-metric-value" id="direct-inputs">0</span>
+      <div class="selection-slot">
+        <div class="focus-empty" id="current-node-empty">Search, hover, or click a target to inspect its neighborhood.</div>
+        <div class="focus-card hidden" id="current-node-status">
+          <div class="focus-title" id="current-node"></div>
+          <div class="focus-subtitle" id="current-node-subtitle"></div>
+          <div class="focus-metric-grid">
+            <div class="focus-metric">
+              <span class="focus-metric-label">Direct in</span>
+              <span class="focus-metric-value" id="direct-inputs">0</span>
+            </div>
+            <div class="focus-metric">
+              <span class="focus-metric-label">Direct out</span>
+              <span class="focus-metric-value" id="direct-outputs">0</span>
+            </div>
+            <div class="focus-metric">
+              <span class="focus-metric-label">Transitive in</span>
+              <span class="focus-metric-value" id="transitive-inputs">0</span>
+            </div>
+            <div class="focus-metric">
+              <span class="focus-metric-label">Transitive out</span>
+              <span class="focus-metric-value" id="transitive-outputs">0</span>
+            </div>
           </div>
-          <div class="focus-metric">
-            <span class="focus-metric-label">Direct out</span>
-            <span class="focus-metric-value" id="direct-outputs">0</span>
+          <div class="compact-meta-row">
+            <span class="compact-meta-label">Cluster</span>
+            <span class="compact-meta-value" id="scc-size">1</span>
+            <span class="hidden" id="hotspot-rank">Not ranked</span>
           </div>
-          <div class="focus-metric">
-            <span class="focus-metric-label">Transitive in</span>
-            <span class="focus-metric-value" id="transitive-inputs">0</span>
-          </div>
-          <div class="focus-metric">
-            <span class="focus-metric-label">Transitive out</span>
-            <span class="focus-metric-value" id="transitive-outputs">0</span>
-          </div>
-        </div>
-        <div class="compact-meta-row">
-          <span class="compact-meta-label">Cluster</span>
-          <span class="compact-meta-value" id="scc-size">1</span>
-          <span class="hidden" id="hotspot-rank">Not ranked</span>
         </div>
       </div>
     </div>
