@@ -277,8 +277,10 @@ function main() {
 
   panelToggle.addEventListener('click', () => {
     const collapsed = sidePanel.classList.toggle('is-collapsed');
+    const label = collapsed ? 'Expand panel' : 'Collapse panel';
     panelToggle.setAttribute('aria-expanded', String(!collapsed));
-    panelToggle.setAttribute('aria-label', collapsed ? 'Expand panel' : 'Collapse panel');
+    panelToggle.setAttribute('aria-label', label);
+    panelToggle.setAttribute('title', label);
     viz.handleResize();
   });
 

@@ -19,8 +19,22 @@ export function createSidePanel(): HTMLElement {
   const sidePanel = document.createElement('aside');
   sidePanel.className = 'side-panel';
   sidePanel.innerHTML = `
-    <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-label="Collapse panel">
-      <span class="panel-toggle-icon" aria-hidden="true">›</span>
+    <button
+      class="panel-toggle"
+      id="panel-toggle"
+      type="button"
+      aria-expanded="true"
+      aria-label="Collapse panel"
+      title="Collapse panel"
+    >
+      <span class="panel-toggle-icon" aria-hidden="true">
+        <svg class="panel-toggle-glyph" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 4H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <path d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <path d="M3 12H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="panel-toggle-label-text">Menu</span>
     </button>
     <div class="side-panel-scroll" id="side-panel-scroll">
       <div class="panel-group side-panel-top">
