@@ -41,7 +41,9 @@ function main() {
   root.appendChild(sidePanel);
 
   const panelToggle = sidePanel.querySelector('#panel-toggle') as HTMLButtonElement;
+  const sidePanelScrollEl = sidePanel.querySelector('#side-panel-scroll') as HTMLElement;
   const searchInput = sidePanel.querySelector('#search-input') as HTMLInputElement;
+  const analysisFilterInput = sidePanel.querySelector('#analysis-filter-input') as HTMLInputElement;
   const themeSelect = sidePanel.querySelector('#theme-select') as HTMLSelectElement;
   const fitBtn = sidePanel.querySelector('#fit-btn') as HTMLButtonElement;
   const advancedModeSelect = sidePanel.querySelector('#advanced-mode-select') as HTMLSelectElement;
@@ -59,6 +61,7 @@ function main() {
   const currentNodeStatus = sidePanel.querySelector('#current-node-status') as HTMLElement;
   const currentNodeSubtitleEl = sidePanel.querySelector('#current-node-subtitle') as HTMLElement;
   const currentNodeEmptyEl = sidePanel.querySelector('#current-node-empty') as HTMLElement;
+  const selectionPanelGroupEl = sidePanel.querySelector('#selection-panel-group') as HTMLElement;
   const directInputsEl = sidePanel.querySelector('#direct-inputs') as HTMLElement;
   const directOutputsEl = sidePanel.querySelector('#direct-outputs') as HTMLElement;
   const transitiveInputsEl = sidePanel.querySelector('#transitive-inputs') as HTMLElement;
@@ -68,6 +71,8 @@ function main() {
   const weightModeLabelEl = sidePanel.querySelector('#weight-mode-label') as HTMLElement;
   const impactAnalysisListEl = sidePanel.querySelector('#impact-analysis-list') as HTMLElement;
   const pressureAnalysisListEl = sidePanel.querySelector('#pressure-analysis-list') as HTMLElement;
+  const impactAnalysisCountEl = sidePanel.querySelector('#impact-analysis-count') as HTMLElement;
+  const pressureAnalysisCountEl = sidePanel.querySelector('#pressure-analysis-count') as HTMLElement;
 
   const zoomInBtn = sidePanel.querySelector('#zoom-in') as HTMLButtonElement;
   const zoomOutBtn = sidePanel.querySelector('#zoom-out') as HTMLButtonElement;
@@ -100,6 +105,8 @@ function main() {
     currentNodeStatus,
     currentNodeSubtitleEl,
     currentNodeEmptyEl,
+    sidePanelScrollEl,
+    selectionPanelGroupEl,
     directInputsEl,
     directOutputsEl,
     transitiveInputsEl,
@@ -111,6 +118,9 @@ function main() {
 
   let primaryMode: PrimaryWeightMode = 'transitive-total';
   let advancedMode: AdvancedWeightMode = 'follow-focus';
+  let analysisQuery = '';
+  let impactEntries: ReturnType<typeof getTopImpactTargets> = [];
+  let pressureEntries: ReturnType<typeof getTopBreakupCandidates> = [];
 
   const getEffectiveWeightMode = (): WeightMode => {
     if (advancedMode === 'follow-focus') return primaryMode;
@@ -147,31 +157,56 @@ function main() {
     viz.focusNode(nodeId);
   };
 
+  const matchesAnalysisQuery = (
+    entry: ReturnType<typeof getTopImpactTargets>[number],
+    rank: number,
+    query: string
+  ) => {
+    const trimmed = query.trim().toLowerCase();
+    if (!trimmed) return true;
+
+    if (trimmed === String(rank) || trimmed === `#${rank}`) return true;
+    return (
+      entry.label.toLowerCase().includes(trimmed) ||
+      entry.summary.toLowerCase().includes(trimmed)
+    );
+  };
+
   const renderAnalysisList = (
     listEl: HTMLElement,
+    countEl: HTMLElement,
     entries: ReturnType<typeof getTopImpactTargets>,
     mode: 'transitive-total' | 'pressure'
   ) => {
     listEl.replaceChildren();
+    const filtered = entries.filter((entry, index) =>
+      matchesAnalysisQuery(entry, index + 1, analysisQuery)
+    );
+    countEl.innerText = analysisQuery
+      ? `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`
+      : `${entries.length} ranked`;
 
-    if (!entries.length) {
+    if (!filtered.length) {
       const empty = document.createElement('div');
       empty.className = 'analysis-empty';
-      empty.innerText = 'No ranked targets for this graph.';
+      empty.innerText = analysisQuery
+        ? 'No ranking entries match that filter.'
+        : 'No ranked targets for this graph.';
       listEl.appendChild(empty);
       return;
     }
 
-    entries.slice(0, 4).forEach((entry, index) => {
+    filtered.slice(0, 6).forEach((entry, index) => {
+      const rank = entries.indexOf(entry) + 1;
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'analysis-item';
       button.title = entry.label;
       button.addEventListener('click', () => focusFromAnalysis(entry.id, mode));
 
-      const rank = document.createElement('span');
-      rank.className = 'analysis-item-rank';
-      rank.innerText = `#${index + 1}`;
+      const rankEl = document.createElement('span');
+      rankEl.className = 'analysis-item-rank';
+      rankEl.innerText = `#${rank}`;
 
       const body = document.createElement('span');
       body.className = 'analysis-item-body';
@@ -187,10 +222,15 @@ function main() {
 
       body.appendChild(title);
       body.appendChild(meta);
-      button.appendChild(rank);
+      button.appendChild(rankEl);
       button.appendChild(body);
       listEl.appendChild(button);
     });
+  };
+
+  const renderAnalysisLists = () => {
+    renderAnalysisList(impactAnalysisListEl, impactAnalysisCountEl, impactEntries, 'transitive-total');
+    renderAnalysisList(pressureAnalysisListEl, pressureAnalysisCountEl, pressureEntries, 'pressure');
   };
 
   zoomInBtn.addEventListener('click', () => {
@@ -245,6 +285,11 @@ function main() {
     const term = searchInput.value.trim();
     if (!term) return;
     viz.search(term);
+  });
+
+  analysisFilterInput.addEventListener('input', () => {
+    analysisQuery = analysisFilterInput.value;
+    renderAnalysisLists();
   });
 
   shortcutButtons.forEach((button) => {
@@ -306,8 +351,9 @@ function main() {
     const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
     viz.setStatus(impactSummary, 'success');
     viz.setPositionedGraph(pg);
-    renderAnalysisList(impactAnalysisListEl, getTopImpactTargets(pg.nodes), 'transitive-total');
-    renderAnalysisList(pressureAnalysisListEl, getTopBreakupCandidates(pg.nodes), 'pressure');
+    impactEntries = getTopImpactTargets(pg.nodes);
+    pressureEntries = getTopBreakupCandidates(pg.nodes);
+    renderAnalysisLists();
     worker.terminate();
   };
 

@@ -261,7 +261,7 @@ body {
 .side-panel {
   position: fixed;
   top: 68px;
-  right: 14px;
+  left: 14px;
   width: 344px;
   max-height: calc(100vh - 82px);
   padding: 10px;
@@ -604,8 +604,39 @@ body {
   line-height: 1.45;
 }
 
+.analysis-search {
+  margin-bottom: 10px;
+}
+
 .analysis-group + .analysis-group {
   margin-top: 12px;
+}
+
+.analysis-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.analysis-summary::-webkit-details-marker {
+  display: none;
+}
+
+.analysis-group[open] .analysis-summary {
+  margin-bottom: 8px;
+}
+
+.analysis-summary .analysis-heading {
+  margin-bottom: 0;
+}
+
+.analysis-summary-meta {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .analysis-heading {
@@ -789,6 +820,7 @@ body {
     top: auto;
     width: calc(100vw - 24px);
     max-height: 52vh;
+    left: 12px;
     right: 12px;
     bottom: 12px;
   }

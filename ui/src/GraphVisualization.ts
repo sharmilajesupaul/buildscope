@@ -28,6 +28,8 @@ export interface UIElements {
   currentNodeStatus: HTMLElement;
   currentNodeSubtitleEl: HTMLElement;
   currentNodeEmptyEl: HTMLElement;
+  sidePanelScrollEl: HTMLElement;
+  selectionPanelGroupEl: HTMLElement;
   directInputsEl: HTMLElement;
   directOutputsEl: HTMLElement;
   transitiveInputsEl: HTMLElement;
@@ -81,6 +83,8 @@ export class GraphVisualization {
   private currentNodeStatus: HTMLElement;
   private currentNodeSubtitleEl: HTMLElement;
   private currentNodeEmptyEl: HTMLElement;
+  private sidePanelScrollEl: HTMLElement;
+  private selectionPanelGroupEl: HTMLElement;
   private directInputsEl: HTMLElement;
   private directOutputsEl: HTMLElement;
   private transitiveInputsEl: HTMLElement;
@@ -119,6 +123,8 @@ export class GraphVisualization {
     this.currentNodeStatus = uiElements.currentNodeStatus;
     this.currentNodeSubtitleEl = uiElements.currentNodeSubtitleEl;
     this.currentNodeEmptyEl = uiElements.currentNodeEmptyEl;
+    this.sidePanelScrollEl = uiElements.sidePanelScrollEl;
+    this.selectionPanelGroupEl = uiElements.selectionPanelGroupEl;
     this.directInputsEl = uiElements.directInputsEl;
     this.directOutputsEl = uiElements.directOutputsEl;
     this.transitiveInputsEl = uiElements.transitiveInputsEl;
@@ -502,7 +508,9 @@ export class GraphVisualization {
 
     if (sidePanel) {
       const rect = sidePanel.getBoundingClientRect();
-      if (rect.right > viewW * 0.75 && rect.height < viewH * 0.92) {
+      if (rect.left < viewW * 0.35 && rect.height < viewH * 0.92) {
+        left = Math.max(left, rect.right + 18);
+      } else if (rect.right > viewW * 0.65 && rect.height < viewH * 0.92) {
         right = Math.min(right, rect.left - 18);
       }
     }
@@ -592,6 +600,27 @@ export class GraphVisualization {
     }
   }
 
+  private getModeInsight(node: PositionedNode) {
+    switch (this.currentWeightMode) {
+      case 'pressure':
+        return `Potential break-up target · ${node.transitiveInDegree} dependents and ${node.outDegree} direct outputs`;
+      case 'transitive-total':
+        return `Broad blast radius · ${node.transitiveInDegree} dependents and ${node.transitiveOutDegree} reachable targets`;
+      case 'transitive-inputs':
+        return `Shared dependency · ${node.transitiveInDegree} targets depend on it`;
+      case 'transitive-outputs':
+        return `Downstream reach · ${node.transitiveOutDegree} targets sit behind it`;
+      case 'total':
+        return `Dense local hub · ${node.inDegree + node.outDegree} immediate links`;
+      case 'hotspots':
+        return `High-impact ranking · ${node.transitiveInDegree} dependents`;
+      case 'uniform':
+        return 'Uniform sizing · compare position without weight bias';
+      default:
+        return this.getWeightModeLabel(this.currentWeightMode);
+    }
+  }
+
   private splitTargetLabel(label: string) {
     const separatorIndex = label.lastIndexOf(':');
     if (separatorIndex <= 0 || separatorIndex === label.length - 1) {
@@ -602,6 +631,11 @@ export class GraphVisualization {
       primary: label.slice(separatorIndex + 1),
       secondary: label.slice(0, separatorIndex),
     };
+  }
+
+  private scrollSelectionIntoView() {
+    const top = Math.max(0, this.selectionPanelGroupEl.offsetTop - 8);
+    this.sidePanelScrollEl.scrollTo({ top, behavior: 'smooth' });
   }
 
   private setInspectorEmptyState(message: string) {
@@ -653,9 +687,10 @@ export class GraphVisualization {
         const { primary, secondary } = this.splitTargetLabel(node.label);
         this.currentNodeEl.innerText = primary;
         this.currentNodeEl.title = node.label;
+        const insight = this.getModeInsight(node);
         this.currentNodeSubtitleEl.innerText = secondary
-          ? `${focusType} · ${secondary}`
-          : focusType;
+          ? `${secondary} · ${insight}`
+          : `${focusType} · ${insight}`;
         this.currentNodeStatus.classList.remove('hidden');
         this.currentNodeEmptyEl.classList.add('hidden');
         this.directInputsEl.innerText = String(node.inDegree);
@@ -665,6 +700,7 @@ export class GraphVisualization {
         this.sccSizeEl.innerText = String(node.sccSize);
         this.hotspotRankEl.innerText = node.isHotspot ? `#${node.hotspotRank}` : 'Not ranked';
         this.currentNodeStatus.classList.remove('hidden');
+        this.scrollSelectionIntoView();
       }
     } else {
       if (this.hoveredId) {
@@ -676,9 +712,10 @@ export class GraphVisualization {
           const { primary, secondary } = this.splitTargetLabel(node.label);
           this.currentNodeEl.innerText = primary;
           this.currentNodeEl.title = node.label;
+          const insight = this.getModeInsight(node);
           this.currentNodeSubtitleEl.innerText = secondary
-            ? `${focusType} · ${secondary}`
-            : focusType;
+            ? `${secondary} · ${insight}`
+            : `${focusType} · ${insight}`;
           this.directInputsEl.innerText = String(node.inDegree);
           this.directOutputsEl.innerText = String(node.outDegree);
           this.transitiveInputsEl.innerText = String(node.transitiveInDegree);
@@ -1021,10 +1058,9 @@ export class GraphVisualization {
 
   fitView() {
     if (this.positioned) {
-      this.selectedId = null;
       this.hoveredId = null;
       this.lastStatusSignature = '';
-      this.draw(this.positioned, true, false);
+      this.draw(this.positioned, !this.selectedId, Boolean(this.selectedId));
     }
   }
 

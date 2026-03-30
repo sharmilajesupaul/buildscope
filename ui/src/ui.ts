@@ -22,7 +22,7 @@ export function createSidePanel(): HTMLElement {
     <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-label="Collapse panel">
       <span class="panel-toggle-icon" aria-hidden="true">›</span>
     </button>
-    <div class="side-panel-scroll">
+    <div class="side-panel-scroll" id="side-panel-scroll">
       <div class="panel-group side-panel-top">
         <div class="summary-header">
           <div>
@@ -72,21 +72,6 @@ export function createSidePanel(): HTMLElement {
       </div>
 
       <div class="panel-group">
-        <div class="section-intro">
-          <div class="controls-label">Analysis</div>
-          <div class="section-copy">These lists are the fastest way to find broad shared dependencies and break-up targets.</div>
-        </div>
-        <div class="analysis-group">
-          <div class="analysis-heading">Top impact</div>
-          <div class="analysis-list" id="impact-analysis-list"></div>
-        </div>
-        <div class="analysis-group">
-          <div class="analysis-heading">Break-up candidates</div>
-          <div class="analysis-list" id="pressure-analysis-list"></div>
-        </div>
-      </div>
-
-      <div class="panel-group">
         <div class="summary-header">
           <div class="controls-label">Focus Mode</div>
           <span class="mode-pill" id="focus-mode-copy">Impact</span>
@@ -115,13 +100,13 @@ export function createSidePanel(): HTMLElement {
         </div>
       </div>
 
-      <div class="panel-group">
+      <div class="panel-group" id="selection-panel-group">
         <div class="summary-header">
           <div class="controls-label">Selection</div>
           <span class="mode-pill">Hover Or Click</span>
         </div>
         <div class="selection-slot">
-          <div class="focus-empty" id="current-node-empty">Hover a node for quick context, or click one to keep it pinned while you inspect its neighborhood.</div>
+          <div class="focus-empty" id="current-node-empty">Click a node to pin it here. Hover still gives quick context, but click is the main inspection flow.</div>
           <div class="focus-card hidden" id="current-node-status">
             <div class="focus-title" id="current-node"></div>
             <div class="focus-subtitle" id="current-node-subtitle"></div>
@@ -150,6 +135,33 @@ export function createSidePanel(): HTMLElement {
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="panel-group">
+        <div class="section-intro">
+          <div class="controls-label">Rankings</div>
+          <div class="section-copy">Filter by target text or rank like <code>#3</code>, then focus the graph from the list.</div>
+        </div>
+        <div class="search-container analysis-search">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+          </svg>
+          <input type="text" class="search-input" id="analysis-filter-input" placeholder="Filter targets or #rank..." />
+        </div>
+        <details class="analysis-group" open>
+          <summary class="analysis-summary">
+            <span class="analysis-heading">Top impact</span>
+            <span class="analysis-summary-meta" id="impact-analysis-count">Top shared targets</span>
+          </summary>
+          <div class="analysis-list" id="impact-analysis-list"></div>
+        </details>
+        <details class="analysis-group" open>
+          <summary class="analysis-summary">
+            <span class="analysis-heading">Break-up candidates</span>
+            <span class="analysis-summary-meta" id="pressure-analysis-count">Broad shared hubs</span>
+          </summary>
+          <div class="analysis-list" id="pressure-analysis-list"></div>
+        </details>
       </div>
 
       <div class="panel-group">
