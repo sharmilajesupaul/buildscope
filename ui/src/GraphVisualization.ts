@@ -53,7 +53,7 @@ export class GraphVisualization {
     string,
     { transitiveNodes: Set<string>; transitiveEdges: Set<string> }
   >();
-  private currentWeightMode: WeightMode = 'total';
+  private currentWeightMode: WeightMode = 'transitive-total';
 
   // UI Elements
   private zoomLevelEl: HTMLElement;
@@ -272,14 +272,14 @@ export class GraphVisualization {
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
         const hotspotSuffix = node.isHotspot
-          ? ` · hotspot #${node.hotspotRank} (${node.sccSize > 1 ? `cycle of ${node.sccSize}` : `${node.transitiveInDegree} dependents`})`
+          ? ` · impact #${node.hotspotRank} (${node.transitiveInDegree} dependents${node.sccSize > 1 ? `, cluster ${node.sccSize}` : ''})`
           : '';
         this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
         this.currentNodeStatus.classList.remove('hidden');
       }
     } else {
       const hotspotText = this.positioned.hotspotCount
-        ? ` (${this.positioned.hotspotCount} hotspots)`
+        ? ` (${this.positioned.hotspotCount} high-impact)`
         : '';
       const largestHotspotText = this.positioned.largestHotspotSize > 1
         ? ` · largest SCC ${this.positioned.largestHotspotSize}`
@@ -291,7 +291,7 @@ export class GraphVisualization {
         const node = this.positioned.idToNode.get(this.hoveredId);
         if (node) {
           const hotspotSuffix = node.isHotspot
-            ? ` · hotspot #${node.hotspotRank} (${node.sccSize > 1 ? `cycle of ${node.sccSize}` : `${node.transitiveInDegree} dependents`})`
+            ? ` · impact #${node.hotspotRank} (${node.transitiveInDegree} dependents${node.sccSize > 1 ? `, cluster ${node.sccSize}` : ''})`
             : '';
           this.currentNodeEl.innerText = `${node.label}${hotspotSuffix}`;
           this.currentNodeStatus.classList.remove('hidden');
@@ -539,6 +539,7 @@ export class GraphVisualization {
   // Public methods for external control
   setPositionedGraph(pg: PositionedGraph) {
     this.positioned = pg;
+    recalculateWeights(pg, this.currentWeightMode);
 
     // Clear old node graphics when loading a new graph
     this.nodesLayer.removeChildren();

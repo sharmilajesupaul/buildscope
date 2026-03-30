@@ -59,6 +59,7 @@ export type WeightMode =
   | 'transitive-total'
   | 'transitive-inputs'
   | 'transitive-outputs'
+  | 'pressure'
   | 'hotspots'
   | 'uniform';
 
@@ -82,6 +83,10 @@ export function recalculateWeights(pg: PositionedGraph, mode: WeightMode): void 
         break;
       case 'transitive-outputs':
         node.weight = node.transitiveOutDegree;
+        break;
+      case 'pressure':
+        // Favor broad shared hubs over small stable leaf utilities.
+        node.weight = Math.log2(node.transitiveInDegree + 1) * Math.max(1, node.outDegree);
         break;
       case 'hotspots':
         // Size by downstream impact; cycle members get a bonus so they stand out
@@ -282,12 +287,25 @@ function calculateStronglyConnectedComponents(
 function markHighImpactHotspots(nodes: PositionedNode[]): void {
   const sorted = nodes.map((n) => n.transitiveInDegree).sort((a, b) => a - b);
   const threshold = sorted[Math.floor(sorted.length * 0.9)] ?? 0;
-  if (threshold === 0) return;
+  const minimumScore = threshold === 0 ? 1 : threshold + 1;
   nodes.forEach((n) => {
-    if (!n.isHotspot && n.transitiveInDegree > threshold) {
+    if (!n.isHotspot && n.transitiveInDegree >= minimumScore) {
       n.isHotspot = true;
       n.hotspotScore = n.transitiveInDegree;
     }
+  });
+
+  let nextRank = nodes.reduce((maxRank, node) => Math.max(maxRank, node.hotspotRank), 0) + 1;
+  const dagHotspots = nodes
+    .filter((node) => node.isHotspot && node.hotspotRank === 0)
+    .sort((a, b) =>
+      b.hotspotScore - a.hotspotScore ||
+      b.transitiveInDegree - a.transitiveInDegree ||
+      a.label.localeCompare(b.label)
+    );
+
+  dagHotspots.forEach((node) => {
+    node.hotspotRank = nextRank++;
   });
 }
 

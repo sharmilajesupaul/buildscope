@@ -100,3 +100,69 @@ describe('strongly connected hotspots', () => {
     expect(nonHotspotNode?.isHotspot).toBe(false);
   });
 });
+
+describe('high impact ranking and break-up candidates', () => {
+  it('assigns a rank to DAG high-impact targets', () => {
+    const consumers = Array.from({ length: 11 }, (_, i) => ({
+      id: `//consumer:${i}`,
+      label: `C${i}`,
+    }));
+    const graph: Graph = {
+      nodes: [
+        ...consumers,
+        { id: '//lib:shared', label: 'Shared' },
+      ],
+      edges: consumers.map((consumer) => ({
+        source: consumer.id,
+        target: '//lib:shared',
+      })),
+    };
+
+    const laid = layeredLayout(graph);
+    const shared = laid.idToNode.get('//lib:shared');
+
+    expect(shared?.isHotspot).toBe(true);
+    expect(shared?.hotspotRank).toBeGreaterThan(0);
+  });
+
+  it('weights broad shared hubs above narrow leaf utilities in pressure mode', () => {
+    const graph: Graph = {
+      nodes: [
+        { id: '//consumer:a', label: 'A' },
+        { id: '//consumer:b', label: 'B' },
+        { id: '//consumer:c', label: 'C' },
+        { id: '//consumer:d', label: 'D' },
+        { id: '//hub:core', label: 'Hub' },
+        { id: '//leaf:shared', label: 'Leaf' },
+        { id: '//dep:x', label: 'X' },
+        { id: '//dep:y', label: 'Y' },
+        { id: '//dep:z', label: 'Z' },
+      ],
+      edges: [
+        { source: '//consumer:a', target: '//hub:core' },
+        { source: '//consumer:b', target: '//hub:core' },
+        { source: '//consumer:c', target: '//hub:core' },
+        { source: '//consumer:d', target: '//hub:core' },
+        { source: '//consumer:a', target: '//leaf:shared' },
+        { source: '//consumer:b', target: '//leaf:shared' },
+        { source: '//consumer:c', target: '//leaf:shared' },
+        { source: '//consumer:d', target: '//leaf:shared' },
+        { source: '//hub:core', target: '//dep:x' },
+        { source: '//hub:core', target: '//dep:y' },
+        { source: '//hub:core', target: '//dep:z' },
+      ],
+    };
+
+    const laid = layeredLayout(graph);
+    recalculateWeights(laid, 'pressure');
+
+    const hubNode = laid.idToNode.get('//hub:core');
+    const leafNode = laid.idToNode.get('//leaf:shared');
+
+    expect(hubNode?.transitiveInDegree).toBe(4);
+    expect(leafNode?.transitiveInDegree).toBe(4);
+    expect(hubNode?.outDegree).toBe(3);
+    expect(leafNode?.outDegree).toBe(0);
+    expect(hubNode?.weight).toBeGreaterThan(leafNode?.weight ?? 0);
+  });
+});

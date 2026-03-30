@@ -69,6 +69,8 @@ function main() {
     currentNodeStatus,
   });
 
+  weightModeSelect.value = viz.getWeightMode();
+
   // Event listeners - Zoom controls
   zoomInBtn.addEventListener('click', () => {
     const centerX = app.renderer.screen.width / 2;
@@ -127,6 +129,7 @@ function main() {
       | 'transitive-total'
       | 'transitive-inputs'
       | 'transitive-outputs'
+      | 'pressure'
       | 'hotspots'
       | 'uniform';
     viz.setWeightMode(mode);
@@ -165,8 +168,8 @@ function main() {
     console.log(`Layout computed in ${layoutTime.toFixed(0)}ms`);
 
     const pg = rehydratePositionedGraph(data.nodes, data.edges, data.hotspotCount, data.largestHotspotSize);
-    const hotspotSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} hotspots` : 'Ready';
-    viz.setStatus(hotspotSummary, 'success');
+    const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
+    viz.setStatus(impactSummary, 'success');
     viz.setPositionedGraph(pg);
     worker.terminate();
   };

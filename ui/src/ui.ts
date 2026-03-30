@@ -34,10 +34,10 @@ export function createControlsPanel(): HTMLElement {
         <option value="total">Direct: Total Connections</option>
         <option value="inputs">Direct: Inputs Only</option>
         <option value="outputs">Direct: Outputs Only</option>
-        <option value="transitive-total">Transitive: Total</option>
-        <option value="transitive-inputs">Transitive: Inputs</option>
-        <option value="transitive-outputs">Transitive: Outputs</option>
-        <option value="hotspots">Hotspots</option>
+        <option value="transitive-total">Impact: Total Reach</option>
+        <option value="transitive-inputs">Impact: Dependents</option>
+        <option value="transitive-outputs">Reach: Dependencies</option>
+        <option value="pressure">Break-up Candidates</option>
         <option value="uniform">Uniform Size</option>
       </select>
     </div>
@@ -99,7 +99,7 @@ export function createStatusPanel(): HTMLElement {
         </div>
         <div class="legend-item">
           <div class="legend-color hotspot"></div>
-          <span>Hotspots</span>
+          <span>High Impact</span>
         </div>
       </div>
     </div>
