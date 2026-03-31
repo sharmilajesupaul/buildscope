@@ -149,6 +149,8 @@ The full Bazel extraction and BuildScope analysis flow now lives in [docs/bazel-
 
 That doc shows the exact `buildscope open` / `buildscope extract` paths, the concrete `bazel query 'deps(target)' --output=graph --keep_going` invocation, and the worker-side steps that turn the raw dependency graph into high-impact targets and break-up candidates.
 
+For the Go server's local HTTP surface, including `/graph.json` and `/analysis.json`, see [docs/backend-api.md](docs/backend-api.md).
+
 ## Development
 
 Frontend development prerequisites:
