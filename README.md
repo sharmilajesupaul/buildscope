@@ -23,14 +23,23 @@ brew install sharmilajesupaul/buildscope/buildscope
 ```
 
 The release workflow opens a Homebrew formula update PR after each tagged prerelease.
+If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first. Otherwise, use the authenticated GitHub Releases path below.
 
 Linux via GitHub Releases:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | sh
+ARCH=amd64   # or arm64
+TMPDIR="$(mktemp -d)"
+gh auth login
+gh release download \
+  --repo sharmilajesupaul/buildscope \
+  --pattern "buildscope_linux_${ARCH}.tar.gz" \
+  --dir "$TMPDIR"
+tar -xzf "$TMPDIR/buildscope_linux_${ARCH}.tar.gz" -C "$TMPDIR"
+install -m 755 "$TMPDIR/buildscope" ~/.local/bin/buildscope
 ```
 
-That installs the latest release binary into `~/.local/bin`. To install a specific version instead, set `VERSION=v0.1.x` before running the script.
+That installs the latest prerelease binary into `~/.local/bin`. To pin a specific version instead, pass the tag to `gh release download`, for example `gh release download v0.1.1 --repo sharmilajesupaul/buildscope --pattern "buildscope_0.1.1_linux_amd64.tar.gz"`.
 
 Runtime prerequisites for the installed binary:
 
