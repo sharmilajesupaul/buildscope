@@ -65,36 +65,65 @@ BuildScope streams Bazel's graph output, converts it into a plain JSON shape, an
 }
 ```
 
-The full data and analysis path looks like this:
+The detailed extraction and analysis path looks like this:
 
 ```mermaid
-flowchart LR
-  A["User runs buildscope open or buildscope extract"]
-  B["Go CLI validates Bazel workspace<br/>WORKSPACE, WORKSPACE.bazel, or MODULE.bazel"]
-  C["Run Bazel query<br/>deps(target) with graph output"]
-  D["Streaming parser reads Graphviz-style query output<br/>and dedupes labels and edges into graph JSON"]
-  E["Write graph.json"]
-  F["Go HTTP server serves UI and /graph.json"]
-  G["Frontend fetches graph"]
-  H["Worker sanitizes invalid ids and edges"]
-  I["Compute degrees and transitive reachability"]
-  J["Run Tarjan SCC pass to find cycles / tightly coupled clusters"]
-  K["Mark high-impact targets<br/>cycles become hotspots; DAG nodes with unusually high transitiveInDegree are also ranked"]
-  L["Score break-up candidates<br/>log2(transitiveInDegree + 1) x max(1, outDegree)"]
-  M["Build layered / compact layout"]
-  N["Pixi.js renders graph and analysis panels"]
-  O["UI shows Top impact and Break-up candidates"]
+flowchart TD
+  subgraph EntryPoints["CLI entrypoints"]
+    A["./buildscope.sh //pkg:target"]
+    B["buildscope open //pkg:target --workdir /repo --addr :4422"]
+    C["buildscope extract -target //pkg:target -workdir /repo -out /tmp/graph.json"]
+  end
 
-  A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N --> O
+  A --> B
+  B --> D
+  C --> D
+
+  D["validateWorkspaceDir<br/>requires WORKSPACE, WORKSPACE.bazel, or MODULE.bazel"]
+  D --> E
+
+  E{"Which command path?"}
+  E -->|open| F["openCommand creates temp file<br/>/tmp/buildscope-graph-*.json"]
+  E -->|extract| G["extract writes to the explicit -out path"]
+
+  F --> H
+  G --> H
+
+  H["extractGraph runs exactly this Bazel command<br/>bazel query 'deps(target)' --output=graph --keep_going"]
+  H --> I
+  I["parseQueryGraphStreaming reads stdout line by line<br/>ignores Graphviz styling lines<br/>splits multiline labels<br/>dedupes nodes and edges"]
+  I --> J["emit JSON graph<br/>{ nodes, edges }"]
+
+  J -->|extract| K["graph.json written to disk"]
+  J -->|open| L["serveGraph serves UI files and /graph.json"]
+
+  L --> M["browser fetches /graph.json"]
+  K --> N["same JSON can later be opened with buildscope view"]
+  N --> M
+
+  subgraph Worker["Frontend worker analysis"]
+    M --> O["sanitizeGraph removes malformed ids and dangling edges"]
+    O --> P["compute direct inDegree and outDegree"]
+    P --> Q["calculateTransitiveClosure<br/>BFS over incoming and outgoing edges<br/>produces transitiveInDegree and transitiveOutDegree"]
+    Q --> R["calculateStronglyConnectedComponents<br/>iterative Tarjan SCC over the dependency graph"]
+    R --> S["markHighImpactHotspots<br/>cyclic SCCs become hotspots first<br/>then high transitiveInDegree DAG nodes are ranked"]
+    S --> T["pressure score for break-up targets<br/>log2(transitiveInDegree + 1) * max(1, outDegree)"]
+    T --> U["layeredLayout for normal graphs<br/>compactGridLayout for very large graphs"]
+  end
+
+  U --> V["Pixi.js renders graph, Top impact, and Break-up candidates"]
 ```
 
-After `/graph.json` is loaded, the frontend worker does more than layout:
+More explicitly:
 
-- High-impact targets are ranked mostly by `transitiveInDegree`, which answers "how many targets depend on this one?" Cycles are detected via strongly connected components, and those cyclic clusters are promoted as hotspots immediately.
-- For mostly acyclic Bazel graphs, the worker still marks unusually shared nodes as hotspots by looking at the top 10% of `transitiveInDegree` values, so common libraries still stand out even when there are no cycles.
-- Break-up candidates use the `pressure` score: `log2(transitiveInDegree + 1) * max(1, outDegree)`. That favors broad shared hubs that also fan out into many dependencies, which makes them better refactor targets than leaf libraries with the same number of dependents.
+- Bazel is only responsible for raw dependency extraction. The concrete command BuildScope runs is `bazel query 'deps(<target>)' --output=graph --keep_going`.
+- `buildscope open` and `buildscope extract` share the same extraction implementation. The only difference is the output destination: `open` writes to a temp file and immediately serves it, while `extract` writes to the user-provided `-out` path.
+- The streaming parser is deliberate: it consumes Bazel's Graphviz output from stdout as it arrives, skips style directives like `node` and `edge`, splits multiline labels, and deduplicates node ids and edges before writing JSON.
+- High-impact targets are not computed by Bazel. After the graph is loaded in the browser, the worker computes `transitiveInDegree` and `transitiveOutDegree`, runs Tarjan SCC detection, and then marks hotspots.
+- Cycles are treated as immediate hotspots because they are tightly coupled clusters. For mostly acyclic Bazel graphs, the worker also promotes unusually shared nodes by ranking the upper slice of `transitiveInDegree` values.
+- Break-up candidates are also not a Bazel feature. They come from the local `pressure` score `log2(transitiveInDegree + 1) * max(1, outDegree)`, which intentionally favors broad shared hubs that also fan out into many direct dependencies.
 
-The viewer then uses those precomputed metrics to power the `High impact ranking` and `Break-up candidates` modes in the UI.
+The result is that Bazel provides the exact dependency edges, while BuildScope adds the higher-level analysis needed to answer "what is most central?" and "what should be broken up first?"
 
 ## Development
 
