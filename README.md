@@ -23,23 +23,24 @@ brew install sharmilajesupaul/buildscope/buildscope
 ```
 
 The release workflow opens a Homebrew formula update PR after each tagged prerelease.
-If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first. Otherwise, use the authenticated GitHub Releases path below.
+If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first. The formula builds from the tagged source checkout, so it no longer depends on anonymous GitHub release asset URLs.
 
 Linux via GitHub Releases:
 
 ```bash
 ARCH=amd64   # or arm64
-TMPDIR="$(mktemp -d)"
 gh auth login
-gh release download \
+TAG="$(gh api repos/sharmilajesupaul/buildscope/releases --jq 'map(select(.prerelease and (.draft | not)))[0].tag_name')"
+TMPDIR="$(mktemp -d)"
+gh release download "$TAG" \
   --repo sharmilajesupaul/buildscope \
   --pattern "buildscope_linux_${ARCH}.tar.gz" \
   --dir "$TMPDIR"
 tar -xzf "$TMPDIR/buildscope_linux_${ARCH}.tar.gz" -C "$TMPDIR"
-install -m 755 "$TMPDIR/buildscope" ~/.local/bin/buildscope
+install -m 755 "$(find "$TMPDIR" -type f -name buildscope -perm -u+x | head -n 1)" ~/.local/bin/buildscope
 ```
 
-That installs the latest prerelease binary into `~/.local/bin`. To pin a specific version instead, pass the tag to `gh release download`, for example `gh release download v0.1.1 --repo sharmilajesupaul/buildscope --pattern "buildscope_0.1.1_linux_amd64.tar.gz"`.
+That installs the latest prerelease binary into `~/.local/bin`. To pin a specific version instead, set `TAG=v0.1.1` before the download step or run `VERSION=v0.1.1 ./scripts/install-release.sh` from a checkout.
 
 Runtime prerequisites for the installed binary:
 
@@ -110,7 +111,7 @@ That tag triggers the GitHub release workflow to:
 
 - run the frontend and Go test suites
 - publish versioned release assets for macOS and Linux on `amd64` and `arm64`
-- publish stable `latest` asset aliases for scripted Linux installs
+- publish stable alias asset names inside each tagged release
 - mark the GitHub release as a prerelease because the tag is still under `v1`
 - open a PR that updates the Homebrew formula
 
