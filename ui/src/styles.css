@@ -264,10 +264,12 @@ body {
   bottom: 14px;
   left: 14px;
   width: 344px;
-  display: flex;
-  flex-direction: column;
   padding: 10px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, var(--panel-strong), var(--panel));
@@ -276,39 +278,31 @@ body {
   will-change: transform;
   transition:
     width 180ms ease,
-    max-height 180ms ease,
+    height 180ms ease,
     padding 180ms ease,
     border-radius 180ms ease,
     box-shadow 180ms ease;
 }
 
-.side-panel-scroll {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-  margin-top: 42px;
-  padding-right: 2px;
-  padding-bottom: 18px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 120ms ease, transform 180ms ease;
-}
-
-.side-panel-scroll::-webkit-scrollbar {
+.side-panel::-webkit-scrollbar {
   width: 10px;
 }
 
-.side-panel-scroll::-webkit-scrollbar-thumb {
+.side-panel::-webkit-scrollbar-thumb {
   background: var(--line-strong);
   border-radius: 999px;
+}
+
+.side-panel-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 42px;
+  padding-right: 2px;
+  padding-bottom: 18px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 120ms ease, transform 180ms ease;
 }
 
 .side-panel.is-collapsed {
@@ -319,6 +313,7 @@ body {
   width: 120px;
   height: 50px;
   padding: 8px;
+  overflow: hidden;
   border-radius: 999px;
   z-index: 32;
 }
