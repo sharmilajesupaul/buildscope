@@ -485,6 +485,25 @@ body {
   align-items: flex-end;
 }
 
+.section-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.section-toolbar .inline-theme-picker {
+  min-width: 0;
+  align-items: stretch;
+}
+
+.section-toolbar .status-badge {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .inline-theme-picker .theme-select {
   min-height: 34px;
   min-width: 96px;
@@ -965,6 +984,15 @@ body {
 
   .inline-theme-picker {
     align-items: stretch;
+  }
+
+  .section-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .section-toolbar .status-badge {
+    justify-self: start;
   }
 
   .side-panel-top .summary-header {

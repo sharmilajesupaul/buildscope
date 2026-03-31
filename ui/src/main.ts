@@ -284,18 +284,16 @@ function main() {
     const last = sidePanel.getBoundingClientRect();
     const deltaX = first.left - last.left;
     const deltaY = first.top - last.top;
-    const scaleX = first.width / Math.max(last.width, 1);
-    const scaleY = first.height / Math.max(last.height, 1);
 
     sidePanel.animate(
       [
         {
-          transformOrigin: 'top left',
-          transform: `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`,
+          transform: `translate(${deltaX}px, ${deltaY}px)`,
+          opacity: 0.96,
         },
         {
-          transformOrigin: 'top left',
-          transform: 'translate(0, 0) scale(1, 1)',
+          transform: 'translate(0, 0)',
+          opacity: 1,
         },
       ],
       {
@@ -374,7 +372,7 @@ function main() {
     }
 
     const pg = rehydratePositionedGraph(data.nodes, data.edges, data.hotspotCount, data.largestHotspotSize);
-    const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} high-impact targets` : 'Ready';
+    const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} impact` : 'Ready';
     viz.setStatus(impactSummary, 'success');
     viz.setPositionedGraph(pg);
     impactEntries = getTopImpactTargets(pg.nodes);
