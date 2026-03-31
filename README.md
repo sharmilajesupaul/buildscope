@@ -65,65 +65,9 @@ BuildScope streams Bazel's graph output, converts it into a plain JSON shape, an
 }
 ```
 
-The detailed extraction and analysis path looks like this:
+The full Bazel extraction and BuildScope analysis flow now lives in [docs/bazel-graph-flow.md](docs/bazel-graph-flow.md).
 
-```mermaid
-flowchart TD
-  subgraph EntryPoints["CLI entrypoints"]
-    A["./buildscope.sh //pkg:target"]
-    B["buildscope open //pkg:target --workdir /repo --addr :4422"]
-    C["buildscope extract -target //pkg:target -workdir /repo -out /tmp/graph.json"]
-  end
-
-  A --> B
-  B --> D
-  C --> D
-
-  D["validateWorkspaceDir<br/>requires WORKSPACE, WORKSPACE.bazel, or MODULE.bazel"]
-  D --> E
-
-  E{"Which command path?"}
-  E -->|open| F["openCommand creates temp file<br/>/tmp/buildscope-graph-*.json"]
-  E -->|extract| G["extract writes to the explicit -out path"]
-
-  F --> H
-  G --> H
-
-  H["extractGraph runs exactly this Bazel command<br/>bazel query 'deps(target)' --output=graph --keep_going"]
-  H --> I
-  I["parseQueryGraphStreaming reads stdout line by line<br/>ignores Graphviz styling lines<br/>splits multiline labels<br/>dedupes nodes and edges"]
-  I --> J["emit JSON graph<br/>{ nodes, edges }"]
-
-  J -->|extract| K["graph.json written to disk"]
-  J -->|open| L["serveGraph serves UI files and /graph.json"]
-
-  L --> M["browser fetches /graph.json"]
-  K --> N["same JSON can later be opened with buildscope view"]
-  N --> M
-
-  subgraph Worker["Frontend worker analysis"]
-    M --> O["sanitizeGraph removes malformed ids and dangling edges"]
-    O --> P["compute direct inDegree and outDegree"]
-    P --> Q["calculateTransitiveClosure<br/>BFS over incoming and outgoing edges<br/>produces transitiveInDegree and transitiveOutDegree"]
-    Q --> R["calculateStronglyConnectedComponents<br/>iterative Tarjan SCC over the dependency graph"]
-    R --> S["markHighImpactHotspots<br/>cyclic SCCs become hotspots first<br/>then high transitiveInDegree DAG nodes are ranked"]
-    S --> T["pressure score for break-up targets<br/>log2(transitiveInDegree + 1) * max(1, outDegree)"]
-    T --> U["layeredLayout for normal graphs<br/>compactGridLayout for very large graphs"]
-  end
-
-  U --> V["Pixi.js renders graph, Top impact, and Break-up candidates"]
-```
-
-More explicitly:
-
-- Bazel is only responsible for raw dependency extraction. The concrete command BuildScope runs is `bazel query 'deps(<target>)' --output=graph --keep_going`.
-- `buildscope open` and `buildscope extract` share the same extraction implementation. The only difference is the output destination: `open` writes to a temp file and immediately serves it, while `extract` writes to the user-provided `-out` path.
-- The streaming parser is deliberate: it consumes Bazel's Graphviz output from stdout as it arrives, skips style directives like `node` and `edge`, splits multiline labels, and deduplicates node ids and edges before writing JSON.
-- High-impact targets are not computed by Bazel. After the graph is loaded in the browser, the worker computes `transitiveInDegree` and `transitiveOutDegree`, runs Tarjan SCC detection, and then marks hotspots.
-- Cycles are treated as immediate hotspots because they are tightly coupled clusters. For mostly acyclic Bazel graphs, the worker also promotes unusually shared nodes by ranking the upper slice of `transitiveInDegree` values.
-- Break-up candidates are also not a Bazel feature. They come from the local `pressure` score `log2(transitiveInDegree + 1) * max(1, outDegree)`, which intentionally favors broad shared hubs that also fan out into many direct dependencies.
-
-The result is that Bazel provides the exact dependency edges, while BuildScope adds the higher-level analysis needed to answer "what is most central?" and "what should be broken up first?"
+That doc shows the exact `buildscope open` / `buildscope extract` paths, the concrete `bazel query 'deps(target)' --output=graph --keep_going` invocation, and the worker-side steps that turn the raw dependency graph into high-impact targets and break-up candidates.
 
 ## Development
 
