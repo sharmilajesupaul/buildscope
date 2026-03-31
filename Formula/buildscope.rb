@@ -1,25 +1,25 @@
 class Buildscope < Formula
   desc "Local-first Bazel dependency explorer"
   homepage "https://github.com/sharmilajesupaul/buildscope"
-  version "0.1.0"
+  version "0.1.1"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.0/buildscope_0.1.0_darwin_arm64.tar.gz"
-      sha256 "fc11b2b222be38ffaebd090d54d7ab20d6621102f73f35a81e671b4020fb2f37"
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.1/buildscope_0.1.1_darwin_arm64.tar.gz"
+      sha256 "adb3259a248e2fd17598fee6d71db254b538e5f6b5208b90315c791d2f1a4577"
     else
-      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.0/buildscope_0.1.0_darwin_amd64.tar.gz"
-      sha256 "8799b9d80b8a97fdf38559a892960260c148078b04fec8890cefea1421ce5825"
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.1/buildscope_0.1.1_darwin_amd64.tar.gz"
+      sha256 "24c123a8927853c78f33a3b9d47a99ab27b98ae1b601de5f555c82e1fee4a43e"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.0/buildscope_0.1.0_linux_arm64.tar.gz"
-      sha256 "37f81004d2661ff408e41cf3c7dac5f886863440855f1315fe9dfc45ed3b0966"
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.1/buildscope_0.1.1_linux_arm64.tar.gz"
+      sha256 "8d0764fd6a84ca23dcc760dc21cdbe3124dd9db78177577e0921db80e312a5ef"
     else
-      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.0/buildscope_0.1.0_linux_amd64.tar.gz"
-      sha256 "8daccf01de82aee33e1a08001ddd152e4b8d4e35f3e8a1ff5d2e82ef61fd1738"
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.1/buildscope_0.1.1_linux_amd64.tar.gz"
+      sha256 "29128b7934552c63373f8e63e88308ed19a78a9a0340e0863fea84c475e8aa15"
     end
   end
 

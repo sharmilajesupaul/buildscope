@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   verify:
@@ -133,13 +134,14 @@ jobs:
             "$LINUX_ARM64_SHA" \
             Formula/buildscope.rb
 
-      - name: Commit formula update
-        run: |
-          if [ -z "$(git status --porcelain -- Formula/buildscope.rb)" ]; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/buildscope.rb
-          git commit -m "release: update Homebrew formula for ${GITHUB_REF_NAME}"
-          git push origin HEAD:${{ github.event.repository.default_branch }}
+      - name: Open formula update PR
+        uses: peter-evans/create-pull-request@v8
+        with:
+          add-paths: |
+            Formula/buildscope.rb
+          branch: automation/homebrew-${{ github.ref_name }}
+          commit-message: release: update Homebrew formula for ${{ github.ref_name }}
+          delete-branch: true
+          title: release: update Homebrew formula for ${{ github.ref_name }}
+          body: |
+            Automated Homebrew formula update for `${{ github.ref_name }}`.
