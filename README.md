@@ -19,28 +19,24 @@ macOS via Homebrew:
 
 ```bash
 brew tap sharmilajesupaul/buildscope https://github.com/sharmilajesupaul/buildscope
-brew install sharmilajesupaul/buildscope/buildscope
+brew install --build-from-source sharmilajesupaul/buildscope/buildscope
 ```
 
-The release workflow opens a Homebrew formula update PR after each tagged prerelease.
-If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first. The formula builds from the tagged source checkout, so it no longer depends on anonymous GitHub release asset URLs.
-
-Linux via GitHub Releases:
+Direct install from the latest published prerelease on macOS or Linux:
 
 ```bash
-ARCH=amd64   # or arm64
-gh auth login
-TAG="$(gh api repos/sharmilajesupaul/buildscope/releases --jq 'map(select(.prerelease and (.draft | not)))[0].tag_name')"
-TMPDIR="$(mktemp -d)"
-gh release download "$TAG" \
-  --repo sharmilajesupaul/buildscope \
-  --pattern "buildscope_linux_${ARCH}.tar.gz" \
-  --dir "$TMPDIR"
-tar -xzf "$TMPDIR/buildscope_linux_${ARCH}.tar.gz" -C "$TMPDIR"
-install -m 755 "$(find "$TMPDIR" -type f -name buildscope -perm -u+x | head -n 1)" ~/.local/bin/buildscope
+curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | sh
 ```
 
-That installs the latest prerelease binary into `~/.local/bin`. To pin a specific version instead, set `TAG=v0.1.1` before the download step or run `VERSION=v0.1.1 ./scripts/install-release.sh` from a checkout.
+Pin a specific prerelease instead:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | env VERSION=v0.1.5 sh
+```
+
+The direct installer defaults to `~/.local/bin`. Override the destination with `PREFIX` or `BINDIR`, for example `curl ... | env BINDIR="$HOME/bin" sh`.
+
+These one-line install commands assume the repo and releases are public. While the repo is still private, clone the repo, authenticate with `gh auth login` or set `GITHUB_TOKEN`, then run `./scripts/install-release.sh` from the checkout instead. The Homebrew formula builds from the tagged source checkout, and the release installer can use either the GitHub API or `gh` to resolve the latest tag.
 
 Runtime prerequisites for the installed binary:
 
@@ -113,7 +109,7 @@ That tag triggers the GitHub release workflow to:
 - publish versioned release assets for macOS and Linux on `amd64` and `arm64`
 - publish stable alias asset names inside each tagged release
 - mark the GitHub release as a prerelease because the tag is still under `v1`
-- open a PR that updates the Homebrew formula
+- push a Homebrew update branch and, when repo policy allows, open the PR automatically
 
 ## How It Gets The Graph
 

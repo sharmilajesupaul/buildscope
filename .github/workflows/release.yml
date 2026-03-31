@@ -121,6 +121,8 @@ jobs:
             Formula/buildscope.rb
 
       - name: Open formula update PR
+        id: open_homebrew_pr
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v8
         with:
           add-paths: |
@@ -131,3 +133,9 @@ jobs:
           title: "release: update Homebrew formula for ${{ github.ref_name }}"
           body: |
             Automated Homebrew formula update for `${{ github.ref_name }}`.
+
+      - name: Report formula update branch
+        if: steps.open_homebrew_pr.outcome == 'failure'
+        run: |
+          echo "::warning::GitHub Actions could not open the Homebrew PR in this repo."
+          echo "::warning::Open it manually at https://github.com/${GITHUB_REPOSITORY}/pull/new/automation/homebrew-${GITHUB_REF_NAME}"
