@@ -65,7 +65,36 @@ BuildScope streams Bazel's graph output, converts it into a plain JSON shape, an
 }
 ```
 
-The viewer then loads `/graph.json`, sanitizes the graph, computes layout in a worker, and renders the result with Pixi.js.
+The full data and analysis path looks like this:
+
+```mermaid
+flowchart LR
+  A["User runs buildscope open or buildscope extract"]
+  B["Go CLI validates Bazel workspace<br/>WORKSPACE, WORKSPACE.bazel, or MODULE.bazel"]
+  C["Run Bazel query<br/>deps(target) with graph output"]
+  D["Streaming parser reads Graphviz-style query output<br/>and dedupes labels and edges into graph JSON"]
+  E["Write graph.json"]
+  F["Go HTTP server serves UI and /graph.json"]
+  G["Frontend fetches graph"]
+  H["Worker sanitizes invalid ids and edges"]
+  I["Compute degrees and transitive reachability"]
+  J["Run Tarjan SCC pass to find cycles / tightly coupled clusters"]
+  K["Mark high-impact targets<br/>cycles become hotspots; DAG nodes with unusually high transitiveInDegree are also ranked"]
+  L["Score break-up candidates<br/>log2(transitiveInDegree + 1) x max(1, outDegree)"]
+  M["Build layered / compact layout"]
+  N["Pixi.js renders graph and analysis panels"]
+  O["UI shows Top impact and Break-up candidates"]
+
+  A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N --> O
+```
+
+After `/graph.json` is loaded, the frontend worker does more than layout:
+
+- High-impact targets are ranked mostly by `transitiveInDegree`, which answers "how many targets depend on this one?" Cycles are detected via strongly connected components, and those cyclic clusters are promoted as hotspots immediately.
+- For mostly acyclic Bazel graphs, the worker still marks unusually shared nodes as hotspots by looking at the top 10% of `transitiveInDegree` values, so common libraries still stand out even when there are no cycles.
+- Break-up candidates use the `pressure` score: `log2(transitiveInDegree + 1) * max(1, outDegree)`. That favors broad shared hubs that also fan out into many dependencies, which makes them better refactor targets than leaf libraries with the same number of dependents.
+
+The viewer then uses those precomputed metrics to power the `High impact ranking` and `Break-up candidates` modes in the UI.
 
 ## Development
 
