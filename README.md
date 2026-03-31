@@ -18,8 +18,8 @@ BuildScope is a local-first Bazel dependency explorer. Point it at a Bazel targe
 macOS via Homebrew:
 
 ```bash
-brew tap sharmilajesupaul/buildscope
-brew install buildscope
+brew tap sharmilajesupaul/buildscope https://github.com/sharmilajesupaul/buildscope
+brew install sharmilajesupaul/buildscope/buildscope
 ```
 
 The Homebrew formula is updated by the release workflow after each tagged prerelease.
