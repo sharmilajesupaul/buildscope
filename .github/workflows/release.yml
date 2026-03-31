@@ -112,26 +112,11 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
 
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: release-*
-          merge-multiple: true
-          path: dist
-
       - name: Render Homebrew formula
         run: |
-          VERSION="${GITHUB_REF_NAME}"
-          VERSION_NO_V="${VERSION#v}"
-          DARWIN_AMD64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_darwin_amd64.tar.gz" | awk '{print $1}')"
-          DARWIN_ARM64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_darwin_arm64.tar.gz" | awk '{print $1}')"
-          LINUX_AMD64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_linux_amd64.tar.gz" | awk '{print $1}')"
-          LINUX_ARM64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_linux_arm64.tar.gz" | awk '{print $1}')"
           ./scripts/render-homebrew-formula.sh \
-            "$VERSION" \
-            "$DARWIN_AMD64_SHA" \
-            "$DARWIN_ARM64_SHA" \
-            "$LINUX_AMD64_SHA" \
-            "$LINUX_ARM64_SHA" \
+            "${GITHUB_REF_NAME}" \
+            "${GITHUB_SHA}" \
             Formula/buildscope.rb
 
       - name: Open formula update PR

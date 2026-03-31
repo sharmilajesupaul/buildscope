@@ -33,36 +33,73 @@ detect_arch() {
   esac
 }
 
-require_command curl
+resolve_latest_prerelease_tag() {
+  require_command gh
+  gh auth status >/dev/null 2>&1 || fail "gh is not authenticated; run: gh auth login"
+
+  TAG="$(gh api "repos/$REPO/releases" --jq 'map(select(.prerelease and (.draft | not)))[0].tag_name')"
+  [ -n "$TAG" ] && [ "$TAG" != "null" ] || fail "could not resolve the latest prerelease tag for $REPO"
+
+  printf '%s\n' "$TAG"
+}
+
+download_with_gh() {
+  TAG="$1"
+  ASSET="$2"
+
+  require_command gh
+  gh auth status >/dev/null 2>&1 || fail "gh is not authenticated; run: gh auth login"
+
+  printf 'Downloading %s from %s via gh\n' "$ASSET" "$TAG"
+  gh release download "$TAG" --repo "$REPO" --pattern "$ASSET" --dir "$TMPDIR" >/dev/null
+}
+
+download_with_curl() {
+  TAG="$1"
+  ASSET="$2"
+  URL="https://github.com/${REPO}/releases/download/${TAG}/${ASSET}"
+
+  require_command curl
+
+  printf 'Downloading %s\n' "$URL"
+  curl -fsSL "$URL" -o "$TMPDIR/$ASSET"
+}
+
 require_command tar
 
 OS="$(detect_os)"
 ARCH="$(detect_arch)"
 TMPDIR="$(mktemp -d)"
-ARCHIVE="$TMPDIR/buildscope.tar.gz"
+ARCHIVE_ASSET="buildscope_${OS}_${ARCH}.tar.gz"
+ARCHIVE_PATH="$TMPDIR/$ARCHIVE_ASSET"
+
+trap 'rm -rf "$TMPDIR"' EXIT HUP INT TERM
 
 mkdir -p "$BINDIR"
 
 if [ "$VERSION" = "latest" ]; then
-  ASSET="buildscope_${OS}_${ARCH}.tar.gz"
-  URL="https://github.com/${REPO}/releases/latest/download/${ASSET}"
+  TAG="$(resolve_latest_prerelease_tag)"
 else
-  VERSION_NO_V="${VERSION#v}"
-  ASSET="buildscope_${VERSION_NO_V}_${OS}_${ARCH}.tar.gz"
-  URL="https://github.com/${REPO}/releases/download/${VERSION}/${ASSET}"
+  TAG="$VERSION"
 fi
 
-printf 'Downloading %s\n' "$URL"
-curl -fsSL "$URL" -o "$ARCHIVE"
+if command -v gh >/dev/null 2>&1; then
+  download_with_gh "$TAG" "$ARCHIVE_ASSET"
+else
+  [ "$VERSION" = "latest" ] && fail "gh is required to install the latest prerelease"
+  download_with_curl "$TAG" "$ARCHIVE_ASSET"
+fi
 
-tar -xzf "$ARCHIVE" -C "$TMPDIR"
+[ -f "$ARCHIVE_PATH" ] || fail "expected downloaded archive at $ARCHIVE_PATH"
+
+tar -xzf "$ARCHIVE_PATH" -C "$TMPDIR"
 
 BINARY="$(find "$TMPDIR" -type f -name buildscope -perm -u+x | head -n 1)"
 [ -n "$BINARY" ] || fail "downloaded archive did not contain a buildscope binary"
 
 install -m 755 "$BINARY" "$BINDIR/buildscope"
 
-printf '\nInstalled buildscope to %s\n' "$BINDIR/buildscope"
+printf '\nInstalled buildscope %s to %s\n' "$TAG" "$BINDIR/buildscope"
 
 case ":$PATH:" in
   *":$BINDIR:"*) ;;
