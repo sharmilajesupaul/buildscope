@@ -261,9 +261,11 @@ body {
 .side-panel {
   position: fixed;
   top: 82px;
+  bottom: 14px;
   left: 14px;
   width: 344px;
-  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
   padding: 10px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -282,14 +284,17 @@ body {
 
 .side-panel-scroll {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(100vh - 138px);
+  min-height: 0;
   margin-top: 42px;
   padding-right: 2px;
   padding-bottom: 18px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
   opacity: 1;
@@ -308,11 +313,11 @@ body {
 
 .side-panel.is-collapsed {
   top: 14px;
+  bottom: auto;
   left: auto;
   right: 14px;
-  bottom: auto;
   width: 120px;
-  max-height: 50px;
+  height: 50px;
   padding: 8px;
   border-radius: 999px;
   z-index: 32;
@@ -322,6 +327,8 @@ body {
   opacity: 0;
   transform: translateY(-8px);
   pointer-events: none;
+  margin-top: 0;
+  padding-bottom: 0;
 }
 
 .panel-toggle {
@@ -405,7 +412,7 @@ body {
 
 .menu-summary {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 12px;
@@ -415,6 +422,20 @@ body {
 
 .menu-summary::-webkit-details-marker {
   display: none;
+}
+
+.menu-summary::after {
+  content: '+';
+  flex: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.menu-section[open] .menu-summary::after {
+  content: '−';
+  color: var(--text-soft);
 }
 
 .menu-summary-title {
@@ -941,14 +962,9 @@ body {
   .side-panel {
     top: 82px;
     width: min(320px, calc(100vw - 24px));
-    max-height: min(44vh, calc(100vh - 320px));
+    bottom: 12px;
     left: 12px;
     right: auto;
-    bottom: auto;
-  }
-
-  .side-panel-scroll {
-    max-height: calc(44vh - 56px);
   }
 
   .selection-inspector {
@@ -980,8 +996,8 @@ body {
 
   .side-panel.is-collapsed {
     top: 12px;
+    bottom: auto;
     left: auto;
     right: 12px;
-    bottom: auto;
   }
 }
