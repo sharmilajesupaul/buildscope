@@ -1,0 +1,75 @@
+{
+  "nodes": [
+    { "id": "//src:main", "label": "//src:main" },
+    { "id": "//src:utils", "label": "//src:utils" },
+    { "id": "//src:config", "label": "//src:config" },
+    { "id": "//src/parser:parser", "label": "//src/parser:parser" },
+    { "id": "//src/parser:tokenizer", "label": "//src/parser:tokenizer" },
+    { "id": "//src/analyzer:analyzer", "label": "//src/analyzer:analyzer" },
+    { "id": "//src/analyzer:validator", "label": "//src/analyzer:validator" },
+    { "id": "//src/renderer:renderer", "label": "//src/renderer:renderer" },
+    { "id": "//src/renderer:canvas", "label": "//src/renderer:canvas" },
+    { "id": "//src/renderer:webgl", "label": "//src/renderer:webgl" },
+    { "id": "//lib:base", "label": "//lib:base" },
+    { "id": "//lib:logger", "label": "//lib:logger" },
+    { "id": "//lib:errors", "label": "//lib:errors" },
+    { "id": "//third_party:react", "label": "//third_party:react" },
+    { "id": "//third_party:typescript", "label": "//third_party:typescript" },
+    { "id": "//third_party:webgl2", "label": "//third_party:webgl2" },
+    { "id": "//proto:graph_proto", "label": "//proto:graph_proto" },
+    { "id": "//proto:build_proto", "label": "//proto:build_proto" },
+    { "id": "//tests:main_test", "label": "//tests:main_test" },
+    { "id": "//tests:parser_test", "label": "//tests:parser_test" }
+  ],
+  "edges": [
+    { "source": "//src:main", "target": "//src:utils" },
+    { "source": "//src:main", "target": "//src:config" },
+    { "source": "//src:main", "target": "//src/parser:parser" },
+    { "source": "//src:main", "target": "//src/analyzer:analyzer" },
+    { "source": "//src:main", "target": "//src/renderer:renderer" },
+    { "source": "//src:main", "target": "//lib:base" },
+
+    { "source": "//src/parser:parser", "target": "//src/parser:tokenizer" },
+    { "source": "//src/parser:parser", "target": "//src:utils" },
+    { "source": "//src/parser:parser", "target": "//lib:logger" },
+    { "source": "//src/parser:parser", "target": "//proto:graph_proto" },
+
+    { "source": "//src/parser:tokenizer", "target": "//lib:base" },
+    { "source": "//src/parser:tokenizer", "target": "//lib:errors" },
+
+    { "source": "//src/analyzer:analyzer", "target": "//src/analyzer:validator" },
+    { "source": "//src/analyzer:analyzer", "target": "//src:utils" },
+    { "source": "//src/analyzer:analyzer", "target": "//lib:logger" },
+    { "source": "//src/analyzer:analyzer", "target": "//proto:build_proto" },
+
+    { "source": "//src/analyzer:validator", "target": "//lib:base" },
+    { "source": "//src/analyzer:validator", "target": "//lib:errors" },
+
+    { "source": "//src/renderer:renderer", "target": "//src/renderer:canvas" },
+    { "source": "//src/renderer:renderer", "target": "//src/renderer:webgl" },
+    { "source": "//src/renderer:renderer", "target": "//third_party:react" },
+    { "source": "//src/renderer:renderer", "target": "//lib:logger" },
+
+    { "source": "//src/renderer:canvas", "target": "//lib:base" },
+
+    { "source": "//src/renderer:webgl", "target": "//third_party:webgl2" },
+    { "source": "//src/renderer:webgl", "target": "//lib:base" },
+
+    { "source": "//src:utils", "target": "//lib:base" },
+    { "source": "//src:utils", "target": "//lib:logger" },
+
+    { "source": "//src:config", "target": "//lib:base" },
+
+    { "source": "//lib:logger", "target": "//lib:base" },
+    { "source": "//lib:errors", "target": "//lib:base" },
+
+    { "source": "//proto:graph_proto", "target": "//third_party:typescript" },
+    { "source": "//proto:build_proto", "target": "//third_party:typescript" },
+
+    { "source": "//tests:main_test", "target": "//src:main" },
+    { "source": "//tests:main_test", "target": "//lib:base" },
+
+    { "source": "//tests:parser_test", "target": "//src/parser:parser" },
+    { "source": "//tests:parser_test", "target": "//lib:base" }
+  ]
+}
