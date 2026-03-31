@@ -1,0 +1,4 @@
+interface:
+  display_name: "BuildScope Choke Points"
+  short_description: "Detect choke points and breakup candidates in BuildScope graphs."
+  default_prompt: "Analyze a BuildScope graph, identify choke points, and propose breakup targets using the app endpoints and graph scoring rules."
