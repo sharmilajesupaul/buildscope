@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -61,6 +62,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
 
       - name: Build release archive
         env:
@@ -133,7 +135,7 @@ jobs:
 
       - name: Commit formula update
         run: |
-          if git diff --quiet -- Formula/buildscope.rb; then
+          if [ -z "$(git status --porcelain -- Formula/buildscope.rb)" ]; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
