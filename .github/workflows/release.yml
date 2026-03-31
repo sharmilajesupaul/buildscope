@@ -107,6 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -125,8 +126,8 @@ jobs:
           add-paths: |
             Formula/buildscope.rb
           branch: automation/homebrew-${{ github.ref_name }}
-          commit-message: release: update Homebrew formula for ${{ github.ref_name }}
+          commit-message: "release: update Homebrew formula for ${{ github.ref_name }}"
           delete-branch: true
-          title: release: update Homebrew formula for ${{ github.ref_name }}
+          title: "release: update Homebrew formula for ${{ github.ref_name }}"
           body: |
             Automated Homebrew formula update for `${{ github.ref_name }}`.
