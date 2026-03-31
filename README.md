@@ -22,21 +22,35 @@ brew tap sharmilajesupaul/buildscope https://github.com/sharmilajesupaul/buildsc
 brew install --build-from-source sharmilajesupaul/buildscope/buildscope
 ```
 
-Direct install from the latest published prerelease on macOS or Linux:
+Linux via GitHub Releases:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | sh
+ARCH=amd64   # or arm64
+TAG="$(curl -fsSL https://api.github.com/repos/sharmilajesupaul/buildscope/releases?per_page=1 | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+TMPDIR="$(mktemp -d)"
+curl -fsSL -o "$TMPDIR/buildscope.tar.gz" \
+  "https://github.com/sharmilajesupaul/buildscope/releases/download/${TAG}/buildscope_linux_${ARCH}.tar.gz"
+tar -xzf "$TMPDIR/buildscope.tar.gz" -C "$TMPDIR"
+install -d "$HOME/.local/bin"
+install -m 755 "$TMPDIR/buildscope" "$HOME/.local/bin/buildscope"
 ```
 
 Pin a specific prerelease instead:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | env VERSION=v0.1.5 sh
+TAG=v0.1.6
+ARCH=amd64   # or arm64
+TMPDIR="$(mktemp -d)"
+curl -fsSL -o "$TMPDIR/buildscope.tar.gz" \
+  "https://github.com/sharmilajesupaul/buildscope/releases/download/${TAG}/buildscope_linux_${ARCH}.tar.gz"
+tar -xzf "$TMPDIR/buildscope.tar.gz" -C "$TMPDIR"
+install -d "$HOME/.local/bin"
+install -m 755 "$TMPDIR/buildscope" "$HOME/.local/bin/buildscope"
 ```
 
-The direct installer defaults to `~/.local/bin`. Override the destination with `PREFIX` or `BINDIR`, for example `curl ... | env BINDIR="$HOME/bin" sh`.
+Those commands install the release binary into `~/.local/bin`.
 
-These one-line install commands assume the repo and releases are public. While the repo is still private, clone the repo, authenticate with `gh auth login` or set `GITHUB_TOKEN`, then run `./scripts/install-release.sh` from the checkout instead. The Homebrew formula builds from the tagged source checkout, and the release installer can use either the GitHub API or `gh` to resolve the latest tag.
+These Linux commands assume the repo and releases are public. While the repo is still private, clone the repo, authenticate with `gh auth login` or set `GITHUB_TOKEN`, then run `./scripts/install-release.sh` from the checkout instead. The Homebrew formula builds from the tagged source checkout.
 
 Runtime prerequisites for the installed binary:
 
