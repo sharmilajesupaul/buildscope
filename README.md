@@ -50,7 +50,7 @@ install -m 755 "$TMPDIR/buildscope" "$HOME/.local/bin/buildscope"
 
 Those commands install the release binary into `~/.local/bin`.
 
-These Linux commands assume the repo and releases are public. While the repo is still private, clone the repo, authenticate with `gh auth login` or set `GITHUB_TOKEN`, then run `./scripts/install-release.sh` from the checkout instead. The Homebrew formula builds from the tagged source checkout.
+These Linux commands download the published release assets directly. If you are working from an unreleased checkout instead, run `./scripts/install-release.sh`.
 
 Runtime prerequisites for the installed binary:
 
@@ -72,6 +72,12 @@ That install path builds a single Go binary with the UI embedded. Node.js is not
 You can override the install destination with `PREFIX` or `BINDIR`.
 
 Windows is currently unsupported, and no Windows release artifacts are published right now.
+
+## Community
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+- Follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) in issues, discussions, and reviews.
+- Report security-sensitive issues through the process in [SECURITY.md](SECURITY.md).
 
 ## Quick Start
 
@@ -209,6 +215,10 @@ Build a release archive locally:
 ```bash
 ./scripts/build-release.sh v0.1.0 darwin arm64 dist
 ```
+
+## License
+
+BuildScope is released under the [MIT License](LICENSE).
 
 ## Startup Paths
 

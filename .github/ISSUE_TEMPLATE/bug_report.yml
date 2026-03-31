@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible problem in BuildScope
+title: "[bug] "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+    validations:
+      required: true
+  - type: input
+    id: buildscope_version
+    attributes:
+      label: BuildScope version
+      description: Output of `buildscope version`, or the git commit if running from source
+  - type: input
+    id: bazel_version
+    attributes:
+      label: Bazel version
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and architecture
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command you ran
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps, repo layout, or sample graph needed to reproduce the issue
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: For security-sensitive issues, do not file a public bug. Follow `SECURITY.md` instead.

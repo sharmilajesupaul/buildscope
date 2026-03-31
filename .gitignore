@@ -1,6 +1,7 @@
 # General
 .DS_Store
 *.log
+.codex/
 
 # Node/JS
 node_modules/
