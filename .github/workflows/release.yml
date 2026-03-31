@@ -1,0 +1,143 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v0.1.*"
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install UI dependencies
+        run: npm --prefix ui ci
+
+      - name: Run frontend tests
+        run: npm --prefix ui test
+
+      - name: Refresh embedded UI bundle
+        run: ./scripts/refresh-embedded-ui.sh
+
+      - name: Ensure embedded UI bundle is committed
+        run: git diff --exit-code -- cli/internal/embeddedui/dist
+
+      - name: Run Go tests
+        run: go -C cli test ./...
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+
+      - name: Build release archive
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          ./scripts/build-release.sh "${{ github.ref_name }}" "${{ matrix.goos }}" "${{ matrix.goarch }}" dist
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum * > "buildscope_${GITHUB_REF_NAME#v}_checksums.txt"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: BuildScope ${{ github.ref_name }}
+          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
+          generate_release_notes: true
+          files: dist/*
+
+  update_homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+
+      - name: Render Homebrew formula
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          VERSION_NO_V="${VERSION#v}"
+          DARWIN_AMD64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_darwin_amd64.tar.gz" | awk '{print $1}')"
+          DARWIN_ARM64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_darwin_arm64.tar.gz" | awk '{print $1}')"
+          LINUX_AMD64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_linux_amd64.tar.gz" | awk '{print $1}')"
+          LINUX_ARM64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_linux_arm64.tar.gz" | awk '{print $1}')"
+          ./scripts/render-homebrew-formula.sh \
+            "$VERSION" \
+            "$DARWIN_AMD64_SHA" \
+            "$DARWIN_ARM64_SHA" \
+            "$LINUX_AMD64_SHA" \
+            "$LINUX_ARM64_SHA" \
+            Formula/buildscope.rb
+
+      - name: Commit formula update
+        run: |
+          if git diff --quiet -- Formula/buildscope.rb; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/buildscope.rb
+          git commit -m "release: update Homebrew formula for ${GITHUB_REF_NAME}"
+          git push origin HEAD:${{ github.event.repository.default_branch }}

@@ -13,33 +13,104 @@ BuildScope is a local-first Bazel dependency explorer. Point it at a Bazel targe
 - Keeps layout work off the main thread so large graphs stay navigable.
 - Ships with a small fixture corpus for repeatable UI and performance checks.
 
+## Install
+
+macOS via Homebrew:
+
+```bash
+brew tap sharmilajesupaul/buildscope
+brew install buildscope
+```
+
+The Homebrew formula is updated by the release workflow after each tagged prerelease.
+
+Linux via GitHub Releases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | sh
+```
+
+That installs the latest release binary into `~/.local/bin`. To install a specific version instead, set `VERSION=v0.1.x` before running the script.
+
+Runtime prerequisites for the installed binary:
+
+- Bazel, if you want to extract graphs from a live workspace
+
+Source-build prerequisites:
+
+- Go `1.22+`
+- Bazel, if you want to extract graphs from a live workspace
+
+Build from source into `~/.local/bin`:
+
+```bash
+./install.sh
+```
+
+That install path builds a single Go binary with the UI embedded. Node.js is not required to run the installed app.
+
+You can override the install destination with `PREFIX` or `BINDIR`.
+
+Windows is currently unsupported, and no Windows release artifacts are published right now.
+
 ## Quick Start
+
+Smoke-test the installed viewer:
+
+```bash
+buildscope version
+buildscope demo
+```
+
+Open a pre-generated graph:
+
+```bash
+buildscope view /path/to/graph.json
+```
 
 From the root of a Bazel workspace:
 
 ```bash
-/path/to/buildscope/buildscope.sh //your/package:target
+buildscope open //your/package:target
 ```
 
-That command:
-
-1. runs the graph extraction step against your current workspace
-2. builds the UI if needed
-3. starts the local viewer on `http://localhost:4422` by default
-
-Override the port with `SERVER_PORT` if needed:
+Override the port with `--addr`:
 
 ```bash
-SERVER_PORT=4500 /path/to/buildscope/buildscope.sh //your/package:target
+buildscope open //your/package:target --addr :4500
 ```
+
+If you are running from a repo checkout without installing first, the existing wrapper still works:
+
+```bash
+./buildscope.sh //your/package:target
+```
+
+## Release Versioning
+
+BuildScope is currently pre-1.0. Use tags in the `v0.1.x` series for releases.
+
+Example:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That tag triggers the GitHub release workflow to:
+
+- run the frontend and Go test suites
+- publish versioned release assets for macOS and Linux on `amd64` and `arm64`
+- publish stable `latest` asset aliases for scripted Linux installs
+- mark the GitHub release as a prerelease because the tag is still under `v1`
+- update the Homebrew formula on `main`
 
 ## How It Gets The Graph
 
-The core extraction path is the `extract` command:
+The extraction path is the `extract` command:
 
 ```bash
-cd cli
-go run ./cmd/buildscope extract \
+buildscope extract \
   -target //your/package:target \
   -workdir /path/to/bazel/workspace \
   -out /tmp/graph.json
@@ -65,20 +136,48 @@ BuildScope streams Bazel's graph output, converts it into a plain JSON shape, an
 }
 ```
 
-The viewer then loads `/graph.json`, sanitizes the graph, computes layout in a worker, and renders the result with Pixi.js.
+The full data and analysis path looks like this:
+
+```mermaid
+flowchart LR
+  A["User runs buildscope open or buildscope extract"]
+  B["Go CLI validates Bazel workspace<br/>WORKSPACE, WORKSPACE.bazel, or MODULE.bazel"]
+  C["Run Bazel query<br/>deps(target) with graph output"]
+  D["Streaming parser reads Graphviz-style query output<br/>and dedupes labels and edges into graph JSON"]
+  E["Write graph.json"]
+  F["Go HTTP server serves UI and /graph.json"]
+  G["Frontend fetches graph"]
+  H["Worker sanitizes invalid ids and edges"]
+  I["Compute degrees and transitive reachability"]
+  J["Run Tarjan SCC pass to find cycles / tightly coupled clusters"]
+  K["Mark high-impact targets<br/>cycles become hotspots; DAG nodes with unusually high transitiveInDegree are also ranked"]
+  L["Score break-up candidates<br/>log2(transitiveInDegree + 1) x max(1, outDegree)"]
+  M["Build layered / compact layout"]
+  N["Pixi.js renders graph and analysis panels"]
+  O["UI shows Top impact and Break-up candidates"]
+
+  A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N --> O
+```
+
+After `/graph.json` is loaded, the frontend worker does more than layout:
+
+- High-impact targets are ranked mostly by `transitiveInDegree`, which answers "how many targets depend on this one?" Cycles are detected via strongly connected components, and those cyclic clusters are promoted as hotspots immediately.
+- For mostly acyclic Bazel graphs, the worker still marks unusually shared nodes as hotspots by looking at the top 10% of `transitiveInDegree` values, so common libraries still stand out even when there are no cycles.
+- Break-up candidates use the `pressure` score: `log2(transitiveInDegree + 1) * max(1, outDegree)`. That favors broad shared hubs that also fan out into many dependencies, which makes them better refactor targets than leaf libraries with the same number of dependents.
+
+The viewer then uses those precomputed metrics to power the `High impact ranking` and `Break-up candidates` modes in the UI.
 
 ## Development
 
-Prerequisites:
+Frontend development prerequisites:
 
 - Node.js `24.11.1` or newer
 - Go `1.22+`
-- Bazel, if you want to extract graphs from a live workspace
 
-Install UI dependencies:
+Prepare the repo:
 
 ```bash
-npm --prefix ui install
+./setup.sh
 ```
 
 Start the local development stack:
@@ -104,6 +203,36 @@ cd cli && go test ./...
 
 Ports can be overridden with `GO_PORT`, `VITE_PORT`, and `SERVER_PORT`.
 
+If you change the shipped UI and want the standalone binary to pick it up, refresh the embedded bundle:
+
+```bash
+./scripts/refresh-embedded-ui.sh
+```
+
+Build a release archive locally:
+
+```bash
+./scripts/build-release.sh v0.1.0 darwin arm64 dist
+```
+
+## Startup Paths
+
+Installed CLI:
+
+```bash
+buildscope demo
+buildscope view /tmp/graph.json
+buildscope open //your/package:target
+```
+
+Repo checkout helpers:
+
+```bash
+./setup.sh
+./dev.sh
+./buildscope.sh //your/package:target
+```
+
 ## Fixture Corpus
 
 BuildScope keeps a small fixture corpus in-repo so UI changes and layout changes can be checked against repeatable graphs instead of ad hoc screenshots.
@@ -113,6 +242,7 @@ See [fixtures/README.md](fixtures/README.md) for the corpus and refresh workflow
 ## Repository Layout
 
 - `cli/` Go CLI for graph extraction and local serving
+- `cli/internal/embeddedui/` committed UI bundle embedded into the Go binary
 - `ui/` TypeScript frontend and Pixi.js renderer
 - `fixtures/` checked-in sample graphs and fixture metadata
 - `scripts/` helper scripts for local development and fixture maintenance
