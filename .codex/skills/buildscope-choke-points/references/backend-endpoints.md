@@ -1,13 +1,54 @@
 # BuildScope Backend Endpoints
 
-This app does not expose a large JSON API surface. The meaningful backend contract for graph analysis is the graph payload served at `/graph.json`.
+This app exposes a small JSON API surface. The most useful endpoint for choke-point analysis is `/analysis.json`, with `/graph.json` remaining the raw graph payload.
 
-## Primary Endpoint
+## Primary Endpoints
+
+- `GET /analysis.json`
+  - Served by the Go HTTP server in `serveGraph`.
+  - Returns precomputed rankings and graph-analysis summaries.
+  - Query params:
+    - `top`: optional positive integer; defaults to `10`, capped at `100`
+    - `focus`: optional Bazel label for node-level drill-down
 
 - `GET /graph.json`
   - Served by the Go HTTP server in `serveGraph`.
   - Returns the raw graph JSON used by the frontend.
-  - Shape:
+
+Example `/analysis.json` shape:
+
+```json
+{
+  "nodeCount": 593,
+  "edgeCount": 1675,
+  "hotspotCount": 54,
+  "largestHotspotSize": 3,
+  "topImpactTargets": [
+    {
+      "id": "//pkg:lib",
+      "transitiveInDegree": 184,
+      "outDegree": 2
+    }
+  ],
+  "topBreakupCandidates": [
+    {
+      "id": "//pkg:hub",
+      "pressure": 91.4,
+      "transitiveInDegree": 77,
+      "outDegree": 11,
+      "recommendations": [
+        "Reduce direct dependency fan-out."
+      ]
+    }
+  ],
+  "focus": {
+    "id": "//pkg:hub",
+    "directDependencies": ["//dep:a", "//dep:b"]
+  }
+}
+```
+
+Example `/graph.json` shape:
 
 ```json
 {
@@ -19,15 +60,6 @@ This app does not expose a large JSON API surface. The meaningful backend contra
   ]
 }
 ```
-
-There is no backend endpoint for:
-
-- hotspot rankings
-- breakup candidates
-- SCC metadata
-- transitive reachability
-
-Codex must fetch `/graph.json` and compute those metrics locally.
 
 ## How To Start The Endpoint
 
@@ -42,7 +74,7 @@ What happens:
 - validates the Bazel workspace
 - runs `bazel query 'deps(target)' --output=graph --keep_going`
 - streams the result into a temp `graph.json`
-- serves the UI and `/graph.json`
+- serves the UI, `/graph.json`, and `/analysis.json`
 
 ### 2. Serve an existing graph file
 
@@ -67,16 +99,29 @@ Default ports:
 - Go server: `http://localhost:4422`
 - Vite dev server: `http://localhost:4400`
 
-In dev mode, Vite proxies `/graph.json` to the Go server. That means both of these work:
+In dev mode, Vite proxies `/graph.json` to the Go server. `/analysis.json` is available directly from the Go server.
 
 - `http://localhost:4422/graph.json`
 - `http://localhost:4400/graph.json`
+- `http://localhost:4422/analysis.json`
 
 Prefer the Go server when you want the direct backend endpoint and no frontend proxy in the middle.
 
 ## Useful Fetch Commands
 
-Count nodes and edges:
+Read the precomputed analysis:
+
+```bash
+curl -fsS "http://localhost:4422/analysis.json?top=15" | jq
+```
+
+Focus one target:
+
+```bash
+curl -fsS "http://localhost:4422/analysis.json?top=15&focus=//pkg:target" | jq
+```
+
+Count nodes and edges from the raw graph:
 
 ```bash
 curl -fsS http://localhost:4422/graph.json | jq '{nodes: (.nodes | length), edges: (.edges | length)}'
@@ -88,11 +133,11 @@ Save the graph locally:
 curl -fsS http://localhost:4422/graph.json -o /tmp/buildscope-graph.json
 ```
 
-Run the analyzer directly against the endpoint:
+Run the file-based analyzer fallback:
 
 ```bash
 python3 .codex/skills/buildscope-choke-points/scripts/analyze_graph.py \
-  --url http://localhost:4422/graph.json \
+  --file /tmp/buildscope-graph.json \
   --top 15
 ```
 

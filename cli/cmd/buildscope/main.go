@@ -97,20 +97,20 @@ type graphPayload struct {
 }
 
 func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
-	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.FS(ui.fsys)))
-	mux.HandleFunc("/graph.json", func(w http.ResponseWriter, r *http.Request) {
-		if graph.path != "" {
-			http.ServeFile(w, r, graph.path)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		http.ServeContent(w, r, "graph.json", time.Time{}, bytes.NewReader(graph.data))
-	})
+	graphData, err := loadGraphBytes(graph)
+	if err != nil {
+		return err
+	}
+	rawGraph, err := parseGraphJSON(graphData)
+	if err != nil {
+		return err
+	}
+	analysis := buildAnalysisBase(rawGraph)
+	mux := newServeMux(ui, graphData, analysis)
 
 	log.Printf("Serving UI from %s", ui.source)
 	log.Printf("Serving graph from %s at /graph.json", graph.source)
+	log.Printf("Serving analysis at /analysis.json")
 
 	listener, listenAddr, fellBack, err := listenWithFallback(addr, 20)
 	if err != nil {
@@ -121,6 +121,29 @@ func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
 	}
 	log.Printf("Listening on %s", listenAddr)
 	return http.Serve(listener, mux)
+}
+
+func newServeMux(ui uiAssets, graphData []byte, analysis *analysisBase) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.FS(ui.fsys)))
+	mux.HandleFunc("/graph.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		http.ServeContent(w, r, "graph.json", time.Time{}, bytes.NewReader(graphData))
+	})
+	mux.HandleFunc("/analysis.json", func(w http.ResponseWriter, r *http.Request) {
+		limit, err := parseAnalysisLimit(r)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, analysisError(err.Error()))
+			return
+		}
+		response, err := analysis.response(limit, strings.TrimSpace(r.URL.Query().Get("focus")))
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, analysisError(err.Error()))
+			return
+		}
+		writeJSON(w, http.StatusOK, response)
+	})
+	return mux
 }
 
 func serve(args []string) error {
