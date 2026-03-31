@@ -2,6 +2,8 @@
 
 BuildScope uses Bazel for one thing: extracting the raw dependency graph for a target. The higher-level analysis for hotspots, high-impact targets, and break-up candidates is computed locally after that graph has been loaded into the UI.
 
+For the exact HTTP surface exposed by the Go server, including `/graph.json`, `/analysis.json`, query params, and example `curl` calls, see [backend-api.md](backend-api.md).
+
 ```mermaid
 flowchart TD
   subgraph EntryPoints["CLI entrypoints"]
