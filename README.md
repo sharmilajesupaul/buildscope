@@ -22,7 +22,7 @@ brew tap sharmilajesupaul/buildscope https://github.com/sharmilajesupaul/buildsc
 brew install sharmilajesupaul/buildscope/buildscope
 ```
 
-The Homebrew formula is updated by the release workflow after each tagged prerelease.
+The release workflow opens a Homebrew formula update PR after each tagged prerelease.
 
 Linux via GitHub Releases:
 
@@ -103,7 +103,7 @@ That tag triggers the GitHub release workflow to:
 - publish versioned release assets for macOS and Linux on `amd64` and `arm64`
 - publish stable `latest` asset aliases for scripted Linux installs
 - mark the GitHub release as a prerelease because the tag is still under `v1`
-- update the Homebrew formula on `main`
+- open a PR that updates the Homebrew formula
 
 ## How It Gets The Graph
 
