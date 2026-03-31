@@ -37,19 +37,10 @@ export function createSidePanel(): HTMLElement {
       <span class="panel-toggle-label-text">Menu</span>
     </button>
     <div class="side-panel-scroll" id="side-panel-scroll">
-      <div class="panel-group side-panel-top">
-        <div class="summary-header">
-          <div>
-            <div class="controls-label">Graph Explorer</div>
-            <div class="side-panel-title">Use the sections below to browse rankings, change focus, and control the canvas.</div>
-          </div>
-        </div>
-      </div>
-
       <details class="panel-group menu-section" open>
         <summary class="menu-summary">
           <span class="menu-summary-title">Search</span>
-          <span class="menu-summary-copy">Find targets and repo status</span>
+          <span class="menu-summary-copy">Find targets</span>
         </summary>
         <div class="menu-body">
           <div class="summary-header section-toolbar">
@@ -61,15 +52,14 @@ export function createSidePanel(): HTMLElement {
                 <option value="colorblind">Colorblind</option>
               </select>
             </label>
+            <span class="status-badge loading" id="status-badge">Loading</span>
           </div>
+          <div class="section-copy">Search for a target, then click it in the graph or from the rankings.</div>
           <div class="search-container">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
             </svg>
             <input type="text" class="search-input" id="search-input" placeholder="Find a target..." />
-          </div>
-          <div class="panel-status-row">
-            <span class="status-badge loading" id="status-badge">Loading</span>
           </div>
           <div class="summary-grid summary-grid-compact">
             <div class="summary-card">
@@ -95,10 +85,10 @@ export function createSidePanel(): HTMLElement {
       <details class="panel-group menu-section" open>
         <summary class="menu-summary">
           <span class="menu-summary-title">Rankings</span>
-          <span class="menu-summary-copy">Impact and break-up candidates</span>
+          <span class="menu-summary-copy">Top candidates</span>
         </summary>
         <div class="menu-body">
-          <div class="section-copy">Filter by target text or rank like <code>#3</code>, then focus the graph from the list.</div>
+          <div class="section-copy">Filter by target or rank like <code>#3</code>, then focus the graph from the list.</div>
           <div class="search-container analysis-search">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
@@ -156,7 +146,7 @@ export function createSidePanel(): HTMLElement {
       <details class="panel-group menu-section">
         <summary class="menu-summary">
           <span class="menu-summary-title">Canvas</span>
-          <span class="menu-summary-copy">Fit, reset, and zoom</span>
+          <span class="menu-summary-copy">Fit and zoom</span>
         </summary>
         <div class="menu-body">
           <div class="button-group">
@@ -174,7 +164,7 @@ export function createSidePanel(): HTMLElement {
       <details class="panel-group menu-section advanced-group">
         <summary class="menu-summary advanced-summary">
           <span class="menu-summary-title">Advanced</span>
-          <span class="menu-summary-copy">Extra emphasis modes</span>
+          <span class="menu-summary-copy">Extra modes</span>
         </summary>
         <div class="menu-body advanced-body">
           <label class="theme-picker-label" for="advanced-mode-select">Node Emphasis</label>

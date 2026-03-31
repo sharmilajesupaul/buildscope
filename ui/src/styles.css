@@ -296,7 +296,7 @@ body {
 .side-panel-scroll {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-top: 42px;
   padding-right: 2px;
   padding-bottom: 18px;
@@ -397,7 +397,7 @@ body {
 }
 
 .panel-group + .panel-group {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .menu-section {
@@ -410,7 +410,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px;
+  padding: 11px 12px;
   cursor: pointer;
   list-style: none;
 }
@@ -435,16 +435,18 @@ body {
 
 .menu-summary-title {
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .menu-summary-copy {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
   line-height: 1.35;
   text-align: right;
+  text-transform: uppercase;
 }
 
 .menu-section[open] .menu-summary {
@@ -453,8 +455,8 @@ body {
 
 .menu-body {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 11px 12px 12px;
 }
 
 .controls-label {
@@ -483,17 +485,6 @@ body {
   align-items: flex-end;
 }
 
-.side-panel-top .summary-header {
-  align-items: flex-start;
-}
-
-.side-panel-title {
-  max-width: 190px;
-  color: var(--text-soft);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
 .inline-theme-picker .theme-select {
   min-height: 34px;
   min-width: 96px;
@@ -515,14 +506,6 @@ body {
 
 .search-container {
   position: relative;
-}
-
-.panel-status-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 10px;
 }
 
 .search-icon {
@@ -616,7 +599,7 @@ body {
 }
 
 .summary-grid-compact .summary-card {
-  min-height: 70px;
+  min-height: 64px;
 }
 
 .summary-card,
@@ -720,16 +703,16 @@ body {
 
 .section-copy {
   color: var(--text-soft);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .analysis-search {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .analysis-group + .analysis-group {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .analysis-summary {
@@ -746,7 +729,7 @@ body {
 }
 
 .analysis-group[open] .analysis-summary {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .analysis-summary .analysis-heading {
