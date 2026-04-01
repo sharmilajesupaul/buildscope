@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 2,
+  "analysisMode": "analyze",
+  "target": "//:ProjectRunner",
+  "detailsPath": "examples_java_tutorial_projectrunner.details.json",
+  "nodes": [
+    {
+      "id": "@bazel_tools//tools/jdk:toolchain_type",
+      "label": "@bazel_tools//tools/jdk:toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/jdk"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:toolchain_type",
+      "label": "@bazel_tools//tools/cpp:toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@rules_java//java/bazel/rules:java_stub_template.txt",
+      "label": "@rules_java//java/bazel/rules:java_stub_template.txt",
+      "nodeType": "source-file",
+      "packageName": "java/bazel/rules"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info:java_build_info",
+      "label": "@bazel_tools//tools/build_defs/build_info:java_build_info",
+      "nodeType": "rule",
+      "ruleKind": "bazel_java_build_info",
+      "packageName": "tools/build_defs/build_info",
+      "sourceFileCount": 3,
+      "inputFileCount": 3,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.properties.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/non_volatile_file.properties.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.properties.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/redacted_file.properties.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.properties.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/volatile_file.properties.template",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/launcher:launcher",
+      "label": "@bazel_tools//tools/launcher:launcher",
+      "nodeType": "rule",
+      "ruleKind": "current_launcher_binary",
+      "packageName": "tools/launcher"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.properties.template",
+      "label": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.properties.template",
+      "nodeType": "source-file",
+      "packageName": "tools/build_defs/build_info/templates"
+    },
+    {
+      "id": "@bazel_tools//tools/launcher:launcher_toolchain_type",
+      "label": "@bazel_tools//tools/launcher:launcher_toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/launcher"
+    },
+    {
+      "id": "@@platforms//os:os",
+      "label": "@@platforms//os:os",
+      "nodeType": "rule",
+      "ruleKind": "constraint_setting",
+      "packageName": "os"
+    },
+    {
+      "id": "@bazel_tools//tools/jdk:launcher_flag_alias",
+      "label": "@bazel_tools//tools/jdk:launcher_flag_alias",
+      "nodeType": "rule",
+      "ruleKind": "launcher_flag_alias",
+      "packageName": "tools/jdk"
+    },
+    {
+      "id": "@bazel_tools//tools/launcher:launcher_maker_toolchain_type",
+      "label": "@bazel_tools//tools/launcher:launcher_maker_toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/launcher"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.properties.template",
+      "label": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.properties.template",
+      "nodeType": "source-file",
+      "packageName": "tools/build_defs/build_info/templates"
+    },
+    {
+      "id": "@rules_java//toolchains:current_java_toolchain",
+      "label": "@rules_java//toolchains:current_java_toolchain",
+      "nodeType": "rule",
+      "ruleKind": "java_toolchain_alias",
+      "packageName": "toolchains"
+    },
+    {
+      "id": "@rules_java//:license",
+      "label": "@rules_java//:license",
+      "nodeType": "rule",
+      "ruleKind": "_license",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@rules_java//:LICENSE",
+          "path": "external/rules_java/LICENSE",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/jdk:runtime_toolchain_type",
+      "label": "@bazel_tools//tools/jdk:runtime_toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/jdk"
+    },
+    {
+      "id": "//:src/main/java/com/example/ProjectRunner.java",
+      "label": "//:src/main/java/com/example/ProjectRunner.java",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "@bazel_tools//tools/jdk:java_plugins_flag_alias",
+      "label": "@bazel_tools//tools/jdk:java_plugins_flag_alias",
+      "nodeType": "rule",
+      "ruleKind": "java_plugins_flag_alias",
+      "packageName": "tools/jdk"
+    },
+    {
+      "id": "@@platforms//os:windows",
+      "label": "@@platforms//os:windows",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "os"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.properties.template",
+      "label": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.properties.template",
+      "nodeType": "source-file",
+      "packageName": "tools/build_defs/build_info/templates"
+    },
+    {
+      "id": "@rules_java//:LICENSE",
+      "label": "@rules_java//:LICENSE",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "//:ProjectRunner",
+      "label": "//:ProjectRunner",
+      "nodeType": "rule",
+      "ruleKind": "java_binary",
+      "sourceFileCount": 3,
+      "sourceBytes": 252,
+      "inputFileCount": 3,
+      "inputBytes": 252,
+      "topFiles": [
+        {
+          "label": "//:src/main/java/com/example/ProjectRunner.java",
+          "path": "src/main/java/com/example/ProjectRunner.java",
+          "kind": "source-file",
+          "sizeBytes": 130,
+          "exists": true
+        },
+        {
+          "label": "//:src/main/java/com/example/Greeting.java",
+          "path": "src/main/java/com/example/Greeting.java",
+          "kind": "source-file",
+          "sizeBytes": 122,
+          "exists": true
+        },
+        {
+          "label": "@rules_java//java/bazel/rules:java_stub_template.txt",
+          "path": "external/rules_java/java/bazel/rules/java_stub_template.txt",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/jdk:current_java_toolchain",
+      "label": "@bazel_tools//tools/jdk:current_java_toolchain",
+      "nodeType": "rule",
+      "ruleKind": "alias",
+      "packageName": "tools/jdk"
+    },
+    {
+      "id": "//:src/main/java/com/example/Greeting.java",
+      "label": "//:src/main/java/com/example/Greeting.java",
+      "nodeType": "source-file"
+    }
+  ],
+  "edges": [
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/jdk:launcher_flag_alias"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@@platforms//os:windows"
+    },
+    {
+      "source": "@bazel_tools//tools/build_defs/build_info:java_build_info",
+      "target": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.properties.template"
+    },
+    {
+      "source": "@rules_java//toolchains:current_java_toolchain",
+      "target": "@rules_java//:license"
+    },
+    {
+      "source": "@rules_java//toolchains:current_java_toolchain",
+      "target": "@bazel_tools//tools/jdk:toolchain_type"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "//:src/main/java/com/example/ProjectRunner.java"
+    },
+    {
+      "source": "@bazel_tools//tools/build_defs/build_info:java_build_info",
+      "target": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.properties.template"
+    },
+    {
+      "source": "@bazel_tools//tools/launcher:launcher",
+      "target": "@bazel_tools//tools/launcher:launcher_toolchain_type"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/launcher:launcher"
+    },
+    {
+      "source": "@bazel_tools//tools/build_defs/build_info:java_build_info",
+      "target": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.properties.template"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/jdk:current_java_toolchain"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@rules_java//java/bazel/rules:java_stub_template.txt"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/jdk:runtime_toolchain_type"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/jdk:java_plugins_flag_alias"
+    },
+    {
+      "source": "@@platforms//os:windows",
+      "target": "@@platforms//os:os"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "//:src/main/java/com/example/Greeting.java"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/build_defs/build_info:java_build_info"
+    },
+    {
+      "source": "//:ProjectRunner",
+      "target": "@bazel_tools//tools/jdk:toolchain_type"
+    },
+    {
+      "source": "@bazel_tools//tools/jdk:current_java_toolchain",
+      "target": "@rules_java//toolchains:current_java_toolchain"
+    },
+    {
+      "source": "@rules_java//:license",
+      "target": "@rules_java//:LICENSE"
+    }
+  ]
+}

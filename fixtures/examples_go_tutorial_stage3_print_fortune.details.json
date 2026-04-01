@@ -1,0 +1,152 @@
+{
+  "nodes": {
+    "//:print_fortune": {
+      "directInputs": [
+        {
+          "label": "//:print_fortune.go",
+          "path": "print_fortune.go",
+          "kind": "source-file",
+          "sizeBytes": 139,
+          "exists": true
+        }
+      ]
+    },
+    "//fortune:fortune": {
+      "directInputs": [
+        {
+          "label": "//fortune:fortune.go",
+          "path": "fortune/fortune.go",
+          "kind": "source-file",
+          "sizeBytes": 238,
+          "exists": true
+        }
+      ]
+    },
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a": {},
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64": {
+      "directInputs": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:module.modulemap",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/module.modulemap",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper": {
+      "directInputs": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper.sh",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/cc_wrapper.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps": {
+      "directInputs": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:builtin_include_directory_paths",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/builtin_include_directory_paths",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:empty": {},
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:local": {},
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:stub_armeabi-v7a": {},
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:toolchain": {},
+    "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library": {
+      "directInputs": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library.sh",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/validate_static_library.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@rules_go~~go_sdk~io_bazel_rules_nogo//:nogo": {},
+    "@bazel_tools//tools/build_defs/build_info:cc_build_info": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.h.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/non_volatile_file.h.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.h.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/redacted_file.h.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.h.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/volatile_file.h.template",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_tools//tools/cpp:interface_library_builder": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//tools/cpp:build_interface_so",
+          "path": "external/bazel_tools/tools/cpp/build_interface_so",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_tools//tools/cpp:link_dynamic_library": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//tools/cpp:link_dynamic_library.sh",
+          "path": "external/bazel_tools/tools/cpp/link_dynamic_library.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_tools//tools/cpp:optional_current_cc_toolchain": {},
+    "@bazel_tools//tools/cpp:toolchain": {},
+    "@bazel_tools//tools/cpp:toolchain_type": {},
+    "@bazel_tools//tools/objc:host_xcodes": {},
+    "@bazel_tools//tools/osx:current_xcode_config": {},
+    "@rules_go//:cgo_context_data": {},
+    "@rules_go//:cgo_context_data_proxy": {},
+    "@rules_go//:default_nogo": {},
+    "@rules_go//:go_config": {},
+    "@rules_go//:go_context_data": {},
+    "@rules_go//:stdlib": {},
+    "@rules_go//go/config:cover_format": {},
+    "@rules_go//go/config:debug": {},
+    "@rules_go//go/config:empty": {},
+    "@rules_go//go/config:gc_goopts": {},
+    "@rules_go//go/config:gc_linkopts": {},
+    "@rules_go//go/config:linkmode": {},
+    "@rules_go//go/config:msan": {},
+    "@rules_go//go/config:pgoprofile": {},
+    "@rules_go//go/config:race": {},
+    "@rules_go//go/config:static": {},
+    "@rules_go//go/config:tags": {},
+    "@rules_go//go/constraints/amd64:amd64": {},
+    "@rules_go//go/constraints/amd64:v2": {},
+    "@rules_go//go/constraints/amd64:v3": {},
+    "@rules_go//go/constraints/amd64:v4": {},
+    "@rules_go//go/constraints/arm:5": {},
+    "@rules_go//go/constraints/arm:6": {},
+    "@rules_go//go/constraints/arm:7": {},
+    "@rules_go//go/constraints/arm:arm": {},
+    "@rules_go//go/platform:internal_cgo_off": {},
+    "@rules_go//go/private:always_true": {},
+    "@rules_go//go/private:is_compilation_mode_dbg": {},
+    "@rules_go//go/private:is_strip_always": {},
+    "@rules_go//go/private:is_strip_sometimes_fastbuild": {},
+    "@rules_go//go/private:stamp": {},
+    "@rules_go//go/toolchain:cgo_constraint": {},
+    "@rules_go//go/toolchain:cgo_off": {},
+    "@rules_go//go/tools/coverdata:coverdata": {
+      "directInputs": [
+        {
+          "label": "@rules_go//go/tools/coverdata:coverdata.go",
+          "path": "external/rules_go/go/tools/coverdata/coverdata.go",
+          "kind": "source-file"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,932 @@
+{
+  "schemaVersion": 2,
+  "analysisMode": "analyze",
+  "target": "//:print_fortune",
+  "detailsPath": "examples_go_tutorial_stage3_print_fortune.details.json",
+  "nodes": [
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "nodeType": "rule",
+      "ruleKind": "cc_toolchain",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:module.modulemap",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/module.modulemap",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:builtin_include_directory_paths",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/builtin_include_directory_paths",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@rules_go//:go_config",
+      "label": "@rules_go//:go_config",
+      "nodeType": "rule",
+      "ruleKind": "go_config"
+    },
+    {
+      "id": "@rules_go//:stdlib",
+      "label": "@rules_go//:stdlib",
+      "nodeType": "rule",
+      "ruleKind": "stdlib"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/cc/whitelists/parse_headers_and_layering_check:disabling_parse_headers_and_layering_check_allowed",
+      "label": "@bazel_tools//tools/build_defs/cc/whitelists/parse_headers_and_layering_check:disabling_parse_headers_and_layering_check_allowed",
+      "nodeType": "other",
+      "packageName": "tools/build_defs/cc/whitelists/parse_headers_and_layering_check"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:stub_armeabi-v7a",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:stub_armeabi-v7a",
+      "nodeType": "rule",
+      "ruleKind": "armeabi_cc_toolchain_config"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library.sh",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library.sh",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "@rules_go//go/config:msan",
+      "label": "@rules_go//go/config:msan",
+      "nodeType": "rule",
+      "ruleKind": "bool_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//go/constraints/amd64:v3",
+      "label": "@rules_go//go/constraints/amd64:v3",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/constraints/amd64"
+    },
+    {
+      "id": "@rules_go//go/constraints/arm:6",
+      "label": "@rules_go//go/constraints/arm:6",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/constraints/arm"
+    },
+    {
+      "id": "@rules_go//go/constraints/amd64:amd64",
+      "label": "@rules_go//go/constraints/amd64:amd64",
+      "nodeType": "rule",
+      "ruleKind": "constraint_setting",
+      "packageName": "go/constraints/amd64"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:local",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:local",
+      "nodeType": "rule",
+      "ruleKind": "cc_toolchain_config"
+    },
+    {
+      "id": "//fortune:fortune",
+      "label": "//fortune:fortune",
+      "nodeType": "rule",
+      "ruleKind": "go_library",
+      "packageName": "fortune",
+      "sourceFileCount": 1,
+      "sourceBytes": 238,
+      "inputFileCount": 1,
+      "inputBytes": 238,
+      "topFiles": [
+        {
+          "label": "//fortune:fortune.go",
+          "path": "fortune/fortune.go",
+          "kind": "source-file",
+          "sizeBytes": 238,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "@rules_go//go/config:race",
+      "label": "@rules_go//go/config:race",
+      "nodeType": "rule",
+      "ruleKind": "bool_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper.sh",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper.sh",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "//:print_fortune.go",
+      "label": "//:print_fortune.go",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "@bazel_tools//tools/allowlists/function_transition_allowlist:function_transition_allowlist",
+      "label": "@bazel_tools//tools/allowlists/function_transition_allowlist:function_transition_allowlist",
+      "nodeType": "other",
+      "packageName": "tools/allowlists/function_transition_allowlist"
+    },
+    {
+      "id": "@rules_go//:cgo_context_data",
+      "label": "@rules_go//:cgo_context_data",
+      "nodeType": "rule",
+      "ruleKind": "cgo_context_data"
+    },
+    {
+      "id": "@rules_go//go/platform:internal_cgo_off",
+      "label": "@rules_go//go/platform:internal_cgo_off",
+      "nodeType": "rule",
+      "ruleKind": "config_setting",
+      "packageName": "go/platform"
+    },
+    {
+      "id": "@rules_go//go/config:pgoprofile",
+      "label": "@rules_go//go/config:pgoprofile",
+      "nodeType": "rule",
+      "ruleKind": "label_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@bazel_tools//tools/objc:host_xcodes",
+      "label": "@bazel_tools//tools/objc:host_xcodes",
+      "nodeType": "rule",
+      "ruleKind": "xcode_config",
+      "packageName": "tools/objc"
+    },
+    {
+      "id": "@rules_go//go/private:stamp",
+      "label": "@rules_go//go/private:stamp",
+      "nodeType": "rule",
+      "ruleKind": "config_setting",
+      "packageName": "go/private"
+    },
+    {
+      "id": "[label=\"//conditions:default\"]",
+      "label": "[label=\"//conditions:default\"]",
+      "packageName": "conditions"
+    },
+    {
+      "id": "@rules_go//go/private:is_compilation_mode_dbg",
+      "label": "@rules_go//go/private:is_compilation_mode_dbg",
+      "nodeType": "rule",
+      "ruleKind": "config_setting",
+      "packageName": "go/private"
+    },
+    {
+      "id": "@rules_go//go/config:gc_goopts",
+      "label": "@rules_go//go/config:gc_goopts",
+      "nodeType": "rule",
+      "ruleKind": "string_list_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:builtin_include_directory_paths",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:builtin_include_directory_paths",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "@rules_go//go/constraints/arm:arm",
+      "label": "@rules_go//go/constraints/arm:arm",
+      "nodeType": "rule",
+      "ruleKind": "constraint_setting",
+      "packageName": "go/constraints/arm"
+    },
+    {
+      "id": "@@rules_go~~go_sdk~io_bazel_rules_nogo//:nogo",
+      "label": "@@rules_go~~go_sdk~io_bazel_rules_nogo//:nogo",
+      "nodeType": "rule",
+      "ruleKind": "alias"
+    },
+    {
+      "id": "@rules_go//go/config:linkmode",
+      "label": "@rules_go//go/config:linkmode",
+      "nodeType": "rule",
+      "ruleKind": "string_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//go/private:always_true",
+      "label": "@rules_go//go/private:always_true",
+      "nodeType": "rule",
+      "ruleKind": "bool_setting",
+      "packageName": "go/private"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:toolchain",
+      "label": "@bazel_tools//tools/cpp:toolchain",
+      "nodeType": "rule",
+      "ruleKind": "alias",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@rules_go//go/config:tags",
+      "label": "@rules_go//go/config:tags",
+      "nodeType": "rule",
+      "ruleKind": "string_list_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//go/config:cover_format",
+      "label": "@rules_go//go/config:cover_format",
+      "nodeType": "rule",
+      "ruleKind": "string_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "nodeType": "rule",
+      "ruleKind": "cc_toolchain"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:interface_library_builder",
+      "label": "@bazel_tools//tools/cpp:interface_library_builder",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "packageName": "tools/cpp",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//tools/cpp:build_interface_so",
+          "path": "external/bazel_tools/tools/cpp/build_interface_so",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:optional_current_cc_toolchain",
+      "label": "@bazel_tools//tools/cpp:optional_current_cc_toolchain",
+      "nodeType": "rule",
+      "ruleKind": "cc_toolchain_alias",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:toolchain_type",
+      "label": "@bazel_tools//tools/cpp:toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:toolchain",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:toolchain",
+      "nodeType": "rule",
+      "ruleKind": "cc_toolchain_suite"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library.sh",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/validate_static_library.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@rules_go//:go_context_data",
+      "label": "@rules_go//:go_context_data",
+      "nodeType": "rule",
+      "ruleKind": "go_context_data"
+    },
+    {
+      "id": "@rules_go//go/tools/coverdata:coverdata",
+      "label": "@rules_go//go/tools/coverdata:coverdata",
+      "nodeType": "rule",
+      "ruleKind": "go_tool_library",
+      "packageName": "go/tools/coverdata",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@rules_go//go/tools/coverdata:coverdata.go",
+          "path": "external/rules_go/go/tools/coverdata/coverdata.go",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@rules_go//go/private:is_strip_always",
+      "label": "@rules_go//go/private:is_strip_always",
+      "nodeType": "rule",
+      "ruleKind": "config_setting",
+      "packageName": "go/private"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info:cc_build_info",
+      "label": "@bazel_tools//tools/build_defs/build_info:cc_build_info",
+      "nodeType": "rule",
+      "ruleKind": "bazel_cc_build_info",
+      "packageName": "tools/build_defs/build_info",
+      "sourceFileCount": 3,
+      "inputFileCount": 3,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.h.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/non_volatile_file.h.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.h.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/redacted_file.h.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.h.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/volatile_file.h.template",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.h.template",
+      "label": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.h.template",
+      "nodeType": "source-file",
+      "packageName": "tools/build_defs/build_info/templates"
+    },
+    {
+      "id": "@rules_go//go/config:empty",
+      "label": "@rules_go//go/config:empty",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//:cgo_context_data_proxy",
+      "label": "@rules_go//:cgo_context_data_proxy",
+      "nodeType": "rule",
+      "ruleKind": "cgo_context_data_proxy"
+    },
+    {
+      "id": "[label=\"//conditions:default@@rules_go~//go/private:is_compilation_mode_dbg\"]",
+      "label": "[label=\"//conditions:default@@rules_go~//go/private:is_compilation_mode_dbg\"]",
+      "packageName": "conditions"
+    },
+    {
+      "id": "@rules_go//go/constraints/arm:5",
+      "label": "@rules_go//go/constraints/arm:5",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/constraints/arm"
+    },
+    {
+      "id": "@rules_go//:default_nogo",
+      "label": "@rules_go//:default_nogo",
+      "nodeType": "rule",
+      "ruleKind": "filegroup"
+    },
+    {
+      "id": "@rules_go//go/toolchain:cgo_off",
+      "label": "@rules_go//go/toolchain:cgo_off",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/toolchain"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:build_interface_so",
+      "label": "@bazel_tools//tools/cpp:build_interface_so",
+      "nodeType": "source-file",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@rules_go//go/tools/coverdata:coverdata.go",
+      "label": "@rules_go//go/tools/coverdata:coverdata.go",
+      "nodeType": "source-file",
+      "packageName": "go/tools/coverdata"
+    },
+    {
+      "id": "@rules_go//go/config:gc_linkopts",
+      "label": "@rules_go//go/config:gc_linkopts",
+      "nodeType": "rule",
+      "ruleKind": "string_list_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//go/constraints/amd64:v4",
+      "label": "@rules_go//go/constraints/amd64:v4",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/constraints/amd64"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper.sh",
+          "path": "external/@bazel_tools~cc_configure_extension~local_config_cc/cc_wrapper.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@rules_go//go/config:static",
+      "label": "@rules_go//go/config:static",
+      "nodeType": "rule",
+      "ruleKind": "bool_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//go/toolchain:cgo_constraint",
+      "label": "@rules_go//go/toolchain:cgo_constraint",
+      "nodeType": "rule",
+      "ruleKind": "constraint_setting",
+      "packageName": "go/toolchain"
+    },
+    {
+      "id": "@bazel_tools//tools/osx:current_xcode_config",
+      "label": "@bazel_tools//tools/osx:current_xcode_config",
+      "nodeType": "rule",
+      "ruleKind": "xcode_config_alias",
+      "packageName": "tools/osx"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:module.modulemap",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:module.modulemap",
+      "nodeType": "source-file"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:link_dynamic_library.sh",
+      "label": "@bazel_tools//tools/cpp:link_dynamic_library.sh",
+      "nodeType": "source-file",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@rules_go//go/private:is_strip_sometimes_fastbuild",
+      "label": "@rules_go//go/private:is_strip_sometimes_fastbuild",
+      "nodeType": "rule",
+      "ruleKind": "config_setting",
+      "packageName": "go/private"
+    },
+    {
+      "id": "@rules_go//go/constraints/arm:7",
+      "label": "@rules_go//go/constraints/arm:7",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/constraints/arm"
+    },
+    {
+      "id": "@@bazel_tools~cc_configure_extension~local_config_cc//:empty",
+      "label": "@@bazel_tools~cc_configure_extension~local_config_cc//:empty",
+      "nodeType": "rule",
+      "ruleKind": "filegroup"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:link_dynamic_library",
+      "label": "@bazel_tools//tools/cpp:link_dynamic_library",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "packageName": "tools/cpp",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//tools/cpp:link_dynamic_library.sh",
+          "path": "external/bazel_tools/tools/cpp/link_dynamic_library.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.h.template",
+      "label": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.h.template",
+      "nodeType": "source-file",
+      "packageName": "tools/build_defs/build_info/templates"
+    },
+    {
+      "id": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.h.template",
+      "label": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.h.template",
+      "nodeType": "source-file",
+      "packageName": "tools/build_defs/build_info/templates"
+    },
+    {
+      "id": "//:print_fortune",
+      "label": "//:print_fortune",
+      "nodeType": "rule",
+      "ruleKind": "go_binary",
+      "sourceFileCount": 1,
+      "sourceBytes": 139,
+      "inputFileCount": 1,
+      "inputBytes": 139,
+      "topFiles": [
+        {
+          "label": "//:print_fortune.go",
+          "path": "print_fortune.go",
+          "kind": "source-file",
+          "sizeBytes": 139,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "//fortune:fortune.go",
+      "label": "//fortune:fortune.go",
+      "nodeType": "source-file",
+      "packageName": "fortune"
+    },
+    {
+      "id": "@rules_go//go/config:debug",
+      "label": "@rules_go//go/config:debug",
+      "nodeType": "rule",
+      "ruleKind": "bool_flag",
+      "packageName": "go/config"
+    },
+    {
+      "id": "@rules_go//go/constraints/amd64:v2",
+      "label": "@rules_go//go/constraints/amd64:v2",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "go/constraints/amd64"
+    }
+  ],
+  "edges": [
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:module.modulemap"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:builtin_include_directory_paths"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper.sh"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@rules_go//:cgo_context_data"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@bazel_tools//tools/build_defs/build_info:cc_build_info"
+    },
+    {
+      "source": "@rules_go//go/constraints/arm:7",
+      "target": "@rules_go//go/constraints/arm:arm"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@rules_go//:go_config"
+    },
+    {
+      "source": "@rules_go//:stdlib",
+      "target": "@rules_go//:cgo_context_data"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:gc_linkopts"
+    },
+    {
+      "source": "@rules_go//go/constraints/amd64:v2",
+      "target": "@rules_go//go/constraints/amd64:amd64"
+    },
+    {
+      "source": "@rules_go//go/toolchain:cgo_off",
+      "target": "@rules_go//go/toolchain:cgo_constraint"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:optional_current_cc_toolchain",
+      "target": "@bazel_tools//tools/cpp:toolchain"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@bazel_tools//tools/cpp:link_dynamic_library"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:optional_current_cc_toolchain",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:stub_armeabi-v7a"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/constraints/amd64:v4"
+    },
+    {
+      "source": "@rules_go//:cgo_context_data_proxy",
+      "target": "@rules_go//:cgo_context_data"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//fortune:fortune",
+      "target": "@rules_go//:go_context_data"
+    },
+    {
+      "source": "@rules_go//go/tools/coverdata:coverdata",
+      "target": "@rules_go//go/tools/coverdata:coverdata.go"
+    },
+    {
+      "source": "@rules_go//go/tools/coverdata:coverdata",
+      "target": "@rules_go//:cgo_context_data_proxy"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@bazel_tools//tools/build_defs/cc/whitelists/parse_headers_and_layering_check:disabling_parse_headers_and_layering_check_allowed"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@bazel_tools//tools/build_defs/build_info:cc_build_info"
+    },
+    {
+      "source": "@bazel_tools//tools/build_defs/build_info:cc_build_info",
+      "target": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.h.template"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@bazel_tools//tools/allowlists/function_transition_allowlist:function_transition_allowlist"
+    },
+    {
+      "source": "@rules_go//go/tools/coverdata:coverdata",
+      "target": "@rules_go//:go_config"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/private:is_strip_always"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:linkmode"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:tags"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/constraints/arm:6"
+    },
+    {
+      "source": "//:print_fortune",
+      "target": "//fortune:fortune"
+    },
+    {
+      "source": "//:print_fortune",
+      "target": "@bazel_tools//tools/allowlists/function_transition_allowlist:function_transition_allowlist"
+    },
+    {
+      "source": "@rules_go//go/constraints/amd64:v4",
+      "target": "@rules_go//go/constraints/amd64:amd64"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:toolchain",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:toolchain"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:compiler_deps",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc_wrapper"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:validate_static_library.sh"
+    },
+    {
+      "source": "//fortune:fortune",
+      "target": "@bazel_tools//tools/allowlists/function_transition_allowlist:function_transition_allowlist"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@rules_go//:stdlib"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:static"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:toolchain",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:toolchain",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:empty"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@bazel_tools//tools/cpp:link_dynamic_library"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:link_dynamic_library",
+      "target": "@bazel_tools//tools/cpp:link_dynamic_library.sh"
+    },
+    {
+      "source": "//:print_fortune",
+      "target": "@rules_go//go/config:empty"
+    },
+    {
+      "source": "@rules_go//:stdlib",
+      "target": "@rules_go//:go_config"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/constraints/arm:7"
+    },
+    {
+      "source": "@bazel_tools//tools/build_defs/build_info:cc_build_info",
+      "target": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.h.template"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-armeabi-v7a",
+      "target": "@bazel_tools//tools/cpp:interface_library_builder"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@bazel_tools//tools/cpp:interface_library_builder"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/constraints/arm:5"
+    },
+    {
+      "source": "@rules_go//go/constraints/amd64:v3",
+      "target": "@rules_go//go/constraints/amd64:amd64"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:local"
+    },
+    {
+      "source": "@rules_go//go/constraints/arm:6",
+      "target": "@rules_go//go/constraints/arm:arm"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:gc_goopts"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/private:stamp"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:pgoprofile"
+    },
+    {
+      "source": "@rules_go//:cgo_context_data_proxy",
+      "target": "@rules_go//go/platform:internal_cgo_off"
+    },
+    {
+      "source": "@rules_go//:cgo_context_data",
+      "target": "@bazel_tools//tools/osx:current_xcode_config"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:interface_library_builder",
+      "target": "@bazel_tools//tools/cpp:build_interface_so"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:local",
+      "target": "@bazel_tools//tools/objc:host_xcodes"
+    },
+    {
+      "source": "@rules_go//go/constraints/arm:5",
+      "target": "@rules_go//go/constraints/arm:arm"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@rules_go//go/tools/coverdata:coverdata"
+    },
+    {
+      "source": "@rules_go//:stdlib",
+      "target": "@bazel_tools//tools/allowlists/function_transition_allowlist:function_transition_allowlist"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/private:is_compilation_mode_dbg"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/private:is_strip_sometimes_fastbuild"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/constraints/amd64:v3"
+    },
+    {
+      "source": "@rules_go//:cgo_context_data",
+      "target": "@bazel_tools//tools/cpp:optional_current_cc_toolchain"
+    },
+    {
+      "source": "@bazel_tools//tools/build_defs/build_info:cc_build_info",
+      "target": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.h.template"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@@rules_go~~go_sdk~io_bazel_rules_nogo//:nogo"
+    },
+    {
+      "source": "@rules_go//go/tools/coverdata:coverdata",
+      "target": "@rules_go//:stdlib"
+    },
+    {
+      "source": "@rules_go//:stdlib",
+      "target": "@rules_go//go/platform:internal_cgo_off"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:msan"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:race"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:cover_format"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/constraints/amd64:v2"
+    },
+    {
+      "source": "//:print_fortune",
+      "target": "//:print_fortune.go"
+    },
+    {
+      "source": "//:print_fortune",
+      "target": "@rules_go//:go_context_data"
+    },
+    {
+      "source": "//fortune:fortune",
+      "target": "//fortune:fortune.go"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/private:always_true"
+    },
+    {
+      "source": "@rules_go//go/config:pgoprofile",
+      "target": "@rules_go//go/config:empty"
+    },
+    {
+      "source": "@rules_go//go/platform:internal_cgo_off",
+      "target": "@rules_go//go/toolchain:cgo_off"
+    },
+    {
+      "source": "@bazel_tools//tools/osx:current_xcode_config",
+      "target": "@bazel_tools//tools/objc:host_xcodes"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@bazel_tools//tools/build_defs/cc/whitelists/parse_headers_and_layering_check:disabling_parse_headers_and_layering_check_allowed"
+    },
+    {
+      "source": "@rules_go//:go_context_data",
+      "target": "@rules_go//go/platform:internal_cgo_off"
+    },
+    {
+      "source": "@rules_go//:go_config",
+      "target": "@rules_go//go/config:debug"
+    },
+    {
+      "source": "@@rules_go~~go_sdk~io_bazel_rules_nogo//:nogo",
+      "target": "@rules_go//:default_nogo"
+    },
+    {
+      "source": "@@bazel_tools~cc_configure_extension~local_config_cc//:cc-compiler-darwin_arm64",
+      "target": "@@bazel_tools~cc_configure_extension~local_config_cc//:empty"
+    }
+  ]
+}

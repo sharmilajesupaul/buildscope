@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "fixtures": [
+    {
+      "id": "sample_graph",
+      "title": "Sample graph",
+      "path": "ui/public/sample-graph.json",
+      "category": "demo",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": false,
+      "stats": {
+        "nodes": 20,
+        "edges": 36
+      },
+      "notes": "Tiny fallback graph used by the development UI."
+    },
+    {
+      "id": "buildscope_logger",
+      "title": "BuildScope logger target",
+      "path": "fixtures/buildscope_logger.json",
+      "category": "reference",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": false,
+      "stats": {
+        "nodes": 601,
+        "edges": 1675
+      },
+      "notes": "Legacy dependency-only snapshot. Source metadata is unavailable, so this fixture is kept for topology-only regression checks."
+    },
+    {
+      "id": "buildscope_large_angular_app",
+      "title": "BuildScope large Angular app target",
+      "path": "fixtures/buildscope_large_angular_app.json",
+      "category": "reference",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": true,
+      "stats": {
+        "nodes": 3386,
+        "edges": 8750
+      },
+      "source": {
+        "repoUrl": "https://github.com/aspect-build/bazel-examples.git",
+        "commit": "32cd5e744497deb3d9c44f676d0105183a88fe68",
+        "cloneDir": "bazel-examples",
+        "workspaceDir": ".",
+        "target": "//angular/projects/my-app:my-app",
+        "bazelVersion": "8.4.2"
+      },
+      "notes": "Large enriched Angular app graph with real direct input and output summaries."
+    },
+    {
+      "id": "examples_java_tutorial_projectrunner",
+      "title": "bazelbuild/examples Java tutorial",
+      "path": "fixtures/examples_java_tutorial_projectrunner.json",
+      "category": "external",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": true,
+      "stats": {
+        "nodes": 22,
+        "edges": 22
+      },
+      "source": {
+        "repoUrl": "https://github.com/bazelbuild/examples.git",
+        "commit": "daadf13928d9e091ff0c26ce53aea3099a8fc6a3",
+        "cloneDir": "examples",
+        "workspaceDir": "java-tutorial",
+        "target": "//:ProjectRunner"
+      },
+      "notes": "Small Java graph with toolchain edges."
+    },
+    {
+      "id": "examples_cpp_tutorial_stage3_hello_world",
+      "title": "bazelbuild/examples C++ tutorial",
+      "path": "fixtures/examples_cpp_tutorial_stage3_hello_world.json",
+      "category": "external",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": true,
+      "stats": {
+        "nodes": 27,
+        "edges": 38
+      },
+      "source": {
+        "repoUrl": "https://github.com/bazelbuild/examples.git",
+        "commit": "daadf13928d9e091ff0c26ce53aea3099a8fc6a3",
+        "cloneDir": "examples",
+        "workspaceDir": "cpp-tutorial/stage3",
+        "target": "//main:hello-world"
+      },
+      "notes": "Small C++ graph with platform and toolchain edges."
+    },
+    {
+      "id": "examples_go_tutorial_stage3_print_fortune",
+      "title": "bazelbuild/examples Go tutorial",
+      "path": "fixtures/examples_go_tutorial_stage3_print_fortune.json",
+      "category": "external",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": true,
+      "stats": {
+        "nodes": 70,
+        "edges": 91
+      },
+      "source": {
+        "repoUrl": "https://github.com/bazelbuild/examples.git",
+        "commit": "daadf13928d9e091ff0c26ce53aea3099a8fc6a3",
+        "cloneDir": "examples",
+        "workspaceDir": "go-tutorial/stage3",
+        "target": "//:print_fortune"
+      },
+      "notes": "Small Go graph with richer rules_go and toolchain structure."
+    },
+    {
+      "id": "examples_frontend_next_js",
+      "title": "bazelbuild/examples frontend Next.js app",
+      "path": "fixtures/examples_frontend_next_js.json",
+      "category": "external",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": true,
+      "stats": {
+        "nodes": 501,
+        "edges": 1120
+      },
+      "source": {
+        "repoUrl": "https://github.com/bazelbuild/examples.git",
+        "commit": "daadf13928d9e091ff0c26ce53aea3099a8fc6a3",
+        "cloneDir": "examples",
+        "workspaceDir": "frontend",
+        "target": "//next.js:next",
+        "bazelVersion": "9.0.1"
+      },
+      "notes": "Medium-sized enriched frontend graph with direct source and output summaries."
+    },
+    {
+      "id": "examples_frontend_react_router_build",
+      "title": "bazelbuild/examples frontend React Router build",
+      "path": "fixtures/examples_frontend_react_router_build.json",
+      "category": "external",
+      "checkedIn": true,
+      "benchmarkDefault": true,
+      "refreshDefault": true,
+      "stats": {
+        "nodes": 1983,
+        "edges": 4942
+      },
+      "source": {
+        "repoUrl": "https://github.com/bazelbuild/examples.git",
+        "commit": "daadf13928d9e091ff0c26ce53aea3099a8fc6a3",
+        "cloneDir": "examples",
+        "workspaceDir": "frontend",
+        "target": "//react-router:build",
+        "bazelVersion": "9.0.1"
+      },
+      "notes": "Large enriched frontend graph used as the default dev fixture for file and byte metadata work."
+    },
+    {
+      "id": "openai_codex_cli",
+      "title": "OpenAI Codex CLI",
+      "path": "fixtures/generated/openai_codex_cli.json",
+      "category": "external",
+      "checkedIn": false,
+      "benchmarkDefault": false,
+      "refreshDefault": false,
+      "stats": {
+        "nodes": 13053,
+        "edges": 65066
+      },
+      "source": {
+        "repoUrl": "https://github.com/openai/codex.git",
+        "commit": "28a9807f8403befd318fc6022872b087b2931ddb",
+        "cloneDir": "codex",
+        "workspaceDir": ".",
+        "target": "//codex-rs/cli:codex"
+      },
+      "notes": "Large real-world workspace graph. Generated on demand because it is too large to check in."
+    },
+    {
+      "id": "zml_mnist",
+      "title": "ZML MNIST example",
+      "path": "fixtures/generated/zml_mnist.json",
+      "category": "external",
+      "checkedIn": false,
+      "benchmarkDefault": false,
+      "refreshDefault": false,
+      "stats": {
+        "nodes": 5147,
+        "edges": 15277
+      },
+      "source": {
+        "repoUrl": "https://github.com/zml/zml.git",
+        "commit": "4ecdd92cb094b26bac96d6281ff91e433c0bc33c",
+        "cloneDir": "zml",
+        "workspaceDir": ".",
+        "target": "//examples/mnist:mnist"
+      },
+      "notes": "Medium-large real-world graph for ML-heavy Bazel workspaces. Generated on demand."
+    }
+  ]
+}

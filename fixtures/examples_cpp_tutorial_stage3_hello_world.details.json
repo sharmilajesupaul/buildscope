@@ -1,0 +1,93 @@
+{
+  "nodes": {
+    "//lib:hello-time": {
+      "directInputs": [
+        {
+          "label": "//lib:hello-time.cc",
+          "path": "lib/hello-time.cc",
+          "kind": "source-file",
+          "sizeBytes": 190,
+          "exists": true
+        },
+        {
+          "label": "//lib:hello-time.h",
+          "path": "lib/hello-time.h",
+          "kind": "source-file",
+          "sizeBytes": 85,
+          "exists": true
+        }
+      ]
+    },
+    "//main:hello-greet": {
+      "directInputs": [
+        {
+          "label": "//main:hello-greet.h",
+          "path": "main/hello-greet.h",
+          "kind": "source-file",
+          "sizeBytes": 133,
+          "exists": true
+        },
+        {
+          "label": "//main:hello-greet.cc",
+          "path": "main/hello-greet.cc",
+          "kind": "source-file",
+          "sizeBytes": 124,
+          "exists": true
+        }
+      ]
+    },
+    "//main:hello-world": {
+      "directInputs": [
+        {
+          "label": "//main:hello-world.cc",
+          "path": "main/hello-world.cc",
+          "kind": "source-file",
+          "sizeBytes": 280,
+          "exists": true
+        }
+      ]
+    },
+    "@@platforms//os:os": {},
+    "@@platforms//os:windows": {},
+    "@bazel_tools//third_party/def_parser:def_parser": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//third_party/def_parser:def_parser_main.cc",
+          "path": "external/bazel_tools/third_party/def_parser/def_parser_main.cc",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_tools//third_party/def_parser:def_parser_lib": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//third_party/def_parser:def_parser.cc",
+          "path": "external/bazel_tools/third_party/def_parser/def_parser.cc",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//third_party/def_parser:def_parser.h",
+          "path": "external/bazel_tools/third_party/def_parser/def_parser.h",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_tools//tools/cpp:empty_lib": {},
+    "@bazel_tools//tools/cpp:link_extra_lib": {},
+    "@bazel_tools//tools/cpp:link_extra_libs": {},
+    "@bazel_tools//tools/cpp:malloc": {},
+    "@bazel_tools//tools/cpp:toolchain_type": {},
+    "@bazel_tools//tools/def_parser:def_parser": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//tools/def_parser:no_op.bat",
+          "path": "external/bazel_tools/tools/def_parser/no_op.bat",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@rules_cc//:empty_lib": {},
+    "@rules_cc//:link_extra_lib": {},
+    "@rules_cc//:link_extra_libs": {}
+  }
+}

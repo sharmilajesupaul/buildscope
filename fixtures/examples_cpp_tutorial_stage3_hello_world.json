@@ -1,0 +1,420 @@
+{
+  "schemaVersion": 2,
+  "analysisMode": "analyze",
+  "target": "//main:hello-world",
+  "detailsPath": "examples_cpp_tutorial_stage3_hello_world.details.json",
+  "nodes": [
+    {
+      "id": "[label=\"@@platforms//os:windows\"]",
+      "label": "[label=\"@@platforms//os:windows\"]",
+      "packageName": "os"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:empty_lib",
+      "label": "@bazel_tools//tools/cpp:empty_lib",
+      "nodeType": "rule",
+      "ruleKind": "cc_library",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@bazel_tools//third_party/def_parser:def_parser.cc",
+      "label": "@bazel_tools//third_party/def_parser:def_parser.cc",
+      "nodeType": "source-file",
+      "packageName": "third_party/def_parser"
+    },
+    {
+      "id": "//main:hello-world",
+      "label": "//main:hello-world",
+      "nodeType": "rule",
+      "ruleKind": "cc_binary",
+      "packageName": "main",
+      "sourceFileCount": 1,
+      "sourceBytes": 280,
+      "inputFileCount": 1,
+      "inputBytes": 280,
+      "topFiles": [
+        {
+          "label": "//main:hello-world.cc",
+          "path": "main/hello-world.cc",
+          "kind": "source-file",
+          "sizeBytes": 280,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:toolchain_type",
+      "label": "@bazel_tools//tools/cpp:toolchain_type",
+      "nodeType": "rule",
+      "ruleKind": "toolchain_type",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "//lib:hello-time",
+      "label": "//lib:hello-time",
+      "nodeType": "rule",
+      "ruleKind": "cc_library",
+      "packageName": "lib",
+      "sourceFileCount": 2,
+      "sourceBytes": 275,
+      "inputFileCount": 2,
+      "inputBytes": 275,
+      "topFiles": [
+        {
+          "label": "//lib:hello-time.cc",
+          "path": "lib/hello-time.cc",
+          "kind": "source-file",
+          "sizeBytes": 190,
+          "exists": true
+        },
+        {
+          "label": "//lib:hello-time.h",
+          "path": "lib/hello-time.h",
+          "kind": "source-file",
+          "sizeBytes": 85,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "//lib:hello-time.h",
+      "label": "//lib:hello-time.h",
+      "nodeType": "source-file",
+      "packageName": "lib"
+    },
+    {
+      "id": "//main:hello-greet.cc",
+      "label": "//main:hello-greet.cc",
+      "nodeType": "source-file",
+      "packageName": "main"
+    },
+    {
+      "id": "@bazel_tools//tools/def_parser:no_op.bat",
+      "label": "@bazel_tools//tools/def_parser:no_op.bat",
+      "nodeType": "source-file",
+      "packageName": "tools/def_parser"
+    },
+    {
+      "id": "[label=\"//conditions:default\"]",
+      "label": "[label=\"//conditions:default\"]",
+      "packageName": "conditions"
+    },
+    {
+      "id": "@@platforms//os:os",
+      "label": "@@platforms//os:os",
+      "nodeType": "rule",
+      "ruleKind": "constraint_setting",
+      "packageName": "os"
+    },
+    {
+      "id": "//main:hello-world.cc",
+      "label": "//main:hello-world.cc",
+      "nodeType": "source-file",
+      "packageName": "main"
+    },
+    {
+      "id": "@rules_cc//:link_extra_lib",
+      "label": "@rules_cc//:link_extra_lib",
+      "nodeType": "rule",
+      "ruleKind": "cc_library"
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:link_extra_lib",
+      "label": "@bazel_tools//tools/cpp:link_extra_lib",
+      "nodeType": "rule",
+      "ruleKind": "cc_library",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "//lib:hello-time.cc",
+      "label": "//lib:hello-time.cc",
+      "nodeType": "source-file",
+      "packageName": "lib"
+    },
+    {
+      "id": "//main:hello-greet.h",
+      "label": "//main:hello-greet.h",
+      "nodeType": "source-file",
+      "packageName": "main"
+    },
+    {
+      "id": "@bazel_tools//third_party/def_parser:def_parser_main.cc",
+      "label": "@bazel_tools//third_party/def_parser:def_parser_main.cc",
+      "nodeType": "source-file",
+      "packageName": "third_party/def_parser"
+    },
+    {
+      "id": "@bazel_tools//third_party/def_parser:def_parser_lib",
+      "label": "@bazel_tools//third_party/def_parser:def_parser_lib",
+      "nodeType": "rule",
+      "ruleKind": "cc_library",
+      "packageName": "third_party/def_parser",
+      "sourceFileCount": 2,
+      "inputFileCount": 2,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//third_party/def_parser:def_parser.cc",
+          "path": "external/bazel_tools/third_party/def_parser/def_parser.cc",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//third_party/def_parser:def_parser.h",
+          "path": "external/bazel_tools/third_party/def_parser/def_parser.h",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:link_extra_libs",
+      "label": "@bazel_tools//tools/cpp:link_extra_libs",
+      "nodeType": "rule",
+      "ruleKind": "label_flag",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@bazel_tools//tools/def_parser:def_parser",
+      "label": "@bazel_tools//tools/def_parser:def_parser",
+      "nodeType": "rule",
+      "ruleKind": "filegroup",
+      "packageName": "tools/def_parser",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//tools/def_parser:no_op.bat",
+          "path": "external/bazel_tools/tools/def_parser/no_op.bat",
+          "kind": "source-file"
+        }
+      ]
+    },
+    {
+      "id": "@@platforms//os:windows",
+      "label": "@@platforms//os:windows",
+      "nodeType": "rule",
+      "ruleKind": "constraint_value",
+      "packageName": "os"
+    },
+    {
+      "id": "@bazel_tools//third_party/def_parser:def_parser.h",
+      "label": "@bazel_tools//third_party/def_parser:def_parser.h",
+      "nodeType": "source-file",
+      "packageName": "third_party/def_parser"
+    },
+    {
+      "id": "@rules_cc//:link_extra_libs",
+      "label": "@rules_cc//:link_extra_libs",
+      "nodeType": "rule",
+      "ruleKind": "label_flag"
+    },
+    {
+      "id": "@rules_cc//:empty_lib",
+      "label": "@rules_cc//:empty_lib",
+      "nodeType": "rule",
+      "ruleKind": "cc_library"
+    },
+    {
+      "id": "//main:hello-greet",
+      "label": "//main:hello-greet",
+      "nodeType": "rule",
+      "ruleKind": "cc_library",
+      "packageName": "main",
+      "sourceFileCount": 2,
+      "sourceBytes": 257,
+      "inputFileCount": 2,
+      "inputBytes": 257,
+      "topFiles": [
+        {
+          "label": "//main:hello-greet.h",
+          "path": "main/hello-greet.h",
+          "kind": "source-file",
+          "sizeBytes": 133,
+          "exists": true
+        },
+        {
+          "label": "//main:hello-greet.cc",
+          "path": "main/hello-greet.cc",
+          "kind": "source-file",
+          "sizeBytes": 124,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "@bazel_tools//tools/cpp:malloc",
+      "label": "@bazel_tools//tools/cpp:malloc",
+      "nodeType": "rule",
+      "ruleKind": "cc_library",
+      "packageName": "tools/cpp"
+    },
+    {
+      "id": "@bazel_tools//third_party/def_parser:def_parser",
+      "label": "@bazel_tools//third_party/def_parser:def_parser",
+      "nodeType": "rule",
+      "ruleKind": "cc_binary",
+      "packageName": "third_party/def_parser",
+      "sourceFileCount": 1,
+      "inputFileCount": 1,
+      "topFiles": [
+        {
+          "label": "@bazel_tools//third_party/def_parser:def_parser_main.cc",
+          "path": "external/bazel_tools/third_party/def_parser/def_parser_main.cc",
+          "kind": "source-file"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "//main:hello-world",
+      "target": "@bazel_tools//tools/cpp:link_extra_lib"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "//lib:hello-time"
+    },
+    {
+      "source": "//lib:hello-time",
+      "target": "//lib:hello-time.h"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser",
+      "target": "@bazel_tools//tools/cpp:link_extra_lib"
+    },
+    {
+      "source": "@rules_cc//:link_extra_lib",
+      "target": "@rules_cc//:link_extra_libs"
+    },
+    {
+      "source": "@rules_cc//:link_extra_libs",
+      "target": "@rules_cc//:empty_lib"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "@bazel_tools//tools/cpp:malloc"
+    },
+    {
+      "source": "@bazel_tools//tools/def_parser:def_parser",
+      "target": "@bazel_tools//tools/def_parser:no_op.bat"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser",
+      "target": "@bazel_tools//third_party/def_parser:def_parser_main.cc"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:link_extra_lib",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "//main:hello-world.cc"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//lib:hello-time",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//lib:hello-time",
+      "target": "@bazel_tools//tools/def_parser:def_parser"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:empty_lib",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "//main:hello-greet"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "@rules_cc//:link_extra_lib"
+    },
+    {
+      "source": "//main:hello-world",
+      "target": "@bazel_tools//tools/def_parser:def_parser"
+    },
+    {
+      "source": "@bazel_tools//tools/def_parser:def_parser",
+      "target": "@bazel_tools//third_party/def_parser:def_parser"
+    },
+    {
+      "source": "@bazel_tools//tools/def_parser:def_parser",
+      "target": "@@platforms//os:windows"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser",
+      "target": "@bazel_tools//tools/cpp:malloc"
+    },
+    {
+      "source": "//lib:hello-time",
+      "target": "//lib:hello-time.cc"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:malloc",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "//main:hello-greet",
+      "target": "//main:hello-greet.cc"
+    },
+    {
+      "source": "//main:hello-greet",
+      "target": "@bazel_tools//tools/def_parser:def_parser"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser",
+      "target": "@bazel_tools//third_party/def_parser:def_parser_lib"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser",
+      "target": "@rules_cc//:link_extra_lib"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser_lib",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@rules_cc//:link_extra_lib",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@rules_cc//:empty_lib",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@@platforms//os:windows",
+      "target": "@@platforms//os:os"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:link_extra_libs",
+      "target": "@bazel_tools//tools/cpp:empty_lib"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser_lib",
+      "target": "@bazel_tools//third_party/def_parser:def_parser.h"
+    },
+    {
+      "source": "//main:hello-greet",
+      "target": "//main:hello-greet.h"
+    },
+    {
+      "source": "//main:hello-greet",
+      "target": "@bazel_tools//tools/cpp:toolchain_type"
+    },
+    {
+      "source": "@bazel_tools//tools/cpp:link_extra_lib",
+      "target": "@bazel_tools//tools/cpp:link_extra_libs"
+    },
+    {
+      "source": "@bazel_tools//third_party/def_parser:def_parser_lib",
+      "target": "@bazel_tools//third_party/def_parser:def_parser.cc"
+    }
+  ]
+}

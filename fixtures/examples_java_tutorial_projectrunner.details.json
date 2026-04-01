@@ -1,0 +1,67 @@
+{
+  "nodes": {
+    "//:ProjectRunner": {
+      "directInputs": [
+        {
+          "label": "//:src/main/java/com/example/ProjectRunner.java",
+          "path": "src/main/java/com/example/ProjectRunner.java",
+          "kind": "source-file",
+          "sizeBytes": 130,
+          "exists": true
+        },
+        {
+          "label": "//:src/main/java/com/example/Greeting.java",
+          "path": "src/main/java/com/example/Greeting.java",
+          "kind": "source-file",
+          "sizeBytes": 122,
+          "exists": true
+        },
+        {
+          "label": "@rules_java//java/bazel/rules:java_stub_template.txt",
+          "path": "external/rules_java/java/bazel/rules/java_stub_template.txt",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@platforms//os:os": {},
+    "@@platforms//os:windows": {},
+    "@bazel_tools//tools/build_defs/build_info:java_build_info": {
+      "directInputs": [
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:non_volatile_file.properties.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/non_volatile_file.properties.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:redacted_file.properties.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/redacted_file.properties.template",
+          "kind": "source-file"
+        },
+        {
+          "label": "@bazel_tools//tools/build_defs/build_info/templates:volatile_file.properties.template",
+          "path": "external/bazel_tools/tools/build_defs/build_info/templates/volatile_file.properties.template",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_tools//tools/cpp:toolchain_type": {},
+    "@bazel_tools//tools/jdk:current_java_toolchain": {},
+    "@bazel_tools//tools/jdk:java_plugins_flag_alias": {},
+    "@bazel_tools//tools/jdk:launcher_flag_alias": {},
+    "@bazel_tools//tools/jdk:runtime_toolchain_type": {},
+    "@bazel_tools//tools/jdk:toolchain_type": {},
+    "@bazel_tools//tools/launcher:launcher": {},
+    "@bazel_tools//tools/launcher:launcher_maker_toolchain_type": {},
+    "@bazel_tools//tools/launcher:launcher_toolchain_type": {},
+    "@rules_java//:license": {
+      "directInputs": [
+        {
+          "label": "@rules_java//:LICENSE",
+          "path": "external/rules_java/LICENSE",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@rules_java//toolchains:current_java_toolchain": {}
+  }
+}

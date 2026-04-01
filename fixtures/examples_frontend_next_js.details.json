@@ -1,0 +1,1467 @@
+{
+  "nodes": {
+    "//:.aspect_rules_js/node_modules/@babel+code-frame@7.27.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+code-frame@7.27.1/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+compat-data@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+compat-data@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+core@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+core@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+generator@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+generator@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-compilation-targets@7.27.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-compilation-targets@7.27.2/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-globals@7.28.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-globals@7.28.0/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-module-imports@7.27.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-module-imports@7.27.1/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-module-transforms@7.28.3_at_babel_core_7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-module-transforms@7.28.3_at_babel_core_7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-string-parser@7.27.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-string-parser@7.27.1/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-validator-identifier@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-validator-identifier@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-validator-option@7.27.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helper-validator-option@7.27.1/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+helpers@7.28.4/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+helpers@7.28.4/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+parser@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+parser@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+template@7.27.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+template@7.27.2/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+traverse@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+traverse@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@babel+types@7.28.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@babel+types@7.28.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@bazel-example+one@0.0.0": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+gen-mapping@0.3.13/pkg": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+gen-mapping@0.3.13/ref": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+remapping@2.3.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+remapping@2.3.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+resolve-uri@3.1.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+resolve-uri@3.1.2/ref": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+sourcemap-codec@1.5.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+sourcemap-codec@1.5.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+trace-mapping@0.3.31/pkg": {},
+    "//:.aspect_rules_js/node_modules/@jridgewell+trace-mapping@0.3.31/ref": {},
+    "//:.aspect_rules_js/node_modules/@next+env@14.2.35/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-arm64@14.2.33/ref": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-darwin-x64@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-gnu@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-arm64-musl@14.2.33/ref": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-gnu@14.2.33/ref": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-linux-x64-musl@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-arm64-msvc@14.2.33/ref": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-ia32-msvc@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/lc_js_info_files": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/lc_runfiles": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/lc_runfiles_lib": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/pkg": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/pkg_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/pkg_pre_lc": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/pkg_pre_lc_lite": {},
+    "//:.aspect_rules_js/node_modules/@next+swc-win32-x64-msvc@14.2.33/ref": {},
+    "//:.aspect_rules_js/node_modules/@swc+counter@0.1.3/pkg": {},
+    "//:.aspect_rules_js/node_modules/@swc+counter@0.1.3/ref": {},
+    "//:.aspect_rules_js/node_modules/@swc+helpers@0.5.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/@swc+helpers@0.5.5/ref": {},
+    "//:.aspect_rules_js/node_modules/@types+is-even@1.0.1": {},
+    "//:.aspect_rules_js/node_modules/@types+is-even@1.0.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+is-odd@3.0.2": {},
+    "//:.aspect_rules_js/node_modules/@types+is-odd@3.0.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+node@18.19.60": {},
+    "//:.aspect_rules_js/node_modules/@types+node@18.19.60/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+prop-types@15.7.8/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+prop-types@15.7.8/ref": {},
+    "//:.aspect_rules_js/node_modules/@types+react-dom@18.0.9": {},
+    "//:.aspect_rules_js/node_modules/@types+react-dom@18.0.9/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+react@18.0.25": {},
+    "//:.aspect_rules_js/node_modules/@types+react@18.0.25/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+react@18.0.25/ref": {},
+    "//:.aspect_rules_js/node_modules/@types+scheduler@0.16.4/pkg": {},
+    "//:.aspect_rules_js/node_modules/@types+scheduler@0.16.4/ref": {},
+    "//:.aspect_rules_js/node_modules/baseline-browser-mapping@2.9.11/pkg": {},
+    "//:.aspect_rules_js/node_modules/baseline-browser-mapping@2.9.11/ref": {},
+    "//:.aspect_rules_js/node_modules/browserslist@4.28.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/browserslist@4.28.1/ref": {},
+    "//:.aspect_rules_js/node_modules/busboy@1.6.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/caniuse-lite@1.0.30001762/pkg": {},
+    "//:.aspect_rules_js/node_modules/caniuse-lite@1.0.30001762/ref": {},
+    "//:.aspect_rules_js/node_modules/client-only@0.0.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/client-only@0.0.1/ref": {},
+    "//:.aspect_rules_js/node_modules/convert-source-map@2.0.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/convert-source-map@2.0.0/ref": {},
+    "//:.aspect_rules_js/node_modules/csstype@3.1.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/csstype@3.1.2/ref": {},
+    "//:.aspect_rules_js/node_modules/debug@4.4.3/pkg": {},
+    "//:.aspect_rules_js/node_modules/debug@4.4.3/ref": {},
+    "//:.aspect_rules_js/node_modules/electron-to-chromium@1.5.267/pkg": {},
+    "//:.aspect_rules_js/node_modules/electron-to-chromium@1.5.267/ref": {},
+    "//:.aspect_rules_js/node_modules/escalade@3.2.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/escalade@3.2.0/ref": {},
+    "//:.aspect_rules_js/node_modules/gensync@1.0.0-beta.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/gensync@1.0.0-beta.2/ref": {},
+    "//:.aspect_rules_js/node_modules/graceful-fs@4.2.11/pkg": {},
+    "//:.aspect_rules_js/node_modules/is-buffer@1.1.6/pkg": {},
+    "//:.aspect_rules_js/node_modules/is-buffer@1.1.6/ref": {},
+    "//:.aspect_rules_js/node_modules/is-even@1.0.0": {},
+    "//:.aspect_rules_js/node_modules/is-even@1.0.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/is-number@3.0.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/is-number@3.0.0/ref": {},
+    "//:.aspect_rules_js/node_modules/is-number@6.0.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/is-number@6.0.0/ref": {},
+    "//:.aspect_rules_js/node_modules/is-odd@0.1.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/is-odd@0.1.2/ref": {},
+    "//:.aspect_rules_js/node_modules/is-odd@3.0.1": {},
+    "//:.aspect_rules_js/node_modules/is-odd@3.0.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/js-tokens@4.0.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/js-tokens@4.0.0/ref": {},
+    "//:.aspect_rules_js/node_modules/jsesc@3.1.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/jsesc@3.1.0/ref": {},
+    "//:.aspect_rules_js/node_modules/json5@2.2.3/pkg": {},
+    "//:.aspect_rules_js/node_modules/json5@2.2.3/ref": {},
+    "//:.aspect_rules_js/node_modules/kind-of@3.2.2/pkg": {},
+    "//:.aspect_rules_js/node_modules/kind-of@3.2.2/ref": {},
+    "//:.aspect_rules_js/node_modules/loose-envify@1.4.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/loose-envify@1.4.0/ref": {},
+    "//:.aspect_rules_js/node_modules/lru-cache@5.1.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/lru-cache@5.1.1/ref": {},
+    "//:.aspect_rules_js/node_modules/ms@2.1.3/pkg": {},
+    "//:.aspect_rules_js/node_modules/ms@2.1.3/ref": {},
+    "//:.aspect_rules_js/node_modules/nanoid@3.3.11/pkg": {},
+    "//:.aspect_rules_js/node_modules/nanoid@3.3.11/ref": {},
+    "//:.aspect_rules_js/node_modules/next@14.2.35_794343652": {},
+    "//:.aspect_rules_js/node_modules/next@14.2.35_794343652/dir": {},
+    "//:.aspect_rules_js/node_modules/next@14.2.35_794343652/pkg": {},
+    "//:.aspect_rules_js/node_modules/node-releases@2.0.27/pkg": {},
+    "//:.aspect_rules_js/node_modules/node-releases@2.0.27/ref": {},
+    "//:.aspect_rules_js/node_modules/picocolors@1.1.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/picocolors@1.1.1/ref": {},
+    "//:.aspect_rules_js/node_modules/postcss@8.4.31/pkg": {},
+    "//:.aspect_rules_js/node_modules/react-dom@18.2.0_react_18.2.0": {},
+    "//:.aspect_rules_js/node_modules/react-dom@18.2.0_react_18.2.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/react@18.2.0": {},
+    "//:.aspect_rules_js/node_modules/react@18.2.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/react@18.2.0/ref": {},
+    "//:.aspect_rules_js/node_modules/scheduler@0.23.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/scheduler@0.23.0/ref": {},
+    "//:.aspect_rules_js/node_modules/semver@6.3.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/semver@6.3.1/ref": {},
+    "//:.aspect_rules_js/node_modules/source-map-js@1.2.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/source-map-js@1.2.1/ref": {},
+    "//:.aspect_rules_js/node_modules/streamsearch@1.1.0/pkg": {},
+    "//:.aspect_rules_js/node_modules/streamsearch@1.1.0/ref": {},
+    "//:.aspect_rules_js/node_modules/styled-jsx@5.1.1_295826996/pkg": {},
+    "//:.aspect_rules_js/node_modules/styled-jsx@5.1.1_295826996/ref": {},
+    "//:.aspect_rules_js/node_modules/tslib@2.8.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/tslib@2.8.1/ref": {},
+    "//:.aspect_rules_js/node_modules/typescript@4.9.3": {},
+    "//:.aspect_rules_js/node_modules/typescript@4.9.3/pkg": {},
+    "//:.aspect_rules_js/node_modules/undici-types@5.26.5/pkg": {},
+    "//:.aspect_rules_js/node_modules/undici-types@5.26.5/ref": {},
+    "//:.aspect_rules_js/node_modules/update-browserslist-db@1.2.3_browserslist_4.28.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/update-browserslist-db@1.2.3_browserslist_4.28.1/ref": {},
+    "//:.aspect_rules_js/node_modules/yallist@3.1.1/pkg": {},
+    "//:.aspect_rules_js/node_modules/yallist@3.1.1/ref": {},
+    "//next.js/pages/api:api": {
+      "directInputs": [
+        {
+          "label": "//next.js/pages/api:hello.ts",
+          "path": "next.js/pages/api/hello.ts",
+          "kind": "source-file",
+          "sizeBytes": 311,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js/pages:pages": {
+      "directInputs": [
+        {
+          "label": "//next.js/pages:index.tsx",
+          "path": "next.js/pages/index.tsx",
+          "kind": "source-file",
+          "sizeBytes": 2521,
+          "exists": true
+        },
+        {
+          "label": "//next.js/pages:_app.tsx",
+          "path": "next.js/pages/_app.tsx",
+          "kind": "source-file",
+          "sizeBytes": 192,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js/public:public": {
+      "directInputs": [
+        {
+          "label": "//next.js/public:favicon.ico",
+          "path": "next.js/public/favicon.ico",
+          "kind": "source-file",
+          "sizeBytes": 25931,
+          "exists": true
+        },
+        {
+          "label": "//next.js/public:vercel.svg",
+          "path": "next.js/public/vercel.svg",
+          "kind": "source-file",
+          "sizeBytes": 1101,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js/styles:styles": {
+      "directInputs": [
+        {
+          "label": "//next.js/styles:Home.module.css",
+          "path": "next.js/styles/Home.module.css",
+          "kind": "source-file",
+          "sizeBytes": 1865,
+          "exists": true
+        },
+        {
+          "label": "//next.js/styles:globals.css",
+          "path": "next.js/styles/globals.css",
+          "kind": "source-file",
+          "sizeBytes": 407,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js:next": {
+      "directInputs": [
+        {
+          "label": "//next.js:package.json",
+          "path": "next.js/package.json",
+          "kind": "source-file",
+          "sizeBytes": 1033,
+          "exists": true
+        },
+        {
+          "label": "//next.js:next.config.js",
+          "path": "next.js/next.config.js",
+          "kind": "source-file",
+          "sizeBytes": 234,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js:next_copy_srcs_to_bin": {
+      "directInputs": [
+        {
+          "label": "//next.js:package.json",
+          "path": "next.js/package.json",
+          "kind": "source-file",
+          "sizeBytes": 1033,
+          "exists": true
+        },
+        {
+          "label": "//next.js:next.config.js",
+          "path": "next.js/next.config.js",
+          "kind": "source-file",
+          "sizeBytes": 234,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js:next_js_binary": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:fs.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/fs.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:register.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/register.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:js_binary.sh.tpl",
+          "path": "external/aspect_rules_js/js/private/js_binary.sh.tpl",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.sh",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "//next.js:next_js_binary__entry_point": {},
+    "//next.js:next_js_info_files": {
+      "directInputs": [
+        {
+          "label": "//next.js:package.json",
+          "path": "next.js/package.json",
+          "kind": "source-file",
+          "sizeBytes": 1033,
+          "exists": true
+        },
+        {
+          "label": "//next.js:next.config.js",
+          "path": "next.js/next.config.js",
+          "kind": "source-file",
+          "sizeBytes": 234,
+          "exists": true
+        }
+      ]
+    },
+    "//next.js:next_runfiles": {},
+    "//next.js:next_runfiles_lib": {},
+    "//next.js:node_modules/@bazel-example/one": {},
+    "//next.js:node_modules/@types/is-even": {},
+    "//next.js:node_modules/@types/node": {},
+    "//next.js:node_modules/@types/react": {},
+    "//next.js:node_modules/@types/react-dom": {},
+    "//next.js:node_modules/is-even": {},
+    "//next.js:node_modules/next": {},
+    "//next.js:node_modules/react": {},
+    "//next.js:node_modules/react-dom": {},
+    "//next.js:node_modules/typescript": {},
+    "//next.js:tsconfig": {
+      "directInputs": [
+        {
+          "label": "//next.js:tsconfig.json",
+          "path": "next.js/tsconfig.json",
+          "kind": "source-file",
+          "sizeBytes": 471,
+          "exists": true
+        }
+      ]
+    },
+    "//packages/one:node_modules/@types/is-odd": {},
+    "//packages/one:node_modules/is-odd": {},
+    "//packages/one:one_ts": {
+      "directInputs": [
+        {
+          "label": "//packages/one:tsconfig.json",
+          "path": "packages/one/tsconfig.json",
+          "kind": "source-file",
+          "sizeBytes": 118,
+          "exists": true
+        },
+        {
+          "label": "//packages/one:src/main.ts",
+          "path": "packages/one/src/main.ts",
+          "kind": "source-file",
+          "sizeBytes": 108,
+          "exists": true
+        }
+      ]
+    },
+    "//packages/one:pkg": {
+      "directInputs": [
+        {
+          "label": "//packages/one:package.json",
+          "path": "packages/one/package.json",
+          "kind": "source-file",
+          "sizeBytes": 183,
+          "exists": true
+        }
+      ]
+    },
+    "//packages/one:pkg_files": {
+      "directInputs": [
+        {
+          "label": "//packages/one:package.json",
+          "path": "packages/one/package.json",
+          "kind": "source-file",
+          "sizeBytes": 183,
+          "exists": true
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_code-frame__7.27.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_code-frame__7.27.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_code-frame__7.27.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_compat-data__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_compat-data__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_compat-data__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_core__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_core__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_core__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_generator__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_generator__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_generator__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-compilation-targets__7.27.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-compilation-targets__7.27.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-compilation-targets__7.27.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-globals__7.28.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-globals__7.28.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-globals__7.28.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-module-imports__7.27.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-module-imports__7.27.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-module-imports__7.27.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-module-transforms__7.28.3_at_babel_core_7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-module-transforms__7.28.3_at_babel_core_7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-module-transforms__7.28.3_at_babel_core_7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-string-parser__7.27.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-string-parser__7.27.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-string-parser__7.27.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-validator-identifier__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-validator-identifier__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-validator-identifier__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helper-validator-option__7.27.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helper-validator-option__7.27.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helper-validator-option__7.27.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_helpers__7.28.4//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_helpers__7.28.4//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_helpers__7.28.4/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_parser__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_parser__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_parser__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_template__7.27.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_template__7.27.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_template__7.27.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_traverse__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_traverse__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_traverse__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_babel_types__7.28.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_babel_types__7.28.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_babel_types__7.28.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_jridgewell_gen-mapping__0.3.13//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_jridgewell_gen-mapping__0.3.13//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_jridgewell_gen-mapping__0.3.13/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_jridgewell_remapping__2.3.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_jridgewell_remapping__2.3.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_jridgewell_remapping__2.3.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_jridgewell_resolve-uri__3.1.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_jridgewell_resolve-uri__3.1.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_jridgewell_resolve-uri__3.1.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_jridgewell_sourcemap-codec__1.5.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_jridgewell_sourcemap-codec__1.5.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_jridgewell_sourcemap-codec__1.5.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_jridgewell_trace-mapping__0.3.31//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_jridgewell_trace-mapping__0.3.31//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_jridgewell_trace-mapping__0.3.31/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_env__14.2.35//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_env__14.2.35//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_env__14.2.35/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-darwin-arm64__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-darwin-arm64__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-darwin-arm64__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-darwin-x64__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-darwin-x64__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-darwin-x64__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-linux-arm64-gnu__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-linux-arm64-gnu__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-linux-arm64-gnu__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-linux-arm64-musl__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-linux-arm64-musl__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-linux-arm64-musl__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-linux-x64-gnu__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-linux-x64-gnu__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-linux-x64-gnu__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-linux-x64-musl__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-linux-x64-musl__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-linux-x64-musl__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-win32-arm64-msvc__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-win32-arm64-msvc__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-win32-arm64-msvc__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-win32-ia32-msvc__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-win32-ia32-msvc__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-win32-ia32-msvc__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_next_swc-win32-x64-msvc__14.2.33//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_next_swc-win32-x64-msvc__14.2.33//:package",
+          "path": "external/@aspect_rules_js++npm+npm__at_next_swc-win32-x64-msvc__14.2.33/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_swc_counter__0.1.3//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_swc_counter__0.1.3//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_swc_counter__0.1.3/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_swc_helpers__0.5.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_swc_helpers__0.5.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_swc_helpers__0.5.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_is-even__1.0.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_is-even__1.0.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_is-even__1.0.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_is-odd__3.0.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_is-odd__3.0.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_is-odd__3.0.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_node__18.19.60//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_node__18.19.60//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_node__18.19.60/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_prop-types__15.7.8//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_prop-types__15.7.8//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_prop-types__15.7.8/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_react-dom__18.0.9//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_react-dom__18.0.9//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_react-dom__18.0.9/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_react__18.0.25//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_react__18.0.25//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_react__18.0.25/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__at_types_scheduler__0.16.4//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__at_types_scheduler__0.16.4//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__at_types_scheduler__0.16.4/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__baseline-browser-mapping__2.9.11//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__baseline-browser-mapping__2.9.11//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__baseline-browser-mapping__2.9.11/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__browserslist__4.28.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__browserslist__4.28.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__browserslist__4.28.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__busboy__1.6.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__busboy__1.6.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__busboy__1.6.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__caniuse-lite__1.0.30001762//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__caniuse-lite__1.0.30001762//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__caniuse-lite__1.0.30001762/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__client-only__0.0.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__client-only__0.0.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__client-only__0.0.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__convert-source-map__2.0.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__convert-source-map__2.0.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__convert-source-map__2.0.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__csstype__3.1.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__csstype__3.1.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__csstype__3.1.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__debug__4.4.3//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__debug__4.4.3//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__debug__4.4.3/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__electron-to-chromium__1.5.267//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__electron-to-chromium__1.5.267//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__electron-to-chromium__1.5.267/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__escalade__3.2.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__escalade__3.2.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__escalade__3.2.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__gensync__1.0.0-beta.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__gensync__1.0.0-beta.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__gensync__1.0.0-beta.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__graceful-fs__4.2.11//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__graceful-fs__4.2.11//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__graceful-fs__4.2.11/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__is-buffer__1.1.6//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__is-buffer__1.1.6//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__is-buffer__1.1.6/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__is-even__1.0.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__is-even__1.0.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__is-even__1.0.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__is-number__3.0.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__is-number__3.0.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__is-number__3.0.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__is-number__6.0.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__is-number__6.0.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__is-number__6.0.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__is-odd__0.1.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__is-odd__0.1.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__is-odd__0.1.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__is-odd__3.0.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__is-odd__3.0.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__is-odd__3.0.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__js-tokens__4.0.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__js-tokens__4.0.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__js-tokens__4.0.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__jsesc__3.1.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__jsesc__3.1.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__jsesc__3.1.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__json5__2.2.3//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__json5__2.2.3//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__json5__2.2.3/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__kind-of__3.2.2//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__kind-of__3.2.2//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__kind-of__3.2.2/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__loose-envify__1.4.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__loose-envify__1.4.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__loose-envify__1.4.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__lru-cache__5.1.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__lru-cache__5.1.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__lru-cache__5.1.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__ms__2.1.3//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__ms__2.1.3//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__ms__2.1.3/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__nanoid__3.3.11//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__nanoid__3.3.11//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__nanoid__3.3.11/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__next__14.2.35_794343652//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__next__14.2.35_794343652//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__next__14.2.35_794343652/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__node-releases__2.0.27//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__node-releases__2.0.27//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__node-releases__2.0.27/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__picocolors__1.1.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__picocolors__1.1.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__picocolors__1.1.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__postcss__8.4.31//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__postcss__8.4.31//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__postcss__8.4.31/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__react-dom__18.2.0_react_18.2.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__react-dom__18.2.0_react_18.2.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__react-dom__18.2.0_react_18.2.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__react__18.2.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__react__18.2.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__react__18.2.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__scheduler__0.23.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__scheduler__0.23.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__scheduler__0.23.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__semver__6.3.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__semver__6.3.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__semver__6.3.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__source-map-js__1.2.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__source-map-js__1.2.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__source-map-js__1.2.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__streamsearch__1.1.0//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__streamsearch__1.1.0//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__streamsearch__1.1.0/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__styled-jsx__5.1.1_295826996//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__styled-jsx__5.1.1_295826996//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__styled-jsx__5.1.1_295826996/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__tslib__2.8.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__tslib__2.8.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__tslib__2.8.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__typescript__4.9.3//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__typescript__4.9.3//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__typescript__4.9.3/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__undici-types__5.26.5//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__undici-types__5.26.5//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__undici-types__5.26.5/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__update-browserslist-db__1.2.3_browserslist_4.28.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__update-browserslist-db__1.2.3_browserslist_4.28.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__update-browserslist-db__1.2.3_browserslist_4.28.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@aspect_rules_js++npm+npm__yallist__3.1.1//:pkg": {
+      "directInputs": [
+        {
+          "label": "@@aspect_rules_js++npm+npm__yallist__3.1.1//:package.tgz",
+          "path": "external/@aspect_rules_js++npm+npm__yallist__3.1.1/package.tgz",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@@platforms//cpu:aarch64": {},
+    "@@platforms//cpu:arm64": {},
+    "@@platforms//cpu:cpu": {},
+    "@@platforms//cpu:x86_64": {},
+    "@@platforms//os:linux": {},
+    "@@platforms//os:os": {},
+    "@@platforms//os:osx": {},
+    "@@platforms//os:windows": {},
+    "@@rules_license+//licenses/spdx:Apache-2.0": {},
+    "@@rules_shell+//shell:toolchain_type": {},
+    "@aspect_bazel_lib//lib:copy_directory_toolchain_type": {},
+    "@aspect_bazel_lib//lib:copy_to_directory_toolchain_type": {},
+    "@aspect_bazel_lib//lib:coreutils_toolchain_type": {},
+    "@aspect_bazel_lib//lib:enable_runfiles": {},
+    "@aspect_bazel_lib//lib:stamp": {},
+    "@aspect_bazel_lib//lib:stamp_detect": {},
+    "@aspect_bazel_lib//lib:tar_toolchain_type": {},
+    "@aspect_rules_js//npm/private/lifecycle:lifecycle-hooks": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:fs.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/fs.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:register.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/register.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:js_binary.sh.tpl",
+          "path": "external/aspect_rules_js/js/private/js_binary.sh.tpl",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.sh",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.sh",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//npm/private/lifecycle:min/get-uid-gid.js",
+          "path": "external/aspect_rules_js/npm/private/lifecycle/min/get-uid-gid.js",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//npm/private/lifecycle:min/index.min.js",
+          "path": "external/aspect_rules_js/npm/private/lifecycle/min/index.min.js",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//npm/private/lifecycle:min/node-gyp-bin/.shellcheckrc",
+          "path": "external/aspect_rules_js/npm/private/lifecycle/min/node-gyp-bin/.shellcheckrc",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//npm/private/lifecycle:min/node-gyp-bin/node-gyp",
+          "path": "external/aspect_rules_js/npm/private/lifecycle/min/node-gyp-bin/node-gyp",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//npm/private/lifecycle:min/node-gyp-bin/node-gyp.cmd",
+          "path": "external/aspect_rules_js/npm/private/lifecycle/min/node-gyp-bin/node-gyp.cmd",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//npm/private/lifecycle:package.json",
+          "path": "external/aspect_rules_js/npm/private/lifecycle/package.json",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@aspect_rules_js//npm:exclude_types_from_npm_packages": {},
+    "@aspect_rules_js//npm:exclude_types_from_npm_packages_flag": {},
+    "@aspect_rules_js//platforms/cpu:arm64": {},
+    "@aspect_rules_js//platforms/cpu:x86_64": {},
+    "@aspect_rules_js//platforms/libc:glibc": {},
+    "@aspect_rules_js//platforms/libc:libc": {},
+    "@aspect_rules_js//platforms/libc:musl": {},
+    "@aspect_rules_js//platforms/os:linux": {},
+    "@aspect_rules_js//platforms/os:osx": {},
+    "@aspect_rules_js//platforms/os:windows": {},
+    "@aspect_rules_ts//ts:default_to_tsc_transpiler": {},
+    "@aspect_rules_ts//ts:default_to_tsc_transpiler_flag": {},
+    "@aspect_rules_ts//ts:options": {},
+    "@aspect_rules_ts//ts:skipLibCheck": {},
+    "@aspect_rules_ts//ts:skip_lib_check.always": {},
+    "@aspect_rules_ts//ts:skip_lib_check.honor_tsconfig": {},
+    "@aspect_rules_ts//ts:supports_workers": {},
+    "@aspect_rules_ts//ts:supports_workers_flag": {},
+    "@aspect_rules_ts//ts:verbose": {},
+    "@aspect_rules_ts//ts:verbose_flag": {},
+    "@bazel_skylib//:license": {
+      "directInputs": [
+        {
+          "label": "@bazel_skylib//:LICENSE",
+          "path": "external/bazel_skylib/LICENSE",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@bazel_skylib//rules/private:is_windows": {},
+    "@bazel_tools//tools/sh:toolchain_type": {},
+    "@npm_typescript//:.aspect_rules_js/node_modules/typescript": {},
+    "@npm_typescript//:copy_ts_project_worker": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_ts//ts/private:ts_project_worker.js",
+          "path": "external/aspect_rules_ts/ts/private/ts_project_worker.js",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@npm_typescript//:copy_validator": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_ts//ts/private:ts_project_options_validator.js",
+          "path": "external/aspect_rules_ts/ts/private/ts_project_options_validator.js",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@npm_typescript//:copy_worker_js": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_js//js/private/worker:worker.js",
+          "path": "external/aspect_rules_js/js/private/worker/worker.js",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@npm_typescript//:is_typescript_5_or_greater": {},
+    "@npm_typescript//:is_typescript_5_or_greater_flag": {},
+    "@npm_typescript//:node_modules/typescript": {},
+    "@npm_typescript//:node_modules/typescript/dir": {},
+    "@npm_typescript//:npm_typescript": {
+      "directInputs": [
+        {
+          "label": "@npm_typescript//:package",
+          "path": "external/npm_typescript/package",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@npm_typescript//:package_json": {},
+    "@npm_typescript//:tsc": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:fs.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/fs.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:register.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/register.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:js_binary.sh.tpl",
+          "path": "external/aspect_rules_js/js/private/js_binary.sh.tpl",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.sh",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@npm_typescript//:tsc_entrypoint": {},
+    "@npm_typescript//:tsc_worker": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:fs.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/fs.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:register.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/register.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:js_binary.sh.tpl",
+          "path": "external/aspect_rules_js/js/private/js_binary.sh.tpl",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.sh",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@npm_typescript//:validator": {
+      "directInputs": [
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:fs.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/fs.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private/node-patches:register.cjs",
+          "path": "external/aspect_rules_js/js/private/node-patches/register.cjs",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:js_binary.sh.tpl",
+          "path": "external/aspect_rules_js/js/private/js_binary.sh.tpl",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:node_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/node_wrapper.sh",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.bat",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.bat",
+          "kind": "source-file"
+        },
+        {
+          "label": "@aspect_rules_js//js/private:npm_wrapper.sh",
+          "path": "external/aspect_rules_js/js/private/npm_wrapper.sh",
+          "kind": "source-file"
+        }
+      ]
+    },
+    "@rules_nodejs//nodejs:toolchain_type": {}
+  }
+}

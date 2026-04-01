@@ -1,0 +1,29 @@
+# General
+.DS_Store
+*.log
+
+# Node/JS
+node_modules/
+dist/
+!cli/internal/embeddedui/dist/
+!cli/internal/embeddedui/dist/**
+.parcel-cache/
+.turbo/
+.next/
+
+# Go/Rust
+bin/
+vendor/
+target/
+
+# Bazel/BuildScope outputs
+bazel-*
+*.profile
+*.pb
+*.jsonpb
+*.aquery.json
+*.query.pb
+
+# Generated benchmark fixtures
+fixtures/generated/*.json
+!fixtures/generated/.gitkeep
