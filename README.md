@@ -84,83 +84,41 @@ If you are running from a repo checkout without installing first, the existing w
 ./buildscope.sh //your/package:target
 ```
 
-## Release Versioning
+## What Problems It Solves
 
-BuildScope is currently pre-1.0. Use tags in the `v0.1.x` series for releases.
+- Finds high-blast-radius Bazel targets without forcing you to read raw `bazel query` output by hand.
+- Surfaces shared hubs and breakup candidates that make a workspace harder to change safely.
+- Lets you inspect one target's direct and transitive neighborhood without losing the wider graph context.
+- Gives you a repeatable local snapshot you can reopen, search, and compare without rerunning Bazel every time.
 
-Example:
+## How To Use It
 
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
+1. Start with `buildscope demo` or `buildscope view /path/to/graph.json` to load a graph and learn the UI on a stable snapshot.
+2. Use the ranking lists first instead of panning blindly. `Top impact` answers "what has the biggest blast radius?" and `Break-up candidates` answers "what shared hubs should I split?"
+3. Click a ranked target or search for an exact label to focus the canvas on that neighborhood, then switch between `Impact`, `Break-up`, `Upstream`, `Downstream`, and `Direct` depending on the question you are asking.
+4. When you want live workspace data, run `buildscope open //your/package:target` or `buildscope extract ...` and reopen the generated graph.
 
-That tag triggers the GitHub release workflow to:
+## Demo
 
-- run the frontend and Go test suites
-- publish versioned release assets for macOS and Linux on `amd64` and `arm64`
-- publish stable `latest` asset aliases for scripted Linux installs
-- mark the GitHub release as a prerelease because the tag is still under `v1`
-- open a PR that updates the Homebrew formula
+These screenshots use the checked-in `buildscope_logger` fixture so the flow is reproducible from a fresh checkout.
 
-## How It Gets The Graph
+### 1. Start From The Rankings
 
-The extraction path is the `extract` command:
+BuildScope is most useful when you begin with the ranked summaries instead of exploring the canvas at random. The overview tells you graph size, likely choke points, and whether there are obvious clusters worth drilling into.
 
-```bash
-buildscope extract \
-  -target //your/package:target \
-  -workdir /path/to/bazel/workspace \
-  -out /tmp/graph.json \
-  -enrich analyze
-```
+![BuildScope overview with impact rankings](docs/readme/buildscope-overview.png)
 
-Under the hood, that command shells out to:
+### 2. Click Into A High-Impact Target
 
-```bash
-bazel query 'deps(//your/package:target)' --output=graph --keep_going
-```
+Selecting a ranked target recenters the graph on that node's neighborhood and updates the side panel with direct and transitive counts. This is the fast path for answering "if I touch this target, how far does the change spread?"
 
-BuildScope streams Bazel's graph output, joins optional metadata from `label_kind` and `cquery`, and writes a versioned JSON graph:
+![BuildScope focused on a high-impact target](docs/readme/buildscope-impact-focus.png)
 
-```json
-{
-  "schemaVersion": 2,
-  "analysisMode": "analyze",
-  "detailsPath": "graph.details.json",
-  "nodes": [
-    {
-      "id": "//app:bin",
-      "label": "//app:bin",
-      "nodeType": "rule",
-      "ruleKind": "go_binary",
-      "sourceFileCount": 4,
-      "sourceBytes": 18240,
-      "inputFileCount": 5,
-      "inputBytes": 20384,
-      "outputFileCount": 1,
-      "outputBytes": 0,
-      "actionCount": 6
-    },
-    {
-      "id": "//lib:core",
-      "label": "//lib:core",
-      "nodeType": "rule"
-    }
-  ],
-  "edges": [
-    { "source": "//app:bin", "target": "//lib:core" }
-  ]
-}
-```
+### 3. Search For A Concrete Label
 
-When details are available, BuildScope also writes a sibling `graph.details.json` file with full direct input lists, output lists, and action mnemonic summaries per target.
+When you already know the target you care about, search is faster than scanning the graph manually. From the focused view you can inspect upstream pressure, downstream reach, and immediate dependencies without losing the surrounding context.
 
-The full Bazel extraction and BuildScope analysis flow now lives in [docs/bazel-graph-flow.md](docs/bazel-graph-flow.md).
-
-That doc shows the exact extraction flow, the Bazel commands used for topology and metadata, and the worker-side steps that turn the enriched graph into high-impact targets, source-heavy targets, output-heavy targets, and break-up candidates.
-
-For the Go server's local HTTP surface, including `/graph.json` and `/analysis.json`, see [docs/backend-api.md](docs/backend-api.md).
+![BuildScope focused on a searched target](docs/readme/buildscope-search-focus.png)
 
 ## MCP Server
 
@@ -238,6 +196,25 @@ If BuildScope is running on a custom port, use that exact port when you connect 
 
 For the full MCP quickstart, tool list, and examples, see [docs/mcp-server.md](docs/mcp-server.md).
 
+## Release Versioning
+
+BuildScope is currently pre-1.0. Use tags in the `v0.1.x` series for releases.
+
+Example:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That tag triggers the GitHub release workflow to:
+
+- run the frontend and Go test suites
+- publish versioned release assets for macOS and Linux on `amd64` and `arm64`
+- publish stable `latest` asset aliases for scripted Linux installs
+- mark the GitHub release as a prerelease because the tag is still under `v1`
+- open a PR that updates the Homebrew formula
+
 ## Development
 
 Frontend development prerequisites:
@@ -304,47 +281,70 @@ Repo checkout helpers:
 ./buildscope.sh //your/package:target
 ```
 
+## How It Gets The Graph
+
+The extraction path is the `extract` command:
+
+```bash
+buildscope extract \
+  -target //your/package:target \
+  -workdir /path/to/bazel/workspace \
+  -out /tmp/graph.json \
+  -enrich analyze
+```
+
+Under the hood, that command shells out to:
+
+```bash
+bazel query 'deps(//your/package:target)' --output=graph --keep_going
+```
+
+BuildScope streams Bazel's graph output, joins optional metadata from `label_kind` and `cquery`, and writes a versioned JSON graph:
+
+```json
+{
+  "schemaVersion": 2,
+  "analysisMode": "analyze",
+  "detailsPath": "graph.details.json",
+  "nodes": [
+    {
+      "id": "//app:bin",
+      "label": "//app:bin",
+      "nodeType": "rule",
+      "ruleKind": "go_binary",
+      "sourceFileCount": 4,
+      "sourceBytes": 18240,
+      "inputFileCount": 5,
+      "inputBytes": 20384,
+      "outputFileCount": 1,
+      "outputBytes": 0,
+      "actionCount": 6
+    },
+    {
+      "id": "//lib:core",
+      "label": "//lib:core",
+      "nodeType": "rule"
+    }
+  ],
+  "edges": [
+    { "source": "//app:bin", "target": "//lib:core" }
+  ]
+}
+```
+
+When details are available, BuildScope also writes a sibling `graph.details.json` file with full direct input lists, output lists, and action mnemonic summaries per target.
+
+The full Bazel extraction and BuildScope analysis flow now lives in [docs/bazel-graph-flow.md](docs/bazel-graph-flow.md).
+
+That doc shows the exact extraction flow, the Bazel commands used for topology and metadata, and the worker-side steps that turn the enriched graph into high-impact targets, source-heavy targets, output-heavy targets, and break-up candidates.
+
+For the Go server's local HTTP surface, including `/graph.json` and `/analysis.json`, see [docs/backend-api.md](docs/backend-api.md).
+
 ## Fixture Corpus
 
 BuildScope keeps a small fixture corpus in-repo so UI changes and layout changes can be checked against repeatable graphs instead of ad hoc screenshots. The corpus now includes enriched fixtures with sibling `*.details.json` files for direct inputs, outputs, and action summaries, alongside a couple of older topology-only snapshots kept for stress comparisons.
 
 See [fixtures/README.md](fixtures/README.md) for the corpus and refresh workflow.
-
-## What Problems It Solves
-
-- Finds high-blast-radius Bazel targets without forcing you to read raw `bazel query` output by hand.
-- Surfaces shared hubs and breakup candidates that make a workspace harder to change safely.
-- Lets you inspect one target's direct and transitive neighborhood without losing the wider graph context.
-- Gives you a repeatable local snapshot you can reopen, search, and compare without rerunning Bazel every time.
-
-## How To Use It
-
-1. Start with `buildscope demo` or `buildscope view /path/to/graph.json` to load a graph and learn the UI on a stable snapshot.
-2. Use the ranking lists first instead of panning blindly. `Top impact` answers "what has the biggest blast radius?" and `Break-up candidates` answers "what shared hubs should I split?"
-3. Click a ranked target or search for an exact label to focus the canvas on that neighborhood, then switch between `Impact`, `Break-up`, `Upstream`, `Downstream`, and `Direct` depending on the question you are asking.
-4. When you want live workspace data, run `buildscope open //your/package:target` or `buildscope extract ...` and reopen the generated graph.
-
-## Walkthrough
-
-These screenshots use the checked-in `buildscope_logger` fixture so the flow is reproducible from a fresh checkout.
-
-### 1. Start From The Rankings
-
-BuildScope is most useful when you begin with the ranked summaries instead of exploring the canvas at random. The overview tells you graph size, likely choke points, and whether there are obvious clusters worth drilling into.
-
-![BuildScope overview with impact rankings](docs/readme/buildscope-overview.png)
-
-### 2. Click Into A High-Impact Target
-
-Selecting a ranked target recenters the graph on that node's neighborhood and updates the side panel with direct and transitive counts. This is the fast path for answering "if I touch this target, how far does the change spread?"
-
-![BuildScope focused on a high-impact target](docs/readme/buildscope-impact-focus.png)
-
-### 3. Search For A Concrete Label
-
-When you already know the target you care about, search is faster than scanning the graph manually. From the focused view you can inspect upstream pressure, downstream reach, and immediate dependencies without losing the surrounding context.
-
-![BuildScope focused on a searched target](docs/readme/buildscope-search-focus.png)
 
 ## Repository Layout
 
