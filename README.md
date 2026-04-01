@@ -13,90 +13,12 @@ BuildScope is a local-first Bazel dependency explorer. Point it at a Bazel targe
 - Keeps layout work off the main thread so large graphs stay navigable.
 - Ships with a small fixture corpus for repeatable UI and performance checks.
 
-## Install
-
-**macOS**
-
-```bash
-brew tap sharmilajesupaul/buildscope https://github.com/sharmilajesupaul/buildscope
-brew install sharmilajesupaul/buildscope/buildscope
-```
-
-The release workflow opens a Homebrew formula update PR after each tagged prerelease.
-If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first.
-
-**Linux**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | sh
-```
-
-That installs the latest prerelease binary into `~/.local/bin`. Set `VERSION`, `PREFIX`, or `BINDIR` to pin a release or change the install location.
-
-**Build From Source**
-
-```bash
-./install.sh
-```
-
-That builds a single Go binary with the UI embedded and installs it into `~/.local/bin`.
-
-**Prerequisites**
-
-- Go `1.22+` to build from source.
-- Bazel if you want to extract graphs from a live workspace.
-- Node.js is not required to run the installed app.
-
-You can override the install destination with `PREFIX` or `BINDIR`.
-
-Windows is currently unsupported, and no Windows release artifacts are published right now.
-
-## Quick Start
-
-Smoke-test the installed viewer:
-
-```bash
-buildscope version
-buildscope demo
-```
-
-Open a pre-generated graph:
-
-```bash
-buildscope view /path/to/graph.json
-```
-
-From the root of a Bazel workspace:
-
-```bash
-buildscope open //your/package:target
-```
-
-Override the port with `--addr`:
-
-```bash
-buildscope open //your/package:target --addr 127.0.0.1:4500
-```
-
-If you are running from a repo checkout without installing first, the existing wrapper still works:
-
-```bash
-./buildscope.sh //your/package:target
-```
-
 ## What Problems It Solves
 
 - Finds high-blast-radius Bazel targets without forcing you to read raw `bazel query` output by hand.
 - Surfaces shared hubs and breakup candidates that make a workspace harder to change safely.
 - Lets you inspect one target's direct and transitive neighborhood without losing the wider graph context.
 - Gives you a repeatable local snapshot you can reopen, search, and compare without rerunning Bazel every time.
-
-## How To Use It
-
-1. Start with `buildscope demo` or `buildscope view /path/to/graph.json` to load a graph and learn the UI on a stable snapshot.
-2. Use the ranking lists first instead of panning blindly. `Top impact` answers "what has the biggest blast radius?" and `Break-up candidates` answers "what shared hubs should I split?"
-3. Click a ranked target or search for an exact label to focus the canvas on that neighborhood, then switch between `Impact`, `Break-up`, `Upstream`, `Downstream`, and `Direct` depending on the question you are asking.
-4. When you want live workspace data, run `buildscope open //your/package:target` or `buildscope extract ...` and reopen the generated graph.
 
 ## Demo
 
@@ -119,6 +41,98 @@ Selecting a ranked target recenters the graph on that node's neighborhood and up
 When you already know the target you care about, search is faster than scanning the graph manually. From the focused view you can inspect upstream pressure, downstream reach, and immediate dependencies without losing the surrounding context.
 
 ![BuildScope focused on a searched target](docs/readme/buildscope-search-focus.png)
+
+## Install
+
+Choose the path that matches how you plan to use BuildScope. Homebrew is the easiest macOS path, the release installer is the quickest Linux path, and the source install builds the same single-binary app with the UI embedded.
+
+Prerequisites:
+
+- Go `1.22+` to build from source.
+- Bazel if you want to extract graphs from a live workspace.
+- Node.js is not required to run the installed app.
+
+**macOS**
+
+Install from the Homebrew tap:
+
+```bash
+brew tap sharmilajesupaul/buildscope https://github.com/sharmilajesupaul/buildscope
+brew install sharmilajesupaul/buildscope/buildscope
+```
+
+The release workflow opens a Homebrew formula update PR after each tagged prerelease.
+If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first.
+
+**Linux**
+
+Install the latest prerelease binary into `~/.local/bin`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sharmilajesupaul/buildscope/main/scripts/install-release.sh | sh
+```
+
+That installs the latest prerelease binary into `~/.local/bin`. Set `VERSION`, `PREFIX`, or `BINDIR` to pin a release or change the install location.
+
+**Build From Source**
+
+Build and install from a repo checkout:
+
+```bash
+./install.sh
+```
+
+That builds a single Go binary with the UI embedded and installs it into `~/.local/bin`.
+
+You can override the install destination with `PREFIX` or `BINDIR`.
+
+Windows is currently unsupported, and no Windows release artifacts are published right now.
+
+## Quick Start
+
+Once installed, there are three common ways to begin:
+
+- `buildscope demo` to learn the UI on a bundled sample graph
+- `buildscope view` to inspect a saved graph snapshot
+- `buildscope open` to extract and serve a live Bazel target
+
+Verify the binary and launch the bundled demo:
+
+```bash
+buildscope version
+buildscope demo
+```
+
+Open a pre-generated graph from disk:
+
+```bash
+buildscope view /path/to/graph.json
+```
+
+Extract and open a live Bazel target from the root of a workspace:
+
+```bash
+buildscope open //your/package:target
+```
+
+Override the port with `--addr`:
+
+```bash
+buildscope open //your/package:target --addr 127.0.0.1:4500
+```
+
+If you are running from a repo checkout without installing first, the existing wrapper still works:
+
+```bash
+./buildscope.sh //your/package:target
+```
+
+## How To Use It
+
+1. Start with `buildscope demo` or `buildscope view /path/to/graph.json` to load a graph and learn the UI on a stable snapshot.
+2. Use the ranking lists first instead of panning blindly. `Top impact` answers "what has the biggest blast radius?" and `Break-up candidates` answers "what shared hubs should I split?"
+3. Click a ranked target or search for an exact label to focus the canvas on that neighborhood, then switch between `Impact`, `Break-up`, `Upstream`, `Downstream`, and `Direct` depending on the question you are asking.
+4. When you want live workspace data, run `buildscope open //your/package:target` or `buildscope extract ...` and reopen the generated graph.
 
 ## MCP Server
 
