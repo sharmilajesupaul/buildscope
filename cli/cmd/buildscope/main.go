@@ -97,11 +97,13 @@ type uiAssets struct {
 }
 
 type graphPayload struct {
-	path        string
-	data        []byte
-	source      string
-	detailsPath string
-	detailsData []byte
+	path         string
+	data         []byte
+	source       string
+	detailsPath  string
+	detailsData  []byte
+	workspaceDir string
+	rootTarget   string
 }
 
 func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
@@ -121,7 +123,14 @@ func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
 		}
 	}
 	analysis := buildAnalysisBase(rawGraph)
-	mux := newServeMux(ui, graphData, detailsData, analysis)
+	liveContext := &workspaceAnalysisContext{
+		Workdir:    graph.workspaceDir,
+		RootTarget: graph.rootTarget,
+	}
+	if strings.TrimSpace(liveContext.Workdir) == "" && strings.TrimSpace(liveContext.RootTarget) == "" {
+		liveContext = nil
+	}
+	mux := newServeMux(ui, graphData, detailsData, analysis, liveContext)
 
 	log.Printf("Serving UI from %s", ui.source)
 	log.Printf("Serving graph from %s at /graph.json", graph.source)
@@ -129,6 +138,8 @@ func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
 		log.Printf("Serving details at /graph.details.json")
 	}
 	log.Printf("Serving analysis at /analysis.json")
+	log.Printf("Serving decomposition at /decomposition.json")
+	log.Printf("Serving file focus at /file-focus.json")
 
 	listener, listenAddr, fellBack, err := listenWithFallback(addr, 20)
 	if err != nil {
@@ -153,7 +164,7 @@ func sanitizeServedGraphJSON(data []byte) ([]byte, graph, error) {
 	return sanitized, rawGraph, nil
 }
 
-func newServeMux(ui uiAssets, graphData, detailsData []byte, analysis *analysisBase) *http.ServeMux {
+func newServeMux(ui uiAssets, graphData, detailsData []byte, analysis *analysisBase, live *workspaceAnalysisContext) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.FS(ui.fsys)))
 	mux.HandleFunc("/graph.json", func(w http.ResponseWriter, r *http.Request) {
@@ -173,6 +184,32 @@ func newServeMux(ui uiAssets, graphData, detailsData []byte, analysis *analysisB
 			return
 		}
 		response, err := analysis.response(limit, strings.TrimSpace(r.URL.Query().Get("focus")))
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, analysisError(err.Error()))
+			return
+		}
+		writeJSON(w, http.StatusOK, response)
+	})
+	mux.HandleFunc("/decomposition.json", func(w http.ResponseWriter, r *http.Request) {
+		target := strings.TrimSpace(r.URL.Query().Get("target"))
+		if target == "" {
+			writeJSON(w, http.StatusBadRequest, analysisError("target is required"))
+			return
+		}
+		response, err := analysis.decomposition(target)
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, analysisError(err.Error()))
+			return
+		}
+		writeJSON(w, http.StatusOK, response)
+	})
+	mux.HandleFunc("/file-focus.json", func(w http.ResponseWriter, r *http.Request) {
+		label := strings.TrimSpace(r.URL.Query().Get("label"))
+		if label == "" {
+			writeJSON(w, http.StatusBadRequest, analysisError("label is required"))
+			return
+		}
+		response, err := analysis.fileFocus(label, live)
 		if err != nil {
 			writeJSON(w, http.StatusNotFound, analysisError(err.Error()))
 			return
@@ -582,8 +619,10 @@ func openCommand(args []string) error {
 	}
 
 	payload := graphPayload{
-		path:   graphPath,
-		source: graphPath,
+		path:         graphPath,
+		source:       graphPath,
+		workspaceDir: workspaceDir,
+		rootTarget:   fs.Arg(0),
 	}
 	if mode != enrichNone {
 		payload.detailsPath = detailsPath

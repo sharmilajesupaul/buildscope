@@ -675,6 +675,14 @@ body {
   overflow-wrap: anywhere;
 }
 
+.focus-metric-meta {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .focus-card {
   padding: 12px;
   border: 1px solid var(--section-border);
@@ -766,6 +774,17 @@ body {
   font-size: 11px;
   line-height: 1.45;
   background: color-mix(in srgb, var(--surface) 84%, transparent);
+}
+
+.focus-verdict {
+  padding: 9px 10px;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-strong) 88%, var(--accent-soft));
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .analysis-search {
@@ -997,7 +1016,7 @@ body {
   top: 82px;
   right: 14px;
   bottom: 14px;
-  width: 320px;
+  width: 344px;
   max-width: calc(100vw - 28px);
   padding: 10px;
   display: flex;
@@ -1018,6 +1037,24 @@ body {
 .selection-inspector .summary-header {
   margin-bottom: 0;
   flex: none;
+}
+
+.selection-inspector .analysis-summary {
+  align-items: flex-start;
+}
+
+.selection-inspector .analysis-summary .analysis-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.selection-inspector .analysis-summary-meta {
+  flex: 0 1 140px;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  text-align: right;
 }
 
 .selection-inspector.is-idle {

@@ -98,6 +98,11 @@ type mcpTargetDetailsResult struct {
 	Details          *graphNodeDetails `json:"details,omitempty"`
 }
 
+type mcpTargetDecompositionResult struct {
+	Target        string                       `json:"target"`
+	Decomposition *targetDecompositionResponse `json:"decomposition,omitempty"`
+}
+
 type mcpAnalysisArgs struct {
 	Top   int    `json:"top,omitempty"`
 	Focus string `json:"focus,omitempty"`
@@ -105,6 +110,10 @@ type mcpAnalysisArgs struct {
 
 type mcpTargetArgs struct {
 	Target string `json:"target"`
+}
+
+type mcpFileArgs struct {
+	Label string `json:"label"`
 }
 
 type mcpServer struct {
@@ -378,7 +387,7 @@ func mcpUsageInstructions(source mcpSourceConfig) string {
 	if source.GraphPath != "" {
 		mode = "graph file"
 	}
-	return fmt.Sprintf("BuildScope MCP is connected to a %s. Start with get_analysis, then use get_target_details for focused targets. Prefer exact Bazel labels like //pkg:target.", mode)
+	return fmt.Sprintf("BuildScope MCP is connected to a %s. Start with get_analysis, then use get_target_decomposition for split seams, get_target_details for focused target context, or get_file_details for file-level drill-downs. Prefer exact Bazel labels like //pkg:target and //pkg:file.go.", mode)
 }
 
 func (s *mcpServer) tools() []mcpTool {
@@ -427,6 +436,36 @@ func (s *mcpServer) tools() []mcpTool {
 				"additionalProperties": false,
 			},
 		},
+		{
+			Name:        "get_target_decomposition",
+			Description: "Return focused decomposition guidance for one target, including impact, mass, shardability, dependency-domain groups, and cross-group coupling.",
+			InputSchema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"target": map[string]any{
+						"type":        "string",
+						"description": "Exact Bazel label for the target, for example //pkg:target.",
+					},
+				},
+				"required":             []string{"target"},
+				"additionalProperties": false,
+			},
+		},
+		{
+			Name:        "get_file_details",
+			Description: "Return current-graph consumers for one file label, plus live workspace reverse dependencies when the BuildScope server was started from a Bazel workspace.",
+			InputSchema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"label": map[string]any{
+						"type":        "string",
+						"description": "Exact Bazel file label for the source or generated file, for example //pkg:file.go.",
+					},
+				},
+				"required":             []string{"label"},
+				"additionalProperties": false,
+			},
+		},
 	}
 }
 
@@ -462,6 +501,34 @@ func (s *mcpServer) callTool(name string, rawArgs json.RawMessage) mcpToolCallRe
 			return newMCPToolError(err)
 		}
 		return newMCPToolResult(targetDetailsSummary(result), result)
+	case "get_target_decomposition":
+		var args mcpTargetArgs
+		if err := decodeMCPParams(rawArgs, &args); err != nil {
+			return newMCPToolError(err)
+		}
+		target := strings.TrimSpace(args.Target)
+		if target == "" {
+			return newMCPToolError(fmt.Errorf("target is required"))
+		}
+		result, err := s.loadTargetDecomposition(target)
+		if err != nil {
+			return newMCPToolError(err)
+		}
+		return newMCPToolResult(targetDecompositionSummary(result), result)
+	case "get_file_details":
+		var args mcpFileArgs
+		if err := decodeMCPParams(rawArgs, &args); err != nil {
+			return newMCPToolError(err)
+		}
+		label := strings.TrimSpace(args.Label)
+		if label == "" {
+			return newMCPToolError(fmt.Errorf("label is required"))
+		}
+		result, err := s.loadFileFocus(label)
+		if err != nil {
+			return newMCPToolError(err)
+		}
+		return newMCPToolResult(fileFocusSummary(result), result)
 	default:
 		return newMCPToolError(fmt.Errorf("unknown tool %q", name))
 	}
@@ -512,7 +579,11 @@ func sourceInfoSummary(info mcpSourceInfo) string {
 func analysisSummary(response analysisResponse) string {
 	candidateBits := make([]string, 0, min(3, len(response.TopBreakupCandidates)))
 	for _, candidate := range response.TopBreakupCandidates[:min(3, len(response.TopBreakupCandidates))] {
-		candidateBits = append(candidateBits, fmt.Sprintf("%s (%.1f)", candidate.ID, candidate.Pressure))
+		score := candidate.OpportunityScore
+		if score == 0 {
+			score = candidate.Pressure
+		}
+		candidateBits = append(candidateBits, fmt.Sprintf("%s (%.1f)", candidate.ID, score))
 	}
 	if len(candidateBits) == 0 {
 		return fmt.Sprintf("Analyzed %d nodes and %d edges. No breakup candidates were ranked.", response.NodeCount, response.EdgeCount)
@@ -539,6 +610,49 @@ func targetDetailsSummary(result mcpTargetDetailsResult) string {
 		return fmt.Sprintf("Loaded focused details for %s.", result.Target)
 	}
 	return fmt.Sprintf("Loaded focused details for %s: %s.", result.Target, strings.Join(parts, ", "))
+}
+
+func targetDecompositionSummary(result mcpTargetDecompositionResult) string {
+	if result.Decomposition == nil {
+		return fmt.Sprintf("Loaded decomposition for %s.", result.Target)
+	}
+	decomposition := result.Decomposition
+	parts := make([]string, 0, 6)
+	if decomposition.Verdict != "" {
+		parts = append(parts, decomposition.Verdict)
+	}
+	if decomposition.Impact.Band != "" {
+		parts = append(parts, fmt.Sprintf("blast radius %s", strings.ToLower(decomposition.Impact.Band)))
+	}
+	if decomposition.Mass.Band != "" {
+		parts = append(parts, fmt.Sprintf("build mass %s", strings.ToLower(decomposition.Mass.Band)))
+	}
+	if decomposition.SplitFit.Band != "" {
+		parts = append(parts, fmt.Sprintf("split fit %s", strings.ToLower(decomposition.SplitFit.Band)))
+	}
+	if decomposition.CommunityCount > 0 {
+		parts = append(parts, fmt.Sprintf("%d dependency groups", decomposition.CommunityCount))
+		parts = append(parts, fmt.Sprintf("%.0f%% cross-group coupling", decomposition.CrossCommunityEdgeRatio*100))
+	}
+	if decomposition.Reason != "" {
+		parts = append(parts, decomposition.Reason)
+	}
+	return fmt.Sprintf("Loaded decomposition for %s: %s.", result.Target, strings.Join(parts, ", "))
+}
+
+func fileFocusSummary(result fileFocusResponse) string {
+	parts := []string{
+		fmt.Sprintf("%d direct consumers in the current graph", result.CurrentGraphDirectConsumerCount),
+		fmt.Sprintf("%d transitive consumers in the current graph", result.CurrentGraphTransitiveConsumerCount),
+	}
+	if result.LiveQueryAvailable {
+		if result.WorkspaceReverseDependencyError != "" {
+			parts = append(parts, fmt.Sprintf("workspace reverse-deps unavailable: %s", result.WorkspaceReverseDependencyError))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d workspace reverse deps", result.WorkspaceReverseDependencyCount))
+		}
+	}
+	return fmt.Sprintf("Loaded file details for %s: %s.", result.Label, strings.Join(parts, ", "))
 }
 
 func (s *mcpServer) loadAnalysis(limit int, focus string) (analysisResponse, error) {
@@ -592,6 +706,62 @@ func (s *mcpServer) loadTargetDetails(target string) (mcpTargetDetailsResult, er
 		}
 	}
 	return result, nil
+}
+
+func (s *mcpServer) loadTargetDecomposition(target string) (mcpTargetDecompositionResult, error) {
+	if s.source.GraphPath != "" {
+		payload, err := s.localGraphPayload()
+		if err != nil {
+			return mcpTargetDecompositionResult{}, err
+		}
+		graphData, err := loadGraphBytes(payload)
+		if err != nil {
+			return mcpTargetDecompositionResult{}, err
+		}
+		rawGraph, err := parseGraphJSON(graphData)
+		if err != nil {
+			return mcpTargetDecompositionResult{}, err
+		}
+		response, err := buildAnalysisBase(rawGraph).decomposition(target)
+		if err != nil {
+			return mcpTargetDecompositionResult{}, err
+		}
+		return mcpTargetDecompositionResult{Target: target, Decomposition: &response}, nil
+	}
+
+	var response targetDecompositionResponse
+	query := url.Values{}
+	query.Set("target", target)
+	if err := s.fetchServerJSON("/decomposition.json", query, &response); err != nil {
+		return mcpTargetDecompositionResult{}, err
+	}
+	return mcpTargetDecompositionResult{Target: target, Decomposition: &response}, nil
+}
+
+func (s *mcpServer) loadFileFocus(label string) (fileFocusResponse, error) {
+	if s.source.GraphPath != "" {
+		payload, err := s.localGraphPayload()
+		if err != nil {
+			return fileFocusResponse{}, err
+		}
+		graphData, err := loadGraphBytes(payload)
+		if err != nil {
+			return fileFocusResponse{}, err
+		}
+		rawGraph, err := parseGraphJSON(graphData)
+		if err != nil {
+			return fileFocusResponse{}, err
+		}
+		return buildAnalysisBase(rawGraph).fileFocus(label, nil)
+	}
+
+	var response fileFocusResponse
+	query := url.Values{}
+	query.Set("label", label)
+	if err := s.fetchServerJSON("/file-focus.json", query, &response); err != nil {
+		return fileFocusResponse{}, err
+	}
+	return response, nil
 }
 
 func (s *mcpServer) loadDetails() (*graphDetails, error) {

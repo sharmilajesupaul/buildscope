@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -189,6 +190,61 @@ func TestAnalysisResponseIncludesEnrichedRankingsAndFocus(t *testing.T) {
 	}
 }
 
+func TestTargetDecompositionGroupsDirectRuleDepsByPackage(t *testing.T) {
+	t.Parallel()
+
+	base := buildAnalysisBase(graph{
+		Nodes: []graphNode{
+			{ID: "//app:bin", Label: "//app:bin", NodeType: "rule"},
+			{ID: "//feature/auth:api", Label: "//feature/auth:api", NodeType: "rule", ActionCount: 3},
+			{ID: "//feature/auth:session", Label: "//feature/auth:session", NodeType: "rule", ActionCount: 2},
+			{ID: "//feature/data:store", Label: "//feature/data:store", NodeType: "rule", ActionCount: 5},
+			{ID: "//feature/data:model", Label: "//feature/data:model", NodeType: "rule", ActionCount: 4},
+			{ID: "//feature/ui:view", Label: "//feature/ui:view", NodeType: "rule", ActionCount: 1},
+		},
+		Edges: []graphEdge{
+			{Source: "//app:bin", Target: "//feature/auth:api"},
+			{Source: "//app:bin", Target: "//feature/auth:session"},
+			{Source: "//app:bin", Target: "//feature/data:store"},
+			{Source: "//app:bin", Target: "//feature/data:model"},
+			{Source: "//app:bin", Target: "//feature/ui:view"},
+			{Source: "//feature/auth:api", Target: "//feature/auth:session"},
+			{Source: "//feature/data:store", Target: "//feature/data:model"},
+			{Source: "//feature/auth:api", Target: "//feature/data:store"},
+		},
+	})
+
+	decomposition, err := base.decomposition("//app:bin")
+	if err != nil {
+		t.Fatalf("decomposition returned error: %v", err)
+	}
+	if !decomposition.Eligible {
+		t.Fatalf("expected eligible decomposition, got %#v", decomposition)
+	}
+	if decomposition.CommunityCount != 3 {
+		t.Fatalf("community count = %d, want 3", decomposition.CommunityCount)
+	}
+	foundAuth := false
+	for _, community := range decomposition.Communities {
+		if community.Title == "//feature/auth" {
+			foundAuth = true
+			break
+		}
+	}
+	if !foundAuth {
+		t.Fatalf("communities = %#v, want //feature/auth group", decomposition.Communities)
+	}
+	if got := decomposition.CrossCommunityEdgeRatio; got < 0.333 || got > 0.334 {
+		t.Fatalf("cross-community edge ratio = %f, want about 0.333", got)
+	}
+	if decomposition.Impact.Band == "" || decomposition.Mass.Band == "" || decomposition.SplitFit.Band == "" {
+		t.Fatalf("expected metric insights, got %#v", decomposition)
+	}
+	if decomposition.Verdict == "" {
+		t.Fatalf("expected decomposition verdict, got %#v", decomposition)
+	}
+}
+
 func TestServeMuxServesAnalysisJSON(t *testing.T) {
 	t.Parallel()
 
@@ -226,7 +282,7 @@ func TestServeMuxServesAnalysisJSON(t *testing.T) {
 			{Source: "//consumer:a", Target: "//hub:core"},
 			{Source: "//hub:core", Target: "//dep:x"},
 		},
-	}))
+	}), nil)
 
 	request := httptest.NewRequest(http.MethodGet, "/analysis.json?top=1&focus=//hub:core", nil)
 	recorder := httptest.NewRecorder()
@@ -255,6 +311,56 @@ func TestServeMuxServesAnalysisJSON(t *testing.T) {
 	}
 }
 
+func TestServeMuxServesDecompositionJSON(t *testing.T) {
+	t.Parallel()
+
+	uiDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(uiDir, "index.html"), []byte("<html></html>"), 0o644); err != nil {
+		t.Fatalf("write index.html: %v", err)
+	}
+
+	graphValue := graph{
+		Nodes: []graphNode{
+			{ID: "//app:bin", Label: "//app:bin", NodeType: "rule"},
+			{ID: "//feature/auth:api", Label: "//feature/auth:api", NodeType: "rule"},
+			{ID: "//feature/data:store", Label: "//feature/data:store", NodeType: "rule"},
+		},
+		Edges: []graphEdge{
+			{Source: "//app:bin", Target: "//feature/auth:api"},
+			{Source: "//app:bin", Target: "//feature/data:store"},
+		},
+	}
+	graphData, err := json.Marshal(graphValue)
+	if err != nil {
+		t.Fatalf("marshal graph: %v", err)
+	}
+
+	mux := newServeMux(uiAssets{
+		fsys:   os.DirFS(uiDir),
+		source: uiDir,
+		dir:    uiDir,
+	}, graphData, nil, buildAnalysisBase(graphValue), nil)
+
+	request := httptest.NewRequest(http.MethodGet, "/decomposition.json?target=//app:bin", nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("/decomposition.json status = %d, want 200", recorder.Code)
+	}
+
+	var response targetDecompositionResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("decode decomposition response: %v", err)
+	}
+	if response.Target != "//app:bin" {
+		t.Fatalf("target = %q, want //app:bin", response.Target)
+	}
+	if !response.Eligible {
+		t.Fatalf("expected eligible decomposition, got %#v", response)
+	}
+}
+
 func TestServeMuxServesGraphDetailsJSON(t *testing.T) {
 	t.Parallel()
 
@@ -277,7 +383,7 @@ func TestServeMuxServesGraphDetailsJSON(t *testing.T) {
 		dir:    uiDir,
 	}, graphData, detailsData, buildAnalysisBase(graph{
 		Nodes: []graphNode{{ID: "//pkg:target", Label: "//pkg:target"}},
-	}))
+	}), nil)
 
 	request := httptest.NewRequest(http.MethodGet, "/graph.details.json", nil)
 	recorder := httptest.NewRecorder()
@@ -288,5 +394,110 @@ func TestServeMuxServesGraphDetailsJSON(t *testing.T) {
 	}
 	if got := recorder.Body.String(); got != string(detailsData) {
 		t.Fatalf("/graph.details.json body = %q, want %q", got, detailsData)
+	}
+}
+
+func TestAnalysisResponseDemotesTinySharedLeafs(t *testing.T) {
+	t.Parallel()
+
+	nodes := []graphNode{
+		{ID: "//heavy:hub", Label: "//heavy:hub", NodeType: "rule", InputBytes: 512 * 1024, OutputBytes: 2 * 1024 * 1024, ActionCount: 12},
+		{ID: "//leaf:tiny", Label: "//leaf:tiny", NodeType: "rule", SourceBytes: 512, ActionCount: 1},
+		{ID: "//dep:a", Label: "//dep:a", NodeType: "rule"},
+		{ID: "//dep:b", Label: "//dep:b", NodeType: "rule"},
+		{ID: "//dep:c", Label: "//dep:c", NodeType: "rule"},
+		{ID: "//leaf:impl", Label: "//leaf:impl", NodeType: "rule"},
+	}
+	edges := []graphEdge{
+		{Source: "//heavy:hub", Target: "//dep:a"},
+		{Source: "//heavy:hub", Target: "//dep:b"},
+		{Source: "//heavy:hub", Target: "//dep:c"},
+		{Source: "//leaf:tiny", Target: "//leaf:impl"},
+	}
+	for i := 0; i < 24; i++ {
+		consumer := fmt.Sprintf("//consumer:%02d", i)
+		nodes = append(nodes, graphNode{ID: consumer, Label: consumer, NodeType: "rule"})
+		edges = append(edges, graphEdge{Source: consumer, Target: "//leaf:tiny"})
+		if i < 14 {
+			edges = append(edges, graphEdge{Source: consumer, Target: "//heavy:hub"})
+		}
+	}
+
+	response, err := buildAnalysisBase(graph{Nodes: nodes, Edges: edges}).response(5, "//leaf:tiny")
+	if err != nil {
+		t.Fatalf("analysis response returned error: %v", err)
+	}
+
+	if got := response.TopBreakupCandidates[0].ID; got != "//heavy:hub" {
+		t.Fatalf("top breakup candidate = %q, want //heavy:hub", got)
+	}
+	if response.Focus == nil || !response.Focus.StableSharedLeaf {
+		t.Fatalf("focus = %#v, want stable shared leaf classification", response.Focus)
+	}
+}
+
+func TestServeMuxServesFileFocusJSON(t *testing.T) {
+	t.Parallel()
+
+	uiDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(uiDir, "index.html"), []byte("<html></html>"), 0o644); err != nil {
+		t.Fatalf("write index.html: %v", err)
+	}
+
+	graphData, err := json.Marshal(graph{
+		Target: "//app:bin",
+		Nodes: []graphNode{
+			{ID: "//app:bin", Label: "//app:bin", NodeType: "rule", InputBytes: 128 * 1024, ActionCount: 4},
+			{ID: "//pkg:lib", Label: "//pkg:lib", NodeType: "rule", InputBytes: 512 * 1024, ActionCount: 8},
+			{ID: "//pkg:file.go", Label: "//pkg:file.go", NodeType: "source-file"},
+		},
+		Edges: []graphEdge{
+			{Source: "//app:bin", Target: "//pkg:lib"},
+			{Source: "//pkg:lib", Target: "//pkg:file.go"},
+			{Source: "//app:bin", Target: "//pkg:file.go"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("marshal graph: %v", err)
+	}
+
+	mux := newServeMux(uiAssets{
+		fsys:   os.DirFS(uiDir),
+		source: uiDir,
+		dir:    uiDir,
+	}, graphData, nil, buildAnalysisBase(graph{
+		Target: "//app:bin",
+		Nodes: []graphNode{
+			{ID: "//app:bin", Label: "//app:bin", NodeType: "rule", InputBytes: 128 * 1024, ActionCount: 4},
+			{ID: "//pkg:lib", Label: "//pkg:lib", NodeType: "rule", InputBytes: 512 * 1024, ActionCount: 8},
+			{ID: "//pkg:file.go", Label: "//pkg:file.go", NodeType: "source-file"},
+		},
+		Edges: []graphEdge{
+			{Source: "//app:bin", Target: "//pkg:lib"},
+			{Source: "//pkg:lib", Target: "//pkg:file.go"},
+			{Source: "//app:bin", Target: "//pkg:file.go"},
+		},
+	}), nil)
+
+	request := httptest.NewRequest(http.MethodGet, "/file-focus.json?label=//pkg:file.go", nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("/file-focus.json status = %d, want 200", recorder.Code)
+	}
+
+	var response fileFocusResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("decode file focus response: %v", err)
+	}
+	if response.CurrentGraphDirectConsumerCount != 2 {
+		t.Fatalf("direct consumer count = %d, want 2", response.CurrentGraphDirectConsumerCount)
+	}
+	if response.CurrentGraphTransitiveConsumerCount != 2 {
+		t.Fatalf("transitive consumer count = %d, want 2", response.CurrentGraphTransitiveConsumerCount)
+	}
+	if len(response.TopCurrentGraphConsumers) == 0 || response.TopCurrentGraphConsumers[0].ID != "//pkg:lib" {
+		t.Fatalf("top current graph consumers = %#v, want //pkg:lib first", response.TopCurrentGraphConsumers)
 	}
 }

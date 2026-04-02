@@ -28,6 +28,11 @@ type BackendImpactTarget = BackendTargetSurface & {
 
 type BackendBreakupCandidate = BackendTargetSurface & {
   pressure?: number;
+  opportunityScore?: number;
+  impactScore?: number;
+  massScore?: number;
+  shardabilityScore?: number;
+  stableSharedLeaf?: boolean;
   transitiveInDegree?: number;
   outDegree?: number;
   transitiveOutDegree?: number;
@@ -40,6 +45,51 @@ export type BuildScopeAnalysisResponse = {
   topBreakupCandidates?: BackendBreakupCandidate[];
   topSourceHeavyTargets?: BackendTargetSurface[];
   topOutputHeavyTargets?: BackendTargetSurface[];
+};
+
+export type BuildScopeDecompositionCommunity = {
+  id: string;
+  title: string;
+  packageName?: string;
+  nodeCount: number;
+  share: number;
+  internalEdgeCount: number;
+  crossCommunityEdgeCount: number;
+  sourceBytes?: number;
+  inputBytes?: number;
+  outputBytes?: number;
+  actionCount?: number;
+  sampleLabels?: string[];
+};
+
+export type BuildScopeDecompositionMetricInsight = {
+  score?: number;
+  percentile?: number;
+  band?: string;
+  reason?: string;
+};
+
+export type BuildScopeDecompositionResponse = {
+  target: string;
+  label: string;
+  nodeType?: string;
+  eligible: boolean;
+  reason?: string;
+  method?: string;
+  verdict?: string;
+  impactScore?: number;
+  massScore?: number;
+  shardabilityScore?: number;
+  impact?: BuildScopeDecompositionMetricInsight;
+  mass?: BuildScopeDecompositionMetricInsight;
+  splitFit?: BuildScopeDecompositionMetricInsight;
+  directDependencyCount: number;
+  directRuleDependencyCount: number;
+  communityCount: number;
+  largestCommunityShare?: number;
+  crossCommunityEdgeRatio?: number;
+  communities?: BuildScopeDecompositionCommunity[];
+  recommendations?: string[];
 };
 
 function isRuleNode(node: Pick<PositionedNode, 'nodeType'>): boolean {
@@ -190,12 +240,17 @@ export function getTopBreakupCandidatesFromAnalysis(
   return (analysis.topBreakupCandidates ?? []).slice(0, limit).map((entry) => ({
     id: entry.id,
     label: analysisLabel(entry),
-    score: entry.pressure ?? 0,
+    score: entry.opportunityScore ?? entry.pressure ?? 0,
     summary: joinSummaryParts([
       `${entry.transitiveInDegree ?? 0} dependents`,
       `${entry.outDegree ?? 0} direct deps`,
+      entry.stableSharedLeaf ? 'stabilize before split' : undefined,
       entry.recommendations?.find(Boolean) ??
-        (entry.pressure !== undefined ? `score ${formatAnalysisScore(entry.pressure)}` : undefined),
+        (entry.opportunityScore !== undefined
+          ? `score ${formatAnalysisScore(entry.opportunityScore)}`
+          : entry.pressure !== undefined
+            ? `score ${formatAnalysisScore(entry.pressure)}`
+            : undefined),
     ]),
   }));
 }

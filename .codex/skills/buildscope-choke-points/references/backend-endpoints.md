@@ -1,6 +1,6 @@
 # BuildScope Backend Endpoints
 
-This app exposes a small JSON API surface. The most useful endpoint for choke-point analysis is `/analysis.json`, with `/graph.json` remaining the raw graph payload and `/graph.details.json` carrying the larger direct input/output lists when enrichment is enabled.
+This app exposes a small JSON API surface. The most useful endpoint for choke-point analysis is `/analysis.json`, with `/decomposition.json` handling focused split seams for one target, `/graph.json` remaining the raw graph payload, `/graph.details.json` carrying the larger direct input/output lists when enrichment is enabled, and `/file-focus.json` handling file-centric drill-downs.
 
 ## Primary Endpoints
 
@@ -11,6 +11,11 @@ This app exposes a small JSON API surface. The most useful endpoint for choke-po
     - `top`: optional positive integer; defaults to `10`, capped at `100`
     - `focus`: optional Bazel label for node-level drill-down
 
+- `GET /decomposition.json`
+  - Returns one target's focused split guidance.
+  - Query params:
+    - `target`: required exact Bazel target label
+
 - `GET /graph.json`
   - Served by the Go HTTP server in `serveGraph`.
   - Returns the raw graph JSON used by the frontend.
@@ -18,6 +23,12 @@ This app exposes a small JSON API surface. The most useful endpoint for choke-po
 - `GET /graph.details.json`
   - Served when the graph payload has an adjacent details sidecar.
   - Returns per-target direct input lists, direct output lists, and mnemonic summaries for deeper inspection.
+
+- `GET /file-focus.json`
+  - Returns one file label's direct and transitive consumers in the current graph snapshot.
+  - When the server came from `buildscope open`, it also adds live workspace reverse dependencies from Bazel query.
+  - Query params:
+    - `label`: required exact Bazel file label, for example `//pkg:file.go`
 
 Example `/analysis.json` shape:
 
@@ -41,6 +52,9 @@ Example `/analysis.json` shape:
     {
       "id": "//pkg:hub",
       "pressure": 91.4,
+      "opportunityScore": 246.8,
+      "massScore": 5.5,
+      "shardabilityScore": 7.1,
       "transitiveInDegree": 77,
       "outDegree": 11,
       "inputFileCount": 34,
@@ -77,6 +91,48 @@ Example `/analysis.json` shape:
 }
 ```
 
+Example `/file-focus.json` shape:
+
+```json
+{
+  "label": "//pkg:file.go",
+  "currentGraphDirectConsumerCount": 2,
+  "currentGraphDirectConsumers": ["//app:bin", "//pkg:hub"],
+  "currentGraphTransitiveConsumerCount": 5,
+  "topCurrentGraphConsumers": [
+    {
+      "id": "//pkg:hub",
+      "direct": true,
+      "opportunityScore": 91.4
+    }
+  ],
+  "liveQueryAvailable": true,
+  "workspaceReverseDependencyCount": 14
+}
+```
+
+Example `/decomposition.json` shape:
+
+```json
+{
+  "target": "//pkg:hub",
+  "eligible": true,
+  "impactScore": 6.3,
+  "massScore": 5.5,
+  "shardabilityScore": 7.1,
+  "communityCount": 3,
+  "largestCommunityShare": 0.5,
+  "crossCommunityEdgeRatio": 0.18,
+  "communities": [
+    {
+      "title": "//pkg/auth",
+      "nodeCount": 4,
+      "sampleLabels": ["//pkg/auth:api", "//pkg/auth:session"]
+    }
+  ]
+}
+```
+
 Example `/graph.json` shape:
 
 ```json
@@ -104,7 +160,7 @@ What happens:
 - runs `bazel query 'deps(target)' --output=graph --keep_going`
 - optionally enriches the graph with `label_kind`, `cquery`, and build-backed output stats
 - streams the result into a temp `graph.json`
-- serves the UI, `/graph.json`, `/analysis.json`, and `/graph.details.json` when present
+- serves the UI, `/graph.json`, `/analysis.json`, `/decomposition.json`, and `/graph.details.json` when present
 
 ### 2. Serve an existing graph file
 
@@ -137,11 +193,12 @@ Default ports:
 - Go server: `http://localhost:4422`
 - Vite dev server: `http://localhost:4400`
 
-In dev mode, Vite proxies `/graph.json` to the Go server. `/analysis.json` is available directly from the Go server.
+In dev mode, Vite proxies `/graph.json` to the Go server. `/analysis.json` and `/decomposition.json` are available directly from the Go server.
 
 - `http://localhost:4422/graph.json`
 - `http://localhost:4400/graph.json`
 - `http://localhost:4422/analysis.json`
+- `http://localhost:4422/decomposition.json?target=//pkg:target`
 - `http://localhost:4422/graph.details.json`
 
 Prefer the Go server when you want the direct backend endpoint and no frontend proxy in the middle.
@@ -158,6 +215,18 @@ Focus one target:
 
 ```bash
 curl -fsS "http://localhost:4422/analysis.json?top=15&focus=//pkg:target" | jq
+```
+
+Focus one file:
+
+```bash
+curl -fsS "http://localhost:4422/file-focus.json?label=//pkg:file.go" | jq
+```
+
+Focus one target's split seams:
+
+```bash
+curl -fsS "http://localhost:4422/decomposition.json?target=//pkg:target" | jq
 ```
 
 Count nodes and edges from the raw graph:

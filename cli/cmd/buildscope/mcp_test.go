@@ -136,6 +136,120 @@ func TestMCPServerGetTargetDetailsFromGraphFile(t *testing.T) {
 	}
 }
 
+func TestMCPServerGetTargetDecompositionFromGraphFile(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	graphPath := filepath.Join(tempDir, "graph.json")
+
+	graphData := []byte(`{
+		"schemaVersion": 2,
+		"nodes": [
+			{"id":"//app:bin","label":"//app:bin","nodeType":"rule"},
+			{"id":"//feature/auth:api","label":"//feature/auth:api","nodeType":"rule"},
+			{"id":"//feature/auth:session","label":"//feature/auth:session","nodeType":"rule"},
+			{"id":"//feature/data:store","label":"//feature/data:store","nodeType":"rule"}
+		],
+		"edges": [
+			{"source":"//app:bin","target":"//feature/auth:api"},
+			{"source":"//app:bin","target":"//feature/auth:session"},
+			{"source":"//app:bin","target":"//feature/data:store"},
+			{"source":"//feature/auth:api","target":"//feature/auth:session"}
+		]
+	}`)
+	if err := os.WriteFile(graphPath, graphData, 0o644); err != nil {
+		t.Fatalf("write graph: %v", err)
+	}
+
+	mcp := &mcpServer{
+		source: mcpSourceConfig{
+			GraphPath: graphPath,
+		},
+		httpClient: &http.Client{
+			Timeout: 2 * time.Second,
+		},
+	}
+
+	args, err := json.Marshal(mcpTargetArgs{Target: "//app:bin"})
+	if err != nil {
+		t.Fatalf("marshal args: %v", err)
+	}
+	result := mcp.callTool("get_target_decomposition", args)
+
+	if result.IsError {
+		t.Fatalf("get_target_decomposition returned error: %#v", result)
+	}
+
+	decomposition, ok := result.StructuredContent.(mcpTargetDecompositionResult)
+	if !ok {
+		t.Fatalf("structured content type = %T, want mcpTargetDecompositionResult", result.StructuredContent)
+	}
+	if decomposition.Decomposition == nil || decomposition.Decomposition.Target != "//app:bin" {
+		t.Fatalf("decomposition = %#v, want //app:bin", decomposition.Decomposition)
+	}
+	if decomposition.Decomposition.CommunityCount != 2 {
+		t.Fatalf("community count = %d, want 2", decomposition.Decomposition.CommunityCount)
+	}
+}
+
+func TestMCPServerGetFileDetailsFromGraphFile(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	graphPath := filepath.Join(tempDir, "graph.json")
+
+	graphData := []byte(`{
+		"schemaVersion": 2,
+		"target": "//app:bin",
+		"nodes": [
+			{"id":"//app:bin","label":"//app:bin","nodeType":"rule","inputBytes":131072,"actionCount":4},
+			{"id":"//pkg:lib","label":"//pkg:lib","nodeType":"rule","inputBytes":524288,"actionCount":8},
+			{"id":"//pkg:file.go","label":"//pkg:file.go","nodeType":"source-file"}
+		],
+		"edges": [
+			{"source":"//app:bin","target":"//pkg:lib"},
+			{"source":"//pkg:lib","target":"//pkg:file.go"},
+			{"source":"//app:bin","target":"//pkg:file.go"}
+		]
+	}`)
+	if err := os.WriteFile(graphPath, graphData, 0o644); err != nil {
+		t.Fatalf("write graph: %v", err)
+	}
+
+	mcp := &mcpServer{
+		source: mcpSourceConfig{
+			GraphPath: graphPath,
+		},
+		httpClient: &http.Client{
+			Timeout: 2 * time.Second,
+		},
+	}
+
+	args, err := json.Marshal(mcpFileArgs{Label: "//pkg:file.go"})
+	if err != nil {
+		t.Fatalf("marshal args: %v", err)
+	}
+	result := mcp.callTool("get_file_details", args)
+
+	if result.IsError {
+		t.Fatalf("get_file_details returned error: %#v", result)
+	}
+
+	details, ok := result.StructuredContent.(fileFocusResponse)
+	if !ok {
+		t.Fatalf("structured content type = %T, want fileFocusResponse", result.StructuredContent)
+	}
+	if details.Label != "//pkg:file.go" {
+		t.Fatalf("label = %q, want //pkg:file.go", details.Label)
+	}
+	if details.CurrentGraphDirectConsumerCount != 2 {
+		t.Fatalf("direct consumers = %d, want 2", details.CurrentGraphDirectConsumerCount)
+	}
+	if details.LiveQueryAvailable {
+		t.Fatal("graph-file mode should not report live query availability")
+	}
+}
+
 func TestMCPHandleInitializeIncludesInstructions(t *testing.T) {
 	t.Parallel()
 
@@ -168,6 +282,12 @@ func TestMCPHandleInitializeIncludesInstructions(t *testing.T) {
 	}
 	if !strings.Contains(result.Instructions, "get_analysis") {
 		t.Fatalf("instructions = %q, want get_analysis guidance", result.Instructions)
+	}
+	if !strings.Contains(result.Instructions, "get_file_details") {
+		t.Fatalf("instructions = %q, want get_file_details guidance", result.Instructions)
+	}
+	if !strings.Contains(result.Instructions, "get_target_decomposition") {
+		t.Fatalf("instructions = %q, want get_target_decomposition guidance", result.Instructions)
 	}
 }
 

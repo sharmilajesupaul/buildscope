@@ -86,30 +86,30 @@ export function createSidePanel(): HTMLElement {
         </div>
       </details>
 
-      <details class="panel-group menu-section" open>
+      <details class="panel-group menu-section">
         <summary class="menu-summary">
           <span class="menu-summary-title">Rankings</span>
           <span class="menu-summary-copy">Top candidates</span>
         </summary>
         <div class="menu-body">
-          <div class="section-copy">Filter by target or rank like <code>#3</code>, then focus the graph from the list.</div>
+          <div class="section-copy">Filter by target or rank like <code>#3</code>, then inspect decomposition on the right for the selected target.</div>
           <div class="search-container analysis-search">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
             </svg>
             <input type="text" class="search-input" id="analysis-filter-input" placeholder="Filter targets or #rank..." />
           </div>
-          <details class="analysis-group" open>
+          <details class="analysis-group">
             <summary class="analysis-summary">
               <span class="analysis-heading">Top impact</span>
               <span class="analysis-summary-meta" id="impact-analysis-count">Top shared targets</span>
             </summary>
             <div class="analysis-list" id="impact-analysis-list"></div>
           </details>
-          <details class="analysis-group" open>
+          <details class="analysis-group">
             <summary class="analysis-summary">
               <span class="analysis-heading">Break-up candidates</span>
-              <span class="analysis-summary-meta" id="pressure-analysis-count">Broad shared hubs</span>
+              <span class="analysis-summary-meta" id="pressure-analysis-count">Impact · mass · shardability</span>
             </summary>
             <div class="analysis-list" id="pressure-analysis-list"></div>
           </details>
@@ -247,15 +247,15 @@ export function createSelectionInspector(): HTMLElement {
       <span class="mode-pill" id="weight-mode-label">Impact</span>
     </div>
     <div class="selection-slot">
-      <div class="focus-empty" id="current-node-empty">Select a node to inspect what it is, why it matters, and how connected it is.</div>
+      <div class="focus-empty" id="current-node-empty">Select a node to inspect what it is, why it matters, and how it could split.</div>
       <div class="focus-card hidden" id="current-node-status">
         <div class="focus-title" id="current-node"></div>
         <div class="focus-subtitle" id="current-node-subtitle"></div>
         <div class="compact-meta-row compact-meta-row-rich">
           <span class="compact-meta-label">Type</span>
-          <span class="compact-meta-value" id="node-type">Unknown</span>
+          <span class="compact-meta-value" id="node-type">—</span>
           <span class="compact-meta-label">Rule</span>
-          <span class="compact-meta-value" id="rule-kind">None</span>
+          <span class="compact-meta-value" id="rule-kind">—</span>
         </div>
         <div class="selection-note hidden" id="selection-note"></div>
         <details class="analysis-group focus-analysis-group" id="focus-connectivity-group" open>
@@ -285,7 +285,7 @@ export function createSelectionInspector(): HTMLElement {
             <div class="compact-meta-row">
               <span class="compact-meta-label">Cluster</span>
               <span class="compact-meta-value" id="scc-size">1</span>
-              <span class="hidden" id="hotspot-rank">Not ranked</span>
+              <span class="hidden" id="hotspot-rank">—</span>
             </div>
           </div>
         </details>
@@ -298,33 +298,72 @@ export function createSelectionInspector(): HTMLElement {
             <div class="focus-metric-grid">
               <div class="focus-metric">
                 <span class="focus-metric-label">Source files</span>
-                <span class="focus-metric-value" id="source-file-count">0</span>
+                <span class="focus-metric-value" id="source-file-count">—</span>
               </div>
               <div class="focus-metric">
                 <span class="focus-metric-label">Source bytes</span>
-                <span class="focus-metric-value" id="source-bytes">0 B</span>
+                <span class="focus-metric-value" id="source-bytes">—</span>
               </div>
               <div class="focus-metric">
                 <span class="focus-metric-label">Input files</span>
-                <span class="focus-metric-value" id="input-file-count">0</span>
+                <span class="focus-metric-value" id="input-file-count">—</span>
               </div>
               <div class="focus-metric">
                 <span class="focus-metric-label">Input bytes</span>
-                <span class="focus-metric-value" id="input-bytes">0 B</span>
+                <span class="focus-metric-value" id="input-bytes">—</span>
               </div>
               <div class="focus-metric">
                 <span class="focus-metric-label">Outputs</span>
-                <span class="focus-metric-value" id="output-file-count">0</span>
+                <span class="focus-metric-value" id="output-file-count">—</span>
               </div>
               <div class="focus-metric">
                 <span class="focus-metric-label">Output bytes</span>
-                <span class="focus-metric-value" id="output-bytes">0 B</span>
+                <span class="focus-metric-value" id="output-bytes">—</span>
               </div>
               <div class="focus-metric">
                 <span class="focus-metric-label">Actions</span>
-                <span class="focus-metric-value" id="action-count">0</span>
+                <span class="focus-metric-value" id="action-count">—</span>
               </div>
             </div>
+          </div>
+        </details>
+        <details class="analysis-group focus-analysis-group" id="focus-decomposition-group" open>
+          <summary class="analysis-summary">
+            <span class="analysis-heading">Decomposition</span>
+            <span class="analysis-summary-meta" id="focus-decomposition-meta">Readable split guidance</span>
+          </summary>
+          <div class="focus-analysis-content">
+            <div class="focus-verdict hidden" id="decomposition-verdict"></div>
+            <div class="focus-metric-grid">
+              <div class="focus-metric">
+                <span class="focus-metric-label">Blast radius</span>
+                <span class="focus-metric-value" id="decomposition-impact-score">—</span>
+                <span class="focus-metric-meta" id="decomposition-impact-meta">—</span>
+              </div>
+              <div class="focus-metric">
+                <span class="focus-metric-label">Build mass</span>
+                <span class="focus-metric-value" id="decomposition-mass-score">—</span>
+                <span class="focus-metric-meta" id="decomposition-mass-meta">—</span>
+              </div>
+              <div class="focus-metric">
+                <span class="focus-metric-label">Split fit</span>
+                <span class="focus-metric-value" id="decomposition-shardability-score">—</span>
+                <span class="focus-metric-meta" id="decomposition-shardability-meta">—</span>
+              </div>
+              <div class="focus-metric">
+                <span class="focus-metric-label">Dependency groups</span>
+                <span class="focus-metric-value" id="decomposition-community-count">—</span>
+                <span class="focus-metric-meta" id="decomposition-community-meta">—</span>
+              </div>
+            </div>
+            <div class="compact-meta-row">
+              <span class="compact-meta-label">Largest group</span>
+              <span class="compact-meta-value" id="decomposition-largest-community-share">—</span>
+              <span class="compact-meta-label">Coupling</span>
+              <span class="compact-meta-value" id="decomposition-cross-edge-ratio">—</span>
+            </div>
+            <div class="selection-note hidden" id="decomposition-note"></div>
+            <div class="analysis-list" id="decomposition-community-list"></div>
           </div>
         </details>
         <details class="analysis-group focus-analysis-group" id="focus-inputs-group" open>

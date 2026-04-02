@@ -4,6 +4,7 @@ BuildScope now uses Bazel for two layers of data:
 
 - the raw dependency graph for a target
 - optional per-target metadata about file surface, generated outputs, and action structure
+- optional live reverse-dependency drill-downs for a focused file when the server was started from a real Bazel workspace
 
 The higher-level analysis for hotspots, source-heavy targets, output-heavy targets, and break-up candidates is still computed locally after the graph has been loaded into the UI or the Codex skill.
 
@@ -54,13 +55,14 @@ flowchart TD
     U --> V["calculateTransitiveClosure<br/>BFS over incoming and outgoing edges"]
     V --> W["calculateStronglyConnectedComponents<br/>iterative Tarjan SCC"]
     W --> X["markHighImpactHotspots"]
-    X --> Y["recalculate node weights<br/>impact / breakup / source bytes / output bytes / action count"]
+    X --> Y["recalculate node weights<br/>impact / mass / shardability / source bytes / output bytes / action count"]
     Y --> Z["rank high impact, break-up, source-heavy, and output-heavy targets"]
-    Z --> AA["layeredLayout for normal graphs<br/>compactGridLayout for very large graphs"]
+    Z --> AA["file-focus drill-down<br/>current-graph consumers<br/>plus live bazel query rdeps when available"]
+    AA --> AB["layeredLayout for normal graphs<br/>compactGridLayout for very large graphs"]
   end
 
-  AA --> AB["Pixi.js renders graph, rankings, and inspector"]
-  S --> AC["Codex skill reads graph + details<br/>and explains chokepoints with evidence"]
+  AB --> AC["Pixi.js renders graph, rankings, and inspector"]
+  S --> AD["Codex skill reads graph + details<br/>and explains chokepoints with evidence"]
 ```
 
 ## What Bazel Does
@@ -70,6 +72,7 @@ flowchart TD
 - `bazel query 'deps(<target>)' --output=label_kind` classifies labels as rules, source files, or generated files.
 - `bazel cquery 'deps(<target>)' --output=starlark` exposes configured target outputs and registered action mnemonics.
 - In `-enrich build` mode, `bazel build <target> --keep_going` materializes outputs so BuildScope can stat them and compute output bytes.
+- When the server is running against a live workspace, targeted reverse-dependency drill-downs can also use `bazel query "rdeps(//..., <file>)"` on demand for one file label at a time.
 
 ## What BuildScope Does After Bazel
 
@@ -77,28 +80,33 @@ flowchart TD
 - The extractor joins topology, node-kind classification, configured outputs, and action mnemonics into enriched per-node summaries.
 - Rule targets get rolled-up metrics such as direct source file count, source bytes, direct input file count, input bytes, default output count, output bytes, and action count.
 - `graph.json` carries node summaries for rendering and rankings. `graph.details.json` carries the larger direct input / output / mnemonic lists for the inspector and Codex skill.
+- `/file-focus.json` layers file-centric consumer analysis on top of the same served graph, and optionally augments it with live workspace reverse dependencies.
 
 ## How High-Impact Targets Are Detected
 
 - After the browser or skill loads `/graph.json`, the analysis code sanitizes invalid ids and dangling edges while preserving enriched fields.
 - The worker computes direct `inDegree` and `outDegree`, then runs BFS over incoming and outgoing edges to compute `transitiveInDegree` and `transitiveOutDegree`.
-- The worker runs iterative Tarjan SCC detection to find strongly connected components.
-- Cyclic SCCs are promoted to hotspots first because they represent tightly coupled clusters.
-- For mostly acyclic Bazel graphs, the worker also promotes unusually shared nodes using the upper slice of `transitiveInDegree`, so widely reused libraries still surface as high-impact targets.
+- The worker still runs iterative Tarjan SCC detection defensively, but Bazel target graphs are usually acyclic, so SCCs are rarely the deciding breakup signal.
+- For Bazel DAGs, the worker promotes unusually shared nodes using the upper slice of `transitiveInDegree`, so widely reused libraries still surface as high-impact targets.
 
 ## How Break-Up Targets Are Detected
 
-- Break-up candidates are derived from the local `pressure` score plus a small surface-area boost:
+- BuildScope still emits the legacy `pressure` score for compatibility, but breakup ranking is now driven by a heavier-weight opportunity model:
 
 ```text
-log2(transitiveInDegree + 1) * max(1, outDegree)
-+ log2(inputFileCount + 1)
-+ log2(outputFileCount + 1)
-+ log2(actionCount + 1)
+opportunityScore = impactScore * massScore * shardabilityScore
 ```
 
-- That scoring intentionally favors targets that are both widely depended on and structurally broad enough to be worth splitting.
-- Stable shared leaves still rank high in impact, but broad hubs with large file or output surfaces move higher in the break-up list.
+- `impactScore` captures downstream blast radius.
+- `massScore` captures build-heavy surface such as actions, bytes, and file counts.
+- `shardabilityScore` captures structural breadth plus dependency-package diversity.
+- Stable shared leaves are explicitly demoted when they are central but still light and structurally narrow.
+
+## How File Drill-Down Works
+
+- The served graph already records file nodes, direct file inputs, and per-target top files.
+- `/file-focus.json?label=//pkg:file.go` computes direct and transitive consumers of that file within the current graph snapshot.
+- When the server was started with `buildscope open`, BuildScope also runs `bazel query "rdeps(//..., <file>)"` on demand so Codex and other clients can distinguish local graph consumers from whole-workspace reverse dependencies.
 
 ## Summary
 
@@ -108,3 +116,4 @@ Bazel gives BuildScope the dependency graph and the raw metadata needed to size 
 - Which shared hubs are the best break-up or refactor candidates?
 - Which targets carry the largest direct source or input surface?
 - Which targets produce the largest output surface or action footprint?
+- Which files are actually pulling high-opportunity targets into a rebuild path?

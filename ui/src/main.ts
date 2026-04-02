@@ -1,9 +1,11 @@
 import { Application } from 'pixi.js';
 import { rehydratePositionedGraph, type Graph, type PositionedGraph, type WeightMode } from './graphLayout';
-import { loadAnalysis, loadGraph } from './graphLoader';
+import { loadAnalysis, loadGraph, loadTargetDecomposition } from './graphLoader';
 import { GraphVisualization } from './GraphVisualization';
 import { applyTheme, isThemeName, loadThemePreference } from './constants';
+import { getVisibleAnalysisEntries } from './analysisFilter';
 import {
+  type BuildScopeDecompositionResponse,
   getTopBreakupCandidates,
   getTopBreakupCandidatesFromAnalysis,
   getTopImpactTargets,
@@ -69,6 +71,34 @@ function getMetricAvailability(graph: Graph): MetricAvailability {
   );
 }
 
+function formatDecompositionScore(score: number | undefined): string {
+  if (score === undefined || Number.isNaN(score)) return '—';
+  return score.toFixed(1);
+}
+
+function formatRatio(value: number | undefined): string {
+  if (value === undefined || Number.isNaN(value)) return '—';
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatPercentile(value: number | undefined): string {
+  if (value === undefined || Number.isNaN(value)) return '—';
+  const rounded = Math.round(value);
+  const tens = rounded % 100;
+  const ones = rounded % 10;
+  let suffix = 'th';
+  if (tens < 11 || tens > 13) {
+    if (ones === 1) suffix = 'st';
+    else if (ones === 2) suffix = 'nd';
+    else if (ones === 3) suffix = 'rd';
+  }
+  return `${rounded}${suffix} pct`;
+}
+
+function isRuleSelection(nodeType: string | undefined): boolean {
+  return !nodeType || nodeType === 'rule';
+}
+
 function main() {
   const root = document.getElementById('app');
   if (!root) return;
@@ -119,6 +149,7 @@ function main() {
   const inputAnalysisCountEl = sidePanel.querySelector('#input-analysis-count') as HTMLElement;
   const outputAnalysisCountEl = sidePanel.querySelector('#output-analysis-count') as HTMLElement;
   const focusSurfaceGroupEl = selectionInspector.querySelector('#focus-surface-group') as HTMLElement;
+  const focusDecompositionGroupEl = selectionInspector.querySelector('#focus-decomposition-group') as HTMLElement;
   const focusInputsGroupEl = selectionInspector.querySelector('#focus-inputs-group') as HTMLElement;
   const focusOutputsGroupEl = selectionInspector.querySelector('#focus-outputs-group') as HTMLElement;
   const focusActionsGroupEl = selectionInspector.querySelector('#focus-actions-group') as HTMLElement;
@@ -142,6 +173,20 @@ function main() {
   const actionCountEl = selectionInspector.querySelector('#action-count') as HTMLElement;
   const sccSizeEl = selectionInspector.querySelector('#scc-size') as HTMLElement;
   const hotspotRankEl = selectionInspector.querySelector('#hotspot-rank') as HTMLElement;
+  const decompositionMetaEl = selectionInspector.querySelector('#focus-decomposition-meta') as HTMLElement;
+  const decompositionVerdictEl = selectionInspector.querySelector('#decomposition-verdict') as HTMLElement;
+  const decompositionImpactScoreEl = selectionInspector.querySelector('#decomposition-impact-score') as HTMLElement;
+  const decompositionImpactMetaEl = selectionInspector.querySelector('#decomposition-impact-meta') as HTMLElement;
+  const decompositionMassScoreEl = selectionInspector.querySelector('#decomposition-mass-score') as HTMLElement;
+  const decompositionMassMetaEl = selectionInspector.querySelector('#decomposition-mass-meta') as HTMLElement;
+  const decompositionShardabilityScoreEl = selectionInspector.querySelector('#decomposition-shardability-score') as HTMLElement;
+  const decompositionShardabilityMetaEl = selectionInspector.querySelector('#decomposition-shardability-meta') as HTMLElement;
+  const decompositionCommunityCountEl = selectionInspector.querySelector('#decomposition-community-count') as HTMLElement;
+  const decompositionCommunityMetaEl = selectionInspector.querySelector('#decomposition-community-meta') as HTMLElement;
+  const decompositionLargestCommunityShareEl = selectionInspector.querySelector('#decomposition-largest-community-share') as HTMLElement;
+  const decompositionCrossEdgeRatioEl = selectionInspector.querySelector('#decomposition-cross-edge-ratio') as HTMLElement;
+  const decompositionNoteEl = selectionInspector.querySelector('#decomposition-note') as HTMLElement;
+  const decompositionCommunityListEl = selectionInspector.querySelector('#decomposition-community-list') as HTMLElement;
   const topFilesListEl = selectionInspector.querySelector('#top-files-list') as HTMLElement;
   const topOutputsListEl = selectionInspector.querySelector('#top-outputs-list') as HTMLElement;
   const mnemonicListEl = selectionInspector.querySelector('#mnemonic-list') as HTMLElement;
@@ -214,6 +259,8 @@ function main() {
   let outputEntries: ReturnType<typeof getTopOutputHeavyTargets> = [];
   let positionedGraph: PositionedGraph | null = null;
   let backendAnalysis: BuildScopeAnalysisResponse | null = null;
+  let decompositionCache = new Map<string, BuildScopeDecompositionResponse | null>();
+  let decompositionRequestToken = 0;
 
   const getEffectiveWeightMode = (): WeightMode => {
     if (advancedMode === 'follow-focus') return primaryMode;
@@ -264,21 +311,6 @@ function main() {
     viz.focusNode(nodeId);
   };
 
-  const matchesAnalysisQuery = (
-    entry: AnalysisEntry,
-    rank: number,
-    query: string
-  ) => {
-    const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return true;
-
-    if (trimmed === String(rank) || trimmed === `#${rank}`) return true;
-    return (
-      entry.label.toLowerCase().includes(trimmed) ||
-      entry.summary.toLowerCase().includes(trimmed)
-    );
-  };
-
   const renderAnalysisList = (
     listEl: HTMLElement,
     countEl: HTMLElement,
@@ -286,25 +318,27 @@ function main() {
     mode: 'transitive-total' | 'pressure' | 'source-bytes' | 'input-bytes' | 'output-bytes'
   ) => {
     listEl.replaceChildren();
-    const filtered = entries.filter((entry, index) =>
-      matchesAnalysisQuery(entry, index + 1, analysisQuery)
+    const { visible, filteredCount, totalCount, isFiltered } = getVisibleAnalysisEntries(
+      entries,
+      analysisQuery
     );
-    countEl.innerText = analysisQuery
-      ? `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`
-      : `${entries.length} ranked`;
+    countEl.innerText = isFiltered
+      ? `${filteredCount} match${filteredCount === 1 ? '' : 'es'}`
+      : totalCount > visible.length
+        ? `${visible.length} of ${totalCount} ranked`
+        : `${totalCount} ranked`;
 
-    if (!filtered.length) {
+    if (!visible.length) {
       const empty = document.createElement('div');
       empty.className = 'analysis-empty';
-      empty.innerText = analysisQuery
+      empty.innerText = isFiltered
         ? 'No ranking entries match that filter.'
         : 'No ranked targets for this graph.';
       listEl.appendChild(empty);
       return;
     }
 
-    filtered.slice(0, 6).forEach((entry, index) => {
-      const rank = entries.indexOf(entry) + 1;
+    visible.forEach(({ entry, rank }) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'analysis-item';
@@ -374,6 +408,162 @@ function main() {
     }
     renderAnalysisLists();
   };
+
+  const renderDecompositionEmpty = (message: string, note?: string) => {
+    decompositionMetaEl.innerText = 'Readable split guidance';
+    decompositionVerdictEl.classList.add('hidden');
+    decompositionVerdictEl.innerText = '';
+    decompositionImpactScoreEl.innerText = '—';
+    decompositionImpactMetaEl.innerText = '—';
+    decompositionMassScoreEl.innerText = '—';
+    decompositionMassMetaEl.innerText = '—';
+    decompositionShardabilityScoreEl.innerText = '—';
+    decompositionShardabilityMetaEl.innerText = '—';
+    decompositionCommunityCountEl.innerText = '—';
+    decompositionCommunityMetaEl.innerText = '—';
+    decompositionLargestCommunityShareEl.innerText = '—';
+    decompositionCrossEdgeRatioEl.innerText = '—';
+    decompositionCommunityListEl.replaceChildren();
+
+    const empty = document.createElement('div');
+    empty.className = 'analysis-empty';
+    empty.innerText = message;
+    decompositionCommunityListEl.appendChild(empty);
+
+    if (note) {
+      decompositionNoteEl.classList.remove('hidden');
+      decompositionNoteEl.innerText = note;
+    } else {
+      decompositionNoteEl.classList.add('hidden');
+      decompositionNoteEl.innerText = '';
+    }
+  };
+
+  const renderDecomposition = (decomposition: BuildScopeDecompositionResponse | null) => {
+    if (!decomposition) {
+      renderDecompositionEmpty('Focused decomposition is unavailable for this graph.');
+      return;
+    }
+
+    decompositionMetaEl.innerText = 'Graph-relative fit and seam strength';
+    if (decomposition.verdict) {
+      decompositionVerdictEl.classList.remove('hidden');
+      decompositionVerdictEl.innerText = decomposition.verdict;
+    } else {
+      decompositionVerdictEl.classList.add('hidden');
+      decompositionVerdictEl.innerText = '';
+    }
+    decompositionImpactScoreEl.innerText = decomposition.impact?.band || '—';
+    decompositionImpactMetaEl.innerText =
+      decomposition.impact
+        ? `${formatPercentile(decomposition.impact.percentile)} · ${decomposition.impact.reason || `score ${formatDecompositionScore(decomposition.impact.score)}`}`
+        : '—';
+    decompositionMassScoreEl.innerText = decomposition.mass?.band || '—';
+    decompositionMassMetaEl.innerText =
+      decomposition.mass
+        ? `${formatPercentile(decomposition.mass.percentile)} · ${decomposition.mass.reason || `score ${formatDecompositionScore(decomposition.mass.score)}`}`
+        : '—';
+    decompositionShardabilityScoreEl.innerText = decomposition.splitFit?.band || '—';
+    decompositionShardabilityMetaEl.innerText =
+      decomposition.splitFit
+        ? `${formatPercentile(decomposition.splitFit.percentile)} structural breadth · ${decomposition.splitFit.reason || `score ${formatDecompositionScore(decomposition.splitFit.score)}`}`
+        : '—';
+    decompositionCommunityCountEl.innerText = decomposition.communityCount === 1 ? '1 group' : `${decomposition.communityCount ?? 0} groups`;
+    decompositionCommunityMetaEl.innerText =
+      `${decomposition.directRuleDependencyCount} direct rule deps · ${formatRatio(decomposition.largestCommunityShare)} largest share`;
+    decompositionLargestCommunityShareEl.innerText = formatRatio(decomposition.largestCommunityShare);
+    decompositionCrossEdgeRatioEl.innerText =
+      decomposition.crossCommunityEdgeRatio === undefined
+        ? '—'
+        : decomposition.crossCommunityEdgeRatio === 0
+          ? 'No cross edges'
+          : formatRatio(decomposition.crossCommunityEdgeRatio);
+
+    const note =
+      decomposition.recommendations?.find(Boolean) ||
+      decomposition.reason ||
+      '';
+    if (note) {
+      decompositionNoteEl.classList.remove('hidden');
+      decompositionNoteEl.innerText = note;
+    } else {
+      decompositionNoteEl.classList.add('hidden');
+      decompositionNoteEl.innerText = '';
+    }
+
+    decompositionCommunityListEl.replaceChildren();
+    if (!decomposition.eligible || !(decomposition.communities?.length)) {
+      const empty = document.createElement('div');
+      empty.className = 'analysis-empty';
+      empty.innerText = decomposition.reason || 'No clear dependency groups found for this target.';
+      decompositionCommunityListEl.appendChild(empty);
+      return;
+    }
+
+    decomposition.communities.forEach((community) => {
+      const item = document.createElement('div');
+      item.className = 'analysis-item analysis-item-plain';
+
+      const body = document.createElement('span');
+      body.className = 'analysis-item-body';
+
+      const title = document.createElement('span');
+      title.className = 'analysis-item-title';
+      title.innerText = community.title;
+
+      const meta = document.createElement('span');
+      meta.className = 'analysis-item-meta';
+      const sample = community.sampleLabels?.length
+        ? ` · ${community.sampleLabels.map((label) => splitTargetLabel(label).primary).join(', ')}`
+        : '';
+      meta.innerText =
+        `${community.nodeCount} deps · ${formatRatio(community.share)} share · ` +
+        `${community.crossCommunityEdgeCount} cross edges${sample}`;
+
+      body.appendChild(title);
+      body.appendChild(meta);
+      item.appendChild(body);
+      decompositionCommunityListEl.appendChild(item);
+    });
+  };
+
+  const refreshSelectionDecomposition = (selectedNodeId: string | null) => {
+    decompositionRequestToken++;
+    const requestToken = decompositionRequestToken;
+
+    if (!selectedNodeId || !positionedGraph) {
+      focusDecompositionGroupEl.classList.add('hidden');
+      renderDecompositionEmpty('Select a rule target to inspect split seams.');
+      return;
+    }
+
+    const selectedNode = positionedGraph.idToNode.get(selectedNodeId);
+    if (!selectedNode || !isRuleSelection(selectedNode.nodeType)) {
+      focusDecompositionGroupEl.classList.add('hidden');
+      renderDecompositionEmpty('Decomposition is only available for rule targets.');
+      return;
+    }
+
+    focusDecompositionGroupEl.classList.remove('hidden');
+    const cached = decompositionCache.get(selectedNodeId);
+    if (cached !== undefined) {
+      renderDecomposition(cached);
+      return;
+    }
+
+    renderDecompositionEmpty('Loading focused decomposition…');
+    void loadTargetDecomposition(selectedNodeId).then((decomposition) => {
+      decompositionCache.set(selectedNodeId, decomposition);
+      if (requestToken !== decompositionRequestToken) return;
+      renderDecomposition(decomposition);
+    });
+  };
+
+  renderDecompositionEmpty('Select a rule target to inspect split seams.');
+  focusDecompositionGroupEl.classList.add('hidden');
+  viz.setSelectionChangeHandler((selectedNodeId) => {
+    refreshSelectionDecomposition(selectedNodeId);
+  });
 
   const toggleAdvancedOption = (value: AdvancedWeightMode, visible: boolean) => {
     const option = advancedModeSelect.querySelector(`option[value="${value}"]`) as HTMLOptionElement | null;
@@ -595,6 +785,7 @@ function main() {
     const pg = rehydratePositionedGraph(data.nodes, data.edges, data.hotspotCount, data.largestHotspotSize);
     const impactSummary = pg.hotspotCount ? `Ready · ${pg.hotspotCount} impact` : 'Ready';
     viz.setStatus(impactSummary, 'success');
+    decompositionCache = new Map();
     viz.setPositionedGraph(pg);
     positionedGraph = pg;
     refreshAnalysisEntries();

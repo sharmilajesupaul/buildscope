@@ -134,6 +134,7 @@ export class GraphVisualization {
   private pickableNodeIds: string[] = [];
   private palette: GraphPalette = getGraphPalette();
   private surfaceMetadataAvailable = false;
+  private selectionChangeHandler: ((nodeId: string | null) => void) | null = null;
 
   constructor(app: Application, uiElements: UIElements) {
     this.app = app;
@@ -184,6 +185,14 @@ export class GraphVisualization {
     this.topOutputsListEl = uiElements.topOutputsListEl;
     this.mnemonicListEl = uiElements.mnemonicListEl;
     this.weightModeLabelEl = uiElements.weightModeLabelEl;
+  }
+
+  setSelectionChangeHandler(handler: ((nodeId: string | null) => void) | null) {
+    this.selectionChangeHandler = handler;
+  }
+
+  private notifySelectionChanged() {
+    this.selectionChangeHandler?.(this.selectedId);
   }
 
   // Viewport calculations
@@ -943,6 +952,36 @@ export class GraphVisualization {
     return `${value} B`;
   }
 
+  private formatOptionalCount(value: number | undefined) {
+    return value === undefined ? '—' : String(value);
+  }
+
+  private formatOptionalBytes(value: number | undefined) {
+    return value === undefined ? '—' : this.formatBytes(value);
+  }
+
+  private isFileNode(node: PositionedNode) {
+    return node.nodeType === 'source-file' || node.nodeType === 'generated-file';
+  }
+
+  private hasRecordedSurfaceMetadata(node: PositionedNode) {
+    return (
+      node.sourceFileCount !== undefined ||
+      node.sourceBytes !== undefined ||
+      node.inputFileCount !== undefined ||
+      node.inputBytes !== undefined ||
+      node.outputFileCount !== undefined ||
+      node.outputBytes !== undefined ||
+      node.actionCount !== undefined ||
+      Boolean(node.topFiles?.length) ||
+      Boolean(node.topOutputs?.length) ||
+      Boolean(node.mnemonicSummary?.length) ||
+      Boolean(node.details?.directInputs?.length) ||
+      Boolean(node.details?.directOutputs?.length) ||
+      Boolean(node.details?.mnemonics?.length)
+    );
+  }
+
   private formatNodeType(node: PositionedNode) {
     switch (node.nodeType) {
       case 'rule':
@@ -959,6 +998,9 @@ export class GraphVisualization {
   }
 
   private getModeInsight(node: PositionedNode) {
+    if (this.isFileNode(node)) {
+      return `${this.formatNodeType(node)} · ${node.transitiveInDegree} targets depend on it in view`;
+    }
     switch (this.currentWeightMode) {
       case 'pressure':
         return `Potential break-up target · ${node.transitiveInDegree} dependents and ${node.outDegree} direct outputs`;
@@ -1015,21 +1057,21 @@ export class GraphVisualization {
     this.currentNodeSubtitleEl.innerText = '';
     this.selectionNoteEl.classList.add('hidden');
     this.selectionNoteEl.innerText = '';
-    this.nodeTypeEl.innerText = 'Unknown';
-    this.ruleKindEl.innerText = 'None';
-    this.directInputsEl.innerText = '0';
-    this.directOutputsEl.innerText = '0';
-    this.transitiveInputsEl.innerText = '0';
-    this.transitiveOutputsEl.innerText = '0';
-    this.sourceFileCountEl.innerText = '0';
-    this.sourceBytesEl.innerText = '0 B';
-    this.inputFileCountEl.innerText = '0';
-    this.inputBytesEl.innerText = '0 B';
-    this.outputFileCountEl.innerText = '0';
-    this.outputBytesEl.innerText = '0 B';
-    this.actionCountEl.innerText = '0';
-    this.sccSizeEl.innerText = '1';
-    this.hotspotRankEl.innerText = 'Not ranked';
+    this.nodeTypeEl.innerText = '—';
+    this.ruleKindEl.innerText = '—';
+    this.directInputsEl.innerText = '—';
+    this.directOutputsEl.innerText = '—';
+    this.transitiveInputsEl.innerText = '—';
+    this.transitiveOutputsEl.innerText = '—';
+    this.sourceFileCountEl.innerText = '—';
+    this.sourceBytesEl.innerText = '—';
+    this.inputFileCountEl.innerText = '—';
+    this.inputBytesEl.innerText = '—';
+    this.outputFileCountEl.innerText = '—';
+    this.outputBytesEl.innerText = '—';
+    this.actionCountEl.innerText = '—';
+    this.sccSizeEl.innerText = '—';
+    this.hotspotRankEl.innerText = '—';
     this.topFilesListEl.replaceChildren();
     this.topOutputsListEl.replaceChildren();
     this.mnemonicListEl.replaceChildren();
@@ -1138,9 +1180,13 @@ export class GraphVisualization {
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
         this.selectionInspectorEl.classList.remove('is-idle');
-        const focusType = node.isHotspot
-          ? 'Selected high-impact target'
-          : 'Selected target';
+        const isFileNode = this.isFileNode(node);
+        const hasRecordedSurfaceMetadata = this.hasRecordedSurfaceMetadata(node);
+        const focusType = isFileNode
+          ? `Selected ${this.formatNodeType(node).toLowerCase()}`
+          : node.isHotspot
+            ? 'Selected high-impact target'
+            : 'Selected target';
         const { primary, secondary } = this.splitTargetLabel(node.label);
         this.currentNodeEl.innerText = primary;
         this.currentNodeEl.title = node.label;
@@ -1151,37 +1197,49 @@ export class GraphVisualization {
         this.currentNodeStatus.classList.remove('hidden');
         this.currentNodeEmptyEl.classList.add('hidden');
         this.nodeTypeEl.innerText = this.formatNodeType(node);
-        this.ruleKindEl.innerText = node.ruleKind ?? 'None';
-        if (this.surfaceMetadataAvailable) {
-          this.selectionNoteEl.classList.add('hidden');
-          this.selectionNoteEl.innerText = '';
-        } else {
+        this.ruleKindEl.innerText = node.ruleKind ?? '—';
+        if (!this.surfaceMetadataAvailable) {
           this.selectionNoteEl.classList.remove('hidden');
           this.selectionNoteEl.innerText =
             'This graph only includes dependency topology. File counts, input/output bytes, and action stats are unavailable. Re-extract with -enrich analyze or -enrich build to see build-surface metrics.';
+        } else if (isFileNode) {
+          this.selectionNoteEl.classList.remove('hidden');
+          this.selectionNoteEl.innerText =
+            'File nodes do not carry aggregated rule build-surface metrics. Select a rule target to inspect source counts, bytes, outputs, and actions.';
+        } else if (!hasRecordedSurfaceMetadata) {
+          this.selectionNoteEl.classList.remove('hidden');
+          this.selectionNoteEl.innerText =
+            'No build-surface metadata was recorded for this target. This often means Bazel did not expose direct sources, inputs, outputs, or actions for it in this graph.';
+        } else {
+          this.selectionNoteEl.classList.add('hidden');
+          this.selectionNoteEl.innerText = '';
         }
         this.directInputsEl.innerText = String(node.inDegree);
         this.directOutputsEl.innerText = String(node.outDegree);
         this.transitiveInputsEl.innerText = String(node.transitiveInDegree);
         this.transitiveOutputsEl.innerText = String(node.transitiveOutDegree);
-        this.sourceFileCountEl.innerText = String(node.sourceFileCount ?? 0);
-        this.sourceBytesEl.innerText = this.formatBytes(node.sourceBytes);
-        this.inputFileCountEl.innerText = String(node.inputFileCount ?? 0);
-        this.inputBytesEl.innerText = this.formatBytes(node.inputBytes);
-        this.outputFileCountEl.innerText = String(node.outputFileCount ?? 0);
-        this.outputBytesEl.innerText = this.formatBytes(node.outputBytes);
-        this.actionCountEl.innerText = String(node.actionCount ?? 0);
+        this.sourceFileCountEl.innerText = isFileNode ? '—' : this.formatOptionalCount(node.sourceFileCount);
+        this.sourceBytesEl.innerText = isFileNode ? '—' : this.formatOptionalBytes(node.sourceBytes);
+        this.inputFileCountEl.innerText = isFileNode ? '—' : this.formatOptionalCount(node.inputFileCount);
+        this.inputBytesEl.innerText = isFileNode ? '—' : this.formatOptionalBytes(node.inputBytes);
+        this.outputFileCountEl.innerText = isFileNode ? '—' : this.formatOptionalCount(node.outputFileCount);
+        this.outputBytesEl.innerText = isFileNode ? '—' : this.formatOptionalBytes(node.outputBytes);
+        this.actionCountEl.innerText = isFileNode ? '—' : this.formatOptionalCount(node.actionCount);
         this.sccSizeEl.innerText = String(node.sccSize);
         this.hotspotRankEl.innerText = node.isHotspot ? `#${node.hotspotRank}` : 'Not ranked';
         this.renderArtifactList(
           this.topFilesListEl,
           node.details?.directInputs?.length ? node.details.directInputs : node.topFiles,
-          'No direct file inputs recorded for this node.',
+          isFileNode
+            ? 'File nodes do not aggregate direct file inputs.'
+            : 'No direct file inputs recorded for this node.',
         );
         this.renderArtifactList(
           this.topOutputsListEl,
           node.details?.directOutputs?.length ? node.details.directOutputs : node.topOutputs,
-          'No default outputs recorded for this node.',
+          isFileNode
+            ? 'File nodes do not record default outputs.'
+            : 'No default outputs recorded for this node.',
         );
         this.renderMnemonicList(
           this.mnemonicListEl,
@@ -1549,6 +1607,8 @@ export class GraphVisualization {
   setPositionedGraph(pg: PositionedGraph) {
     this.positioned = pg;
     recalculateWeights(pg, this.currentWeightMode);
+    this.selectedId = null;
+    this.hoveredId = null;
 
     // Clear old node graphics when loading a new graph
     this.nodesLayer.removeChildren();
@@ -1572,6 +1632,7 @@ export class GraphVisualization {
     this.clearNavigationPreview();
     this.navigationActive = false;
     this.setNodeInteractivity(true);
+    this.notifySelectionChanged();
     this.draw(pg, true, false);
   }
 
@@ -1587,6 +1648,7 @@ export class GraphVisualization {
     if (this.positioned) {
       this.selectedId = null;
       this.hoveredId = null;
+      this.notifySelectionChanged();
       this.lastStatusSignature = '';
       this.currentScale = 1;
       this.graphContainer.scale.set(1);
@@ -1608,21 +1670,12 @@ export class GraphVisualization {
 
     if (!node) {
       this.lastStatusSignature = '';
-      this.currentNodeEl.innerText = 'No matching target';
-      this.currentNodeEl.removeAttribute('title');
-      this.currentNodeSubtitleEl.innerText = `Search term: ${term}`;
-      this.currentNodeEmptyEl.classList.add('hidden');
-      this.currentNodeStatus.classList.remove('hidden');
-      this.directInputsEl.innerText = '0';
-      this.directOutputsEl.innerText = '0';
-      this.transitiveInputsEl.innerText = '0';
-      this.transitiveOutputsEl.innerText = '0';
-      this.sccSizeEl.innerText = '1';
-      this.hotspotRankEl.innerText = 'Not ranked';
+      this.setInspectorEmptyState(`No matching target for "${term}".`);
       return;
     }
 
     this.selectedId = node.id;
+    this.notifySelectionChanged();
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
   }
@@ -1635,6 +1688,7 @@ export class GraphVisualization {
 
     this.selectedId = node.id;
     this.hoveredId = node.id;
+    this.notifySelectionChanged();
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
   }
@@ -1731,6 +1785,7 @@ export class GraphVisualization {
       if (this.selectedId || this.hoveredId) {
         this.selectedId = null;
         this.hoveredId = null;
+        this.notifySelectionChanged();
         this.lastStatusSignature = '';
         this.draw(this.positioned, false, false);
       }
@@ -1739,6 +1794,7 @@ export class GraphVisualization {
 
     this.selectedId = pickedId;
     this.hoveredId = pickedId;
+    this.notifySelectionChanged();
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, true);
   }
@@ -1747,6 +1803,7 @@ export class GraphVisualization {
     if (!this.positioned || (!this.selectedId && !this.hoveredId)) return;
     this.selectedId = null;
     this.hoveredId = null;
+    this.notifySelectionChanged();
     this.lastStatusSignature = '';
     this.draw(this.positioned, false, false);
   }
