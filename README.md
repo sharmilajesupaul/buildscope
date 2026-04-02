@@ -62,7 +62,6 @@ brew install sharmilajesupaul/buildscope/buildscope
 ```
 
 The release workflow opens a Homebrew formula update PR after each tagged prerelease.
-If this repo is still private, your GitHub access for `git` and Homebrew needs to be configured first.
 
 **Linux**
 

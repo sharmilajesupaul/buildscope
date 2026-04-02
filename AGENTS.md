@@ -59,7 +59,7 @@ buildscope version
 
 ## Architecture
 
-The canonical extraction and analysis diagram lives in [docs/bazel-graph-flow.md](/Users/sharmilajesupaul/code/repos/buildscope1/docs/bazel-graph-flow.md).
+The canonical extraction and analysis diagram lives in [docs/bazel-graph-flow.md](docs/bazel-graph-flow.md).
 
 Use that doc when you need the end-to-end Mermaid flow for:
 
@@ -78,24 +78,24 @@ Short version:
 
 ## File Map
 
-- [`cli/cmd/buildscope/main.go`](/Users/sharmilajesupaul/code/repos/buildscope1/cli/cmd/buildscope/main.go) - CLI commands, workspace validation, graph serving, streaming parse, `/graph.json`, `/analysis.json`
-- [`cli/cmd/buildscope/analysis.go`](/Users/sharmilajesupaul/code/repos/buildscope1/cli/cmd/buildscope/analysis.go) - backend graph sanitization, SCC analysis, hotspot ranking, breakup recommendations, analysis response shaping
-- [`ui/src/graphLoader.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphLoader.ts) - client graph fetch path
-- [`ui/src/graphWorker.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphWorker.ts) - worker boundary for expensive graph work
-- [`ui/src/graphLayout.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphLayout.ts) - graph types, sanitization, layout, SCCs, weighting
-- [`ui/src/graphAnalysis.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphAnalysis.ts) - browser-side ranking helpers for impact and breakup candidates
-- [`ui/src/GraphVisualization.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/GraphVisualization.ts) - Pixi scene graph, zoom/pan, selection, rendering
-- [`ui/src/ui.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/ui.ts) - DOM controls and side panels
-- [`ui/src/main.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/main.ts) - app wiring, event flow, and ranking panel updates
+- [`cli/cmd/buildscope/main.go`](cli/cmd/buildscope/main.go) - CLI commands, workspace validation, graph serving, streaming parse, `/graph.json`, `/analysis.json`
+- [`cli/cmd/buildscope/analysis.go`](cli/cmd/buildscope/analysis.go) - backend graph sanitization, SCC analysis, hotspot ranking, breakup recommendations, analysis response shaping
+- [`ui/src/graphLoader.ts`](ui/src/graphLoader.ts) - client graph fetch path
+- [`ui/src/graphWorker.ts`](ui/src/graphWorker.ts) - worker boundary for expensive graph work
+- [`ui/src/graphLayout.ts`](ui/src/graphLayout.ts) - graph types, sanitization, layout, SCCs, weighting
+- [`ui/src/graphAnalysis.ts`](ui/src/graphAnalysis.ts) - browser-side ranking helpers for impact and breakup candidates
+- [`ui/src/GraphVisualization.ts`](ui/src/GraphVisualization.ts) - Pixi scene graph, zoom/pan, selection, rendering
+- [`ui/src/ui.ts`](ui/src/ui.ts) - DOM controls and side panels
+- [`ui/src/main.ts`](ui/src/main.ts) - app wiring, event flow, and ranking panel updates
 
 ## Data Flow Notes
 
 1. `open` runs extraction into a temp graph file and then serves it. `view` skips extraction and serves an existing graph JSON file. `demo` serves the bundled sample graph.
 2. Graph extraction is streaming. `parseQueryGraphStreaming` reads `bazel query ... --output=graph` incrementally so large graphs do not need to be buffered first.
 3. The Go server serves static UI assets plus `/graph.json`. It also exposes `/analysis.json`, so do not assume all ranking logic is frontend-only.
-4. The browser fetches the graph through [`ui/src/graphLoader.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphLoader.ts).
-5. The heavy graph pipeline runs in [`ui/src/graphWorker.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphWorker.ts), which calls into [`ui/src/graphLayout.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/graphLayout.ts).
-6. Rendering is handled by [`ui/src/GraphVisualization.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/GraphVisualization.ts). UI controls and app wiring live in [`ui/src/ui.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/ui.ts) and [`ui/src/main.ts`](/Users/sharmilajesupaul/code/repos/buildscope1/ui/src/main.ts).
+4. The browser fetches the graph through [`ui/src/graphLoader.ts`](ui/src/graphLoader.ts).
+5. The heavy graph pipeline runs in [`ui/src/graphWorker.ts`](ui/src/graphWorker.ts), which calls into [`ui/src/graphLayout.ts`](ui/src/graphLayout.ts).
+6. Rendering is handled by [`ui/src/GraphVisualization.ts`](ui/src/GraphVisualization.ts). UI controls and app wiring live in [`ui/src/ui.ts`](ui/src/ui.ts) and [`ui/src/main.ts`](ui/src/main.ts).
 
 ## Validation Guide
 
