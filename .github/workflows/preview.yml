@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   preview:
-    if: github.event.action != 'closed'
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
             }
 
   cleanup:
-    if: github.event.action == 'closed'
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     steps:
       - name: Teardown Surge Preview
