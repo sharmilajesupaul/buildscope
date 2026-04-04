@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: "./",
   server: {
     port: Number(process.env.VITE_PORT ?? 4400),
     proxy: {
