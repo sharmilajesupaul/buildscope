@@ -34,6 +34,11 @@ export interface UIElements {
   ruleCountEl: HTMLElement;
   hotspotCountEl: HTMLElement;
   largestSccEl: HTMLElement;
+  hoverPreviewEl: HTMLElement;
+  hoverNodeEl: HTMLElement;
+  hoverNodeSubtitleEl: HTMLElement;
+  hoverNodeTypeEl: HTMLElement;
+  hoverNodeLinksEl: HTMLElement;
   currentNodeEl: HTMLElement;
   currentNodeStatus: HTMLElement;
   currentNodeSubtitleEl: HTMLElement;
@@ -105,6 +110,11 @@ export class GraphVisualization {
   private ruleCountEl: HTMLElement;
   private hotspotCountEl: HTMLElement;
   private largestSccEl: HTMLElement;
+  private hoverPreviewEl: HTMLElement;
+  private hoverNodeEl: HTMLElement;
+  private hoverNodeSubtitleEl: HTMLElement;
+  private hoverNodeTypeEl: HTMLElement;
+  private hoverNodeLinksEl: HTMLElement;
   private currentNodeEl: HTMLElement;
   private currentNodeStatus: HTMLElement;
   private currentNodeSubtitleEl: HTMLElement;
@@ -161,6 +171,11 @@ export class GraphVisualization {
     this.ruleCountEl = uiElements.ruleCountEl;
     this.hotspotCountEl = uiElements.hotspotCountEl;
     this.largestSccEl = uiElements.largestSccEl;
+    this.hoverPreviewEl = uiElements.hoverPreviewEl;
+    this.hoverNodeEl = uiElements.hoverNodeEl;
+    this.hoverNodeSubtitleEl = uiElements.hoverNodeSubtitleEl;
+    this.hoverNodeTypeEl = uiElements.hoverNodeTypeEl;
+    this.hoverNodeLinksEl = uiElements.hoverNodeLinksEl;
     this.currentNodeEl = uiElements.currentNodeEl;
     this.currentNodeStatus = uiElements.currentNodeStatus;
     this.currentNodeSubtitleEl = uiElements.currentNodeSubtitleEl;
@@ -1049,6 +1064,12 @@ export class GraphVisualization {
 
   private setInspectorEmptyState(message: string) {
     this.selectionInspectorEl.classList.add('is-idle');
+    this.hoverPreviewEl.classList.add('hidden');
+    this.hoverNodeEl.innerText = '';
+    this.hoverNodeEl.removeAttribute('title');
+    this.hoverNodeSubtitleEl.innerText = '';
+    this.hoverNodeTypeEl.innerText = '—';
+    this.hoverNodeLinksEl.innerText = '—';
     this.currentNodeStatus.classList.add('hidden');
     this.currentNodeEmptyEl.classList.remove('hidden');
     this.currentNodeEmptyEl.innerText = message;
@@ -1149,6 +1170,28 @@ export class GraphVisualization {
     });
   }
 
+  private updateHoverPreview(node: PositionedNode | null) {
+    if (!node || !this.selectedId || node.id === this.selectedId) {
+      this.hoverPreviewEl.classList.add('hidden');
+      this.hoverNodeEl.innerText = '';
+      this.hoverNodeEl.removeAttribute('title');
+      this.hoverNodeSubtitleEl.innerText = '';
+      this.hoverNodeTypeEl.innerText = '—';
+      this.hoverNodeLinksEl.innerText = '—';
+      return;
+    }
+
+    const { primary, secondary } = this.splitTargetLabel(node.label);
+    this.hoverPreviewEl.classList.remove('hidden');
+    this.hoverNodeEl.innerText = primary;
+    this.hoverNodeEl.title = node.label;
+    this.hoverNodeSubtitleEl.innerText = secondary
+      ? `${secondary} · ${this.getModeInsight(node)}`
+      : `Hovered ${this.formatNodeType(node).toLowerCase()} · ${this.getModeInsight(node)}`;
+    this.hoverNodeTypeEl.innerText = this.formatNodeType(node);
+    this.hoverNodeLinksEl.innerText = `${node.inDegree} in · ${node.outDegree} out`;
+  }
+
   updateStatus() {
     if (!this.positioned) return;
 
@@ -1177,6 +1220,9 @@ export class GraphVisualization {
     this.weightModeLabelEl.innerText = this.getWeightModeLabel(this.currentWeightMode);
 
     if (this.selectedId) {
+      this.updateHoverPreview(
+        this.hoveredId ? this.positioned.idToNode.get(this.hoveredId) ?? null : null
+      );
       const node = this.positioned.idToNode.get(this.selectedId);
       if (node) {
         this.selectionInspectorEl.classList.remove('is-idle');
@@ -1273,7 +1319,7 @@ export class GraphVisualization {
     return Math.min(Math.max(scaledSize, minSize), maxSize) + highlightBonus;
   }
 
-  private getNodeStyle(node: PositionedNode, state: 'default' | 'hovered' | 'selected') {
+  private getNodeStyle(node: PositionedNode, state: 'default' | 'hovered' | 'selected' | 'dimmed') {
     const haloAlpha = node.isHotspot
       ? Math.min(0.32, 0.12 + node.sccSize * 0.03)
       : 0.14;
@@ -1311,10 +1357,10 @@ export class GraphVisualization {
   }
 
   // Node creation and management
-  private createOrUpdateNode(node: PositionedNode, state: 'default' | 'hovered' | 'selected') {
+  private createOrUpdateNode(node: PositionedNode, state: 'default' | 'hovered' | 'selected' | 'dimmed') {
     let g = this.nodeGraphics.get(node.id);
 
-    const isHighlight = state !== 'default';
+    const isHighlight = state === 'hovered' || state === 'selected';
     const baseCore = this.calculateNodeSize(node, isHighlight);
     const {
       haloColor,
@@ -1389,6 +1435,7 @@ export class GraphVisualization {
     }
 
     g.zIndex = state === 'selected' ? 2 : state === 'hovered' ? 1 : 0;
+    g.alpha = state === 'dimmed' ? 0.34 : 1;
 
     const hitRadius = Math.max(6, Math.min(core + 3, 14));
     (g as Graphics & {
@@ -1407,6 +1454,27 @@ export class GraphVisualization {
       (pg.neighbors.get(nodeId) ?? []).forEach((edge) => neighborEdges.add(edge));
     });
     return neighborEdges;
+  }
+
+  private getContextNodesFromHighlightedEdges(
+    selectionScope: { transitiveNodes: Set<string>; transitiveEdges: Set<string> } | null,
+    neighborEdges: Set<GraphEdge>
+  ) {
+    const contextNodes = new Set<string>();
+    if (!selectionScope) return contextNodes;
+
+    neighborEdges.forEach((edge) => {
+      if (!selectionScope.transitiveNodes.has(edge.source)) {
+        contextNodes.add(edge.source);
+      }
+      if (!selectionScope.transitiveNodes.has(edge.target)) {
+        contextNodes.add(edge.target);
+      }
+    });
+
+    if (this.selectedId) contextNodes.delete(this.selectedId);
+    if (this.hoveredId) contextNodes.delete(this.hoveredId);
+    return contextNodes;
   }
 
   private drawEdges(
@@ -1537,9 +1605,13 @@ export class GraphVisualization {
     expandHotspot(this.hoveredId);
     expandHotspot(this.selectedId);
 
+    const neighborEdges = this.getNeighborEdges(pg, highlightSet);
+    const contextNodes = this.getContextNodesFromHighlightedEdges(selectionScope, neighborEdges);
+
     const visibleNodes = new Set<string>();
     if (selectionScope) {
       selectionScope.transitiveNodes.forEach((id) => visibleNodes.add(id));
+      contextNodes.forEach((id) => visibleNodes.add(id));
     } else if (useCulling && viewportBounds) {
       pg.nodes.forEach((n) => {
         if (this.isNodeVisible(n, viewportBounds) || highlightSet.has(n.id)) {
@@ -1560,7 +1632,6 @@ export class GraphVisualization {
     if (shouldRedrawEdges) {
       this.edgesGfx.visible = true;
       this.edgesGfx.clear();
-      const neighborEdges = this.getNeighborEdges(pg, highlightSet);
       this.drawEdges(
         pg,
         neighborEdges,
@@ -1586,11 +1657,12 @@ export class GraphVisualization {
           ? 'selected'
           : this.hoveredId === n.id
             ? 'hovered'
-            : 'default';
+            : contextNodes.has(n.id)
+              ? 'dimmed'
+              : 'default';
         const isVisible = selectionScope ? visibleNodes.has(n.id) : !useCulling || visibleNodes.has(n.id);
         const g = this.createOrUpdateNode(n, state);
         g.visible = isVisible;
-        g.alpha = 1;
       });
     }
 

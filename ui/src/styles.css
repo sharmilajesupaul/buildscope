@@ -690,6 +690,13 @@ body {
   background: linear-gradient(180deg, var(--panel-soft), transparent);
 }
 
+.focus-card-preview {
+  border-style: dashed;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 78%, transparent), transparent),
+    linear-gradient(180deg, var(--panel-soft), transparent);
+}
+
 .selection-slot {
   display: grid;
   gap: 10px;

@@ -153,6 +153,11 @@ function main() {
   const focusInputsGroupEl = selectionInspector.querySelector('#focus-inputs-group') as HTMLElement;
   const focusOutputsGroupEl = selectionInspector.querySelector('#focus-outputs-group') as HTMLElement;
   const focusActionsGroupEl = selectionInspector.querySelector('#focus-actions-group') as HTMLElement;
+  const hoverPreviewEl = selectionInspector.querySelector('#hover-preview') as HTMLElement;
+  const hoverNodeEl = selectionInspector.querySelector('#hover-node') as HTMLElement;
+  const hoverNodeSubtitleEl = selectionInspector.querySelector('#hover-node-subtitle') as HTMLElement;
+  const hoverNodeTypeEl = selectionInspector.querySelector('#hover-node-type') as HTMLElement;
+  const hoverNodeLinksEl = selectionInspector.querySelector('#hover-node-links') as HTMLElement;
   const currentNodeEl = selectionInspector.querySelector('#current-node') as HTMLElement;
   const currentNodeStatus = selectionInspector.querySelector('#current-node-status') as HTMLElement;
   const currentNodeSubtitleEl = selectionInspector.querySelector('#current-node-subtitle') as HTMLElement;
@@ -221,6 +226,11 @@ function main() {
     ruleCountEl,
     hotspotCountEl,
     largestSccEl,
+    hoverPreviewEl,
+    hoverNodeEl,
+    hoverNodeSubtitleEl,
+    hoverNodeTypeEl,
+    hoverNodeLinksEl,
     currentNodeEl,
     currentNodeStatus,
     currentNodeSubtitleEl,
