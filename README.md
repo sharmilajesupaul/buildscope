@@ -85,6 +85,14 @@ That builds a single Go binary with the UI embedded and installs it into `~/.loc
 
 You can override the install destination with `PREFIX` or `BINDIR`.
 
+To update an installed binary:
+
+```bash
+buildscope update
+```
+
+For Homebrew-managed installs, `buildscope update` runs `brew upgrade sharmilajesupaul/buildscope/buildscope`.
+
 Windows is currently unsupported, and no Windows release artifacts are published right now.
 
 ## Quick Start

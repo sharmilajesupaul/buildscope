@@ -54,6 +54,7 @@ buildscope demo
 buildscope view /path/to/graph.json
 buildscope //your/package:target --workdir /path/to/workspace
 buildscope extract --target //your/package:target --workdir /path/to/workspace --out /tmp/graph.json
+buildscope update
 buildscope version
 ```
 

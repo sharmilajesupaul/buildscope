@@ -312,8 +312,10 @@ func TestUsageTextIncludesExtractViewAlias(t *testing.T) {
 	output := usageText()
 	for _, part := range []string{
 		"buildscope <target>",
+		"update [-version latest|v0.1.9]",
 		"extract-view <target>",
 		"Alias for the default target invocation.",
+		"buildscope update",
 		"buildscope //speller/main:spell",
 		"buildscope extract-view //speller/main:spell -workdir ~/code/repos/bazel-examples",
 	} {

@@ -49,6 +49,8 @@ func usageText() string {
 	fmt.Fprintln(&b, "    Serve BuildScope analysis over stdio MCP for AI agents and MCP clients.")
 	fmt.Fprintln(&b, "  version")
 	fmt.Fprintln(&b, "    Print the BuildScope version, commit, and build date.")
+	fmt.Fprintln(&b, "  update [-version latest|v0.1.9]")
+	fmt.Fprintln(&b, "    Update the installed BuildScope binary.")
 	fmt.Fprintln(&b, "  extract -target //pkg:rule [-workdir <bazel workspace>] [-out graph.json] [-details_out graph.details.json] [-enrich none|analyze|build]")
 	fmt.Fprintln(&b, "    Run bazel query 'deps(target)' --output=graph --keep_going and emit graph JSON.")
 	fmt.Fprintln(&b, "    Enriched modes add node kind, file counts, file bytes, outputs, and action summaries.")
@@ -57,6 +59,7 @@ func usageText() string {
 	fmt.Fprintln(&b)
 	fmt.Fprintln(&b, "Examples:")
 	fmt.Fprintln(&b, "  buildscope version")
+	fmt.Fprintln(&b, "  buildscope update")
 	fmt.Fprintln(&b, "  buildscope demo")
 	fmt.Fprintln(&b, "  buildscope //speller/main:spell")
 	fmt.Fprintln(&b, "  buildscope open //speller/main:spell -workdir ~/code/repos/bazel-examples")
@@ -810,6 +813,10 @@ func main() {
 		}
 	case "version":
 		if err := versionCommand(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+	case "update":
+		if err := updateCommand(os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
 	case "serve":
