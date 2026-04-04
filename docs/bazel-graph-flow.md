@@ -106,7 +106,7 @@ opportunityScore = impactScore * massScore * shardabilityScore
 
 - The served graph already records file nodes, direct file inputs, and per-target top files.
 - `/file-focus.json?label=//pkg:file.go` computes direct and transitive consumers of that file within the current graph snapshot.
-- When the server was started with `buildscope open`, BuildScope also runs `bazel query "rdeps(//..., <file>)"` on demand so Codex and other clients can distinguish local graph consumers from whole-workspace reverse dependencies.
+- When the server was started with `buildscope //your/package:target`, `buildscope extract-view`, or `buildscope open`, BuildScope also runs `bazel query "rdeps(//..., <file>)"` on demand so Codex and other clients can distinguish local graph consumers from whole-workspace reverse dependencies.
 
 ## Summary
 

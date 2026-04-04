@@ -23,6 +23,25 @@ func TestNormalizeFlagArgsMovesPositionalsToEnd(t *testing.T) {
 	}
 }
 
+func TestLooksLikeBazelTarget(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]bool{
+		"//pkg:target":      true,
+		"@repo//pkg:target": true,
+		":target":           true,
+		"view":              false,
+		"extract-view":      false,
+		"graph.json":        false,
+	}
+
+	for input, want := range tests {
+		if got := looksLikeBazelTarget(input); got != want {
+			t.Fatalf("looksLikeBazelTarget(%q) = %v, want %v", input, got, want)
+		}
+	}
+}
+
 func TestNormalizeListenAddrDefaultsToLoopback(t *testing.T) {
 	t.Parallel()
 
@@ -74,6 +93,65 @@ func TestNormalizeListenAddrRejectsInvalidValues(t *testing.T) {
 		if _, err := normalizeListenAddr(input); err == nil {
 			t.Fatalf("normalizeListenAddr(%q) succeeded, want error", input)
 		}
+	}
+}
+
+func TestViewerURLUsesLoopbackForWildcardHosts(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]string{
+		"0.0.0.0:4422": "http://127.0.0.1:4422",
+		"[::]:4422":    "http://[::1]:4422",
+	}
+
+	for input, want := range tests {
+		got, err := viewerURL(input)
+		if err != nil {
+			t.Fatalf("viewerURL(%q) returned error: %v", input, err)
+		}
+		if got != want {
+			t.Fatalf("viewerURL(%q) = %q, want %q", input, got, want)
+		}
+	}
+}
+
+func TestViewerURLPreservesExplicitHost(t *testing.T) {
+	t.Parallel()
+
+	got, err := viewerURL("127.0.0.1:4500")
+	if err != nil {
+		t.Fatalf("viewerURL returned error: %v", err)
+	}
+	if got != "http://127.0.0.1:4500" {
+		t.Fatalf("viewerURL = %q, want http://127.0.0.1:4500", got)
+	}
+}
+
+func TestBrowserCommand(t *testing.T) {
+	t.Parallel()
+
+	command, args, err := browserCommand("darwin", "http://127.0.0.1:4422")
+	if err != nil {
+		t.Fatalf("browserCommand(darwin) returned error: %v", err)
+	}
+	if command != "open" || !reflect.DeepEqual(args, []string{"http://127.0.0.1:4422"}) {
+		t.Fatalf("browserCommand(darwin) = %q %#v, want %q %#v", command, args, "open", []string{"http://127.0.0.1:4422"})
+	}
+
+	command, args, err = browserCommand("linux", "http://127.0.0.1:4422")
+	if err != nil {
+		t.Fatalf("browserCommand(linux) returned error: %v", err)
+	}
+	if command != "xdg-open" || !reflect.DeepEqual(args, []string{"http://127.0.0.1:4422"}) {
+		t.Fatalf("browserCommand(linux) = %q %#v, want %q %#v", command, args, "xdg-open", []string{"http://127.0.0.1:4422"})
+	}
+}
+
+func TestBrowserCommandRejectsUnsupportedPlatform(t *testing.T) {
+	t.Parallel()
+
+	if _, _, err := browserCommand("windows", "http://127.0.0.1:4422"); err == nil {
+		t.Fatal("browserCommand(windows) succeeded, want error")
 	}
 }
 
@@ -225,5 +303,46 @@ func TestPrintVersionIncludesBuildMetadata(t *testing.T) {
 		if !strings.Contains(output, part) {
 			t.Fatalf("printVersion output %q did not contain %q", output, part)
 		}
+	}
+}
+
+func TestUsageTextIncludesExtractViewAlias(t *testing.T) {
+	t.Parallel()
+
+	output := usageText()
+	for _, part := range []string{
+		"buildscope <target>",
+		"extract-view <target>",
+		"Alias for the default target invocation.",
+		"buildscope //speller/main:spell",
+		"buildscope extract-view //speller/main:spell -workdir ~/code/repos/bazel-examples",
+	} {
+		if !strings.Contains(output, part) {
+			t.Fatalf("usageText output %q did not contain %q", output, part)
+		}
+	}
+}
+
+func TestOpenCommandUsageMentionsInvokedAlias(t *testing.T) {
+	t.Parallel()
+
+	err := openCommand("extract-view", nil)
+	if err == nil {
+		t.Fatal("openCommand succeeded without a target, want usage error")
+	}
+	if got, want := err.Error(), "usage: buildscope extract-view <target>"; got != want {
+		t.Fatalf("openCommand error = %q, want %q", got, want)
+	}
+}
+
+func TestOpenCommandUsageMentionsDefaultTargetInvocation(t *testing.T) {
+	t.Parallel()
+
+	err := openCommand("", nil)
+	if err == nil {
+		t.Fatal("openCommand succeeded without a target, want usage error")
+	}
+	if got, want := err.Error(), "usage: buildscope <target>"; got != want {
+		t.Fatalf("openCommand error = %q, want %q", got, want)
 	}
 }

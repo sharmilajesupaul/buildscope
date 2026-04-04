@@ -69,7 +69,7 @@ Returns file-centric drill-down data for one source or generated file label:
 - direct consumers in the current graph snapshot
 - transitive consumers in the current graph snapshot
 - top current-graph consumer targets ranked by breakup opportunity
-- live workspace reverse dependencies when the connected server was started from `buildscope open`
+- live workspace reverse dependencies when the connected server was started from `buildscope //your/package:target`, `buildscope extract-view`, or `buildscope open`
 
 Arguments:
 

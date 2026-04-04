@@ -13,7 +13,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -27,36 +29,49 @@ var version = "dev"
 var commit = "unknown"
 var buildDate = "unknown"
 
+func usageText() string {
+	var b strings.Builder
+	fmt.Fprintln(&b, "BuildScope CLI")
+	fmt.Fprintln(&b)
+	fmt.Fprintf(&b, "  %s\n", "buildscope <target> [-workdir <bazel workspace>] [-ui-dir <ui/dist>] [-addr "+defaultListenAddr+"]")
+	fmt.Fprintln(&b, "    Extract a graph for the Bazel target and open the local viewer.")
+	fmt.Fprintln(&b)
+	fmt.Fprintln(&b, "Commands:")
+	fmt.Fprintf(&b, "  open <target> [-workdir <bazel workspace>] [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
+	fmt.Fprintln(&b, "    Alias for the default target invocation.")
+	fmt.Fprintf(&b, "  extract-view <target> [-workdir <bazel workspace>] [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
+	fmt.Fprintln(&b, "    Alias for the default target invocation.")
+	fmt.Fprintf(&b, "  view <graph.json> [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
+	fmt.Fprintln(&b, "    Serve a pre-generated graph JSON in the local viewer.")
+	fmt.Fprintf(&b, "  demo [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
+	fmt.Fprintln(&b, "    Open the bundled sample graph.")
+	fmt.Fprintf(&b, "  mcp [-server %s] [-graph <graph.json>] [-details <graph.details.json>]\n", defaultServerURL)
+	fmt.Fprintln(&b, "    Serve BuildScope analysis over stdio MCP for AI agents and MCP clients.")
+	fmt.Fprintln(&b, "  version")
+	fmt.Fprintln(&b, "    Print the BuildScope version, commit, and build date.")
+	fmt.Fprintln(&b, "  extract -target //pkg:rule [-workdir <bazel workspace>] [-out graph.json] [-details_out graph.details.json] [-enrich none|analyze|build]")
+	fmt.Fprintln(&b, "    Run bazel query 'deps(target)' --output=graph --keep_going and emit graph JSON.")
+	fmt.Fprintln(&b, "    Enriched modes add node kind, file counts, file bytes, outputs, and action summaries.")
+	fmt.Fprintf(&b, "  serve [-dir <ui/dist>] [-graph <graph.json>] [-details <graph.details.json>] [-addr %s]\n", defaultListenAddr)
+	fmt.Fprintln(&b, "    Low-level server command. Defaults to the bundled sample graph when -graph is omitted.")
+	fmt.Fprintln(&b)
+	fmt.Fprintln(&b, "Examples:")
+	fmt.Fprintln(&b, "  buildscope version")
+	fmt.Fprintln(&b, "  buildscope demo")
+	fmt.Fprintln(&b, "  buildscope //speller/main:spell")
+	fmt.Fprintln(&b, "  buildscope open //speller/main:spell -workdir ~/code/repos/bazel-examples")
+	fmt.Fprintln(&b, "  buildscope extract-view //speller/main:spell -workdir ~/code/repos/bazel-examples")
+	fmt.Fprintln(&b, "  buildscope view /tmp/graph.json")
+	fmt.Fprintf(&b, "  buildscope mcp -server %s\n", defaultServerURL)
+	fmt.Fprintln(&b, "  buildscope mcp -server localhost:4500")
+	fmt.Fprintln(&b, "  buildscope mcp -graph /tmp/graph.json -details /tmp/graph.details.json")
+	fmt.Fprintln(&b, "  buildscope extract -target //speller/main:spell -workdir ~/code/repos/bazel-examples -out /tmp/graph.json")
+	fmt.Fprintln(&b, "  buildscope extract -target //speller/main:spell -workdir ~/code/repos/bazel-examples -out /tmp/graph.json -enrich build")
+	return b.String()
+}
+
 func usage() {
-	fmt.Println("BuildScope CLI")
-	fmt.Println()
-	fmt.Println("Commands:")
-	fmt.Printf("  open <target> [-workdir <bazel workspace>] [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
-	fmt.Println("    Extract a graph for the Bazel target and open the local viewer.")
-	fmt.Printf("  view <graph.json> [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
-	fmt.Println("    Serve a pre-generated graph JSON in the local viewer.")
-	fmt.Printf("  demo [-ui-dir <ui/dist>] [-addr %s]\n", defaultListenAddr)
-	fmt.Println("    Open the bundled sample graph.")
-	fmt.Printf("  mcp [-server %s] [-graph <graph.json>] [-details <graph.details.json>]\n", defaultServerURL)
-	fmt.Println("    Serve BuildScope analysis over stdio MCP for AI agents and MCP clients.")
-	fmt.Println("  version")
-	fmt.Println("    Print the BuildScope version, commit, and build date.")
-	fmt.Println("  extract -target //pkg:rule [-workdir <bazel workspace>] [-out graph.json] [-details_out graph.details.json] [-enrich none|analyze|build]")
-	fmt.Println("    Run bazel query 'deps(target)' --output=graph --keep_going and emit graph JSON.")
-	fmt.Println("    Enriched modes add node kind, file counts, file bytes, outputs, and action summaries.")
-	fmt.Printf("  serve [-dir <ui/dist>] [-graph <graph.json>] [-details <graph.details.json>] [-addr %s]\n", defaultListenAddr)
-	fmt.Println("    Low-level server command. Defaults to the bundled sample graph when -graph is omitted.")
-	fmt.Println()
-	fmt.Println("Examples:")
-	fmt.Println("  buildscope version")
-	fmt.Println("  buildscope demo")
-	fmt.Println("  buildscope open //speller/main:spell -workdir ~/code/repos/bazel-examples")
-	fmt.Println("  buildscope view /tmp/graph.json")
-	fmt.Printf("  buildscope mcp -server %s\n", defaultServerURL)
-	fmt.Println("  buildscope mcp -server localhost:4500")
-	fmt.Println("  buildscope mcp -graph /tmp/graph.json -details /tmp/graph.details.json")
-	fmt.Println("  buildscope extract -target //speller/main:spell -workdir ~/code/repos/bazel-examples -out /tmp/graph.json")
-	fmt.Println("  buildscope extract -target //speller/main:spell -workdir ~/code/repos/bazel-examples -out /tmp/graph.json -enrich build")
+	fmt.Print(usageText())
 }
 
 func printVersion(w io.Writer) {
@@ -90,6 +105,11 @@ func normalizeFlagArgs(args []string) []string {
 	return append(flags, positionals...)
 }
 
+func looksLikeBazelTarget(arg string) bool {
+	arg = strings.TrimSpace(arg)
+	return strings.HasPrefix(arg, "//") || strings.HasPrefix(arg, "@") || strings.HasPrefix(arg, ":")
+}
+
 type uiAssets struct {
 	fsys   iofs.FS
 	source string
@@ -106,7 +126,7 @@ type graphPayload struct {
 	rootTarget   string
 }
 
-func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
+func serveGraph(ui uiAssets, graph graphPayload, addr string, launchBrowser bool) error {
 	graphData, err := loadGraphBytes(graph)
 	if err != nil {
 		return err
@@ -148,7 +168,18 @@ func serveGraph(ui uiAssets, graph graphPayload, addr string) error {
 	if fellBack {
 		log.Printf("Port %s is in use; falling back to %s", addr, listenAddr)
 	}
-	log.Printf("Listening on %s", listenAddr)
+	if url, err := viewerURL(listenAddr); err == nil {
+		log.Printf("Listening on %s", url)
+	} else {
+		log.Printf("Listening on %s", listenAddr)
+	}
+	if launchBrowser {
+		go func() {
+			if err := openViewer(listenAddr); err != nil {
+				log.Printf("Warning: failed to open browser: %v", err)
+			}
+		}()
+	}
 	return http.Serve(listener, mux)
 }
 
@@ -249,7 +280,7 @@ func serve(args []string) error {
 		servedGraph.detailsPath = detailsPath
 	}
 
-	return serveGraph(ui, servedGraph, *addr)
+	return serveGraph(ui, servedGraph, *addr, false)
 }
 
 func listenWithFallback(addr string, maxTries int) (net.Listener, string, bool, error) {
@@ -299,6 +330,56 @@ func isAddrInUse(err error) bool {
 		return true
 	}
 	return false
+}
+
+func viewerURL(listenAddr string) (string, error) {
+	host, port, err := net.SplitHostPort(listenAddr)
+	if err != nil {
+		return "", fmt.Errorf("split listen addr: %w", err)
+	}
+
+	switch host {
+	case "", "0.0.0.0":
+		host = "127.0.0.1"
+	case "::":
+		host = "::1"
+	}
+
+	return "http://" + net.JoinHostPort(host, port), nil
+}
+
+func browserCommand(goos, url string) (string, []string, error) {
+	switch goos {
+	case "darwin":
+		return "open", []string{url}, nil
+	case "linux":
+		return "xdg-open", []string{url}, nil
+	default:
+		return "", nil, fmt.Errorf("automatic browser launch is unsupported on %s", goos)
+	}
+}
+
+func openViewer(listenAddr string) error {
+	url, err := viewerURL(listenAddr)
+	if err != nil {
+		return err
+	}
+	command, args, err := browserCommand(runtime.GOOS, url)
+	if err != nil {
+		return err
+	}
+	if _, err := exec.LookPath(command); err != nil {
+		return fmt.Errorf("%s not found in PATH", command)
+	}
+
+	cmd := exec.Command(command, args...)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start %s: %w", command, err)
+	}
+	if cmd.Process != nil {
+		_ = cmd.Process.Release()
+	}
+	return nil
 }
 
 type graph struct {
@@ -573,8 +654,12 @@ func extract(args []string) error {
 	return extractGraph(*target, *workdir, *outPath, *detailsOut, mode)
 }
 
-func openCommand(args []string) error {
-	fs := flag.NewFlagSet("open", flag.ExitOnError)
+func openCommand(commandName string, args []string) error {
+	flagSetName := commandName
+	if flagSetName == "" {
+		flagSetName = "run"
+	}
+	fs := flag.NewFlagSet(flagSetName, flag.ExitOnError)
 	workdir := fs.String("workdir", ".", "bazel workspace directory")
 	uiDir := fs.String("ui-dir", "", "path to static UI assets; embedded assets when omitted")
 	addr := registerListenAddrFlag(fs)
@@ -582,7 +667,10 @@ func openCommand(args []string) error {
 	_ = fs.Parse(normalizeFlagArgs(args))
 
 	if fs.NArg() != 1 {
-		return fmt.Errorf("usage: buildscope open <target>")
+		if commandName == "" {
+			return fmt.Errorf("usage: buildscope <target>")
+		}
+		return fmt.Errorf("usage: buildscope %s <target>", commandName)
 	}
 
 	ui, err := resolveUIAssets(*uiDir)
@@ -627,7 +715,7 @@ func openCommand(args []string) error {
 	if mode != enrichNone {
 		payload.detailsPath = detailsPath
 	}
-	return serveGraph(ui, payload, *addr)
+	return serveGraph(ui, payload, *addr, true)
 }
 
 func viewCommand(args []string) error {
@@ -649,7 +737,7 @@ func viewCommand(args []string) error {
 		return err
 	}
 
-	return serveGraph(ui, graph, *addr)
+	return serveGraph(ui, graph, *addr, true)
 }
 
 func demoCommand(args []string) error {
@@ -672,7 +760,7 @@ func demoCommand(args []string) error {
 		return fmt.Errorf("resolve bundled demo graph: %w", err)
 	}
 
-	return serveGraph(ui, graph, *addr)
+	return serveGraph(ui, graph, *addr, true)
 }
 
 func versionCommand(args []string) error {
@@ -697,9 +785,15 @@ func main() {
 		printVersion(os.Stdout)
 		return
 	}
+	if looksLikeBazelTarget(cmd) {
+		if err := openCommand("", os.Args[1:]); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	switch cmd {
-	case "open":
-		if err := openCommand(os.Args[2:]); err != nil {
+	case "open", "extract-view":
+		if err := openCommand(cmd, os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
 	case "view":

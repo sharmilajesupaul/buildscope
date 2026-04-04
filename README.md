@@ -89,11 +89,11 @@ Windows is currently unsupported, and no Windows release artifacts are published
 
 ## Quick Start
 
-Once installed, there are three common ways to begin:
+Once installed, BuildScope supports three entry points:
 
-- `buildscope demo` to learn the UI on a bundled sample graph
-- `buildscope view` to inspect a saved graph snapshot
-- `buildscope open` to extract and serve a live Bazel target
+- `buildscope demo` opens the bundled sample graph
+- `buildscope view` opens a saved graph snapshot
+- `buildscope //your/package:target` extracts and serves a live Bazel target
 
 Verify the binary and launch the bundled demo:
 
@@ -108,17 +108,29 @@ Open a pre-generated graph from disk:
 buildscope view /path/to/graph.json
 ```
 
-Extract and open a live Bazel target from the root of a workspace:
+To extract and view a graph for a live Bazel target:
 
 ```bash
-buildscope open //your/package:target
+buildscope //your/package:target
 ```
 
 Override the port with `--addr`:
 
 ```bash
-buildscope open //your/package:target --addr 127.0.0.1:4500
+buildscope //your/package:target --addr 127.0.0.1:4500
 ```
+
+Aliases: `buildscope open //your/package:target`, `buildscope extract-view //your/package:target`.
+
+Reusable snapshot flow:
+
+```bash
+buildscope extract -target //your/package:target
+
+buildscope view graph.json
+```
+
+Optional flags: `-workdir` overrides the workspace root, and `-out` overrides the output path.
 
 If you are running from a repo checkout without installing first, the existing wrapper still works:
 
@@ -130,7 +142,7 @@ If you are running from a repo checkout without installing first, the existing w
 1. Start with `buildscope demo` or `buildscope view /path/to/graph.json` to load a graph and learn the UI on a stable snapshot.
 2. Use the ranking lists first instead of panning blindly. `Top impact` answers "what has the biggest blast radius?" and `Break-up candidates` answers "what shared hubs should I split?"
 3. Click a ranked target or search for an exact label to focus the canvas on that neighborhood, then switch between `Impact`, `Break-up`, `Upstream`, `Downstream`, and `Direct` depending on the question you are asking.
-4. When you want live workspace data, run `buildscope open //your/package:target` or `buildscope extract ...` and reopen the generated graph.
+4. For live workspace data, run `buildscope //your/package:target`. For a saved snapshot, run `buildscope extract -target //your/package:target` and then `buildscope view graph.json`.
 
 ## MCP Server
 
@@ -282,7 +294,7 @@ Installed CLI:
 ```bash
 buildscope demo
 buildscope view /tmp/graph.json
-buildscope open //your/package:target
+buildscope //your/package:target
 ```
 
 Repo checkout helpers:
@@ -295,15 +307,22 @@ Repo checkout helpers:
 
 ## How It Gets The Graph
 
-The extraction path is the `extract` command:
+To extract and view a graph from a live Bazel target:
 
 ```bash
-buildscope extract \
-  -target //your/package:target \
-  -workdir /path/to/bazel/workspace \
-  -out /tmp/graph.json \
-  -enrich analyze
+buildscope //your/package:target
 ```
+
+This extracts the graph, starts the local server, and opens the viewer.
+
+Snapshot flow:
+
+```bash
+buildscope extract -target //your/package:target
+buildscope view graph.json
+```
+
+`extract` defaults to `-workdir .`, `-out graph.json`, and `-enrich analyze`.
 
 Under the hood, that command shells out to:
 

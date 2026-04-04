@@ -243,7 +243,7 @@ Representative response:
 - `cyclicHotspots` is kept for completeness, but Bazel target graphs are usually acyclic, so DAG signals are the primary breakup guidance.
 - `focus` returns one target's immediate neighborhood and enriched summary metrics without forcing the caller to reconstruct that slice from the raw graph.
 - `decomposition.json` stays focused so the UI and MCP can inspect one target's split seams without recomputing the whole shortlist.
-- `file-focus.json` answers a different question: which targets in the current graph consume one file, and, when the server came from `buildscope open`, which workspace targets reverse-depend on that file according to live Bazel query output.
+- `file-focus.json` answers a different question: which targets in the current graph consume one file, and, when the server came from `buildscope //your/package:target`, `buildscope open`, or `buildscope extract-view`, which workspace targets reverse-depend on that file according to live Bazel query output.
 
 The legacy pressure score is still returned for compatibility:
 
@@ -267,7 +267,7 @@ Tiny shared leaves are explicitly demoted when they are central but still light 
 ### Analyze a live Bazel target
 
 ```bash
-buildscope open //your/package:target --workdir /path/to/workspace --addr 127.0.0.1:4422
+buildscope //your/package:target --workdir /path/to/workspace --addr 127.0.0.1:4422
 ```
 
 That path:
@@ -322,5 +322,5 @@ In dev mode, Vite proxies only `/graph.json`. Fetch `/analysis.json` and `/decom
 - `/analysis.json` is present only in versions that include the Go-side analysis endpoint.
 - `/decomposition.json` is present only in versions that include the focused decomposition endpoint.
 - `/graph.details.json` is served only when the graph payload has a details sidecar.
-- `/file-focus.json` works for any served graph snapshot, and adds live workspace reverse-dependency data only when the server was started from `buildscope open` with access to the Bazel workspace.
+- `/file-focus.json` works for any served graph snapshot, and adds live workspace reverse-dependency data only when the server was started from `buildscope //your/package:target`, `buildscope extract-view`, or `buildscope open` with access to the Bazel workspace.
 - If `GO_PORT`, `VITE_PORT`, or `SERVER_PORT` are overridden, derive the correct URL from those values before fetching the API.

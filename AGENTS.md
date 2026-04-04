@@ -52,7 +52,7 @@ Ports can be overridden with `GO_PORT`, `VITE_PORT`, and `SERVER_PORT`.
 ```bash
 buildscope demo
 buildscope view /path/to/graph.json
-buildscope open //your/package:target --workdir /path/to/workspace
+buildscope //your/package:target --workdir /path/to/workspace
 buildscope extract --target //your/package:target --workdir /path/to/workspace --out /tmp/graph.json
 buildscope version
 ```
@@ -63,7 +63,7 @@ The canonical extraction and analysis diagram lives in [docs/bazel-graph-flow.md
 
 Use that doc when you need the end-to-end Mermaid flow for:
 
-- `buildscope open` vs `buildscope extract`
+- `buildscope //your/package:target` / `buildscope open` / `buildscope extract-view` vs `buildscope extract`
 - workspace validation and `bazel query`
 - JSON graph emission and `/graph.json`
 - frontend worker analysis and hotspot or breakup ranking
@@ -90,7 +90,7 @@ Short version:
 
 ## Data Flow Notes
 
-1. `open` runs extraction into a temp graph file and then serves it. `view` skips extraction and serves an existing graph JSON file. `demo` serves the bundled sample graph.
+1. `buildscope //your/package:target` runs extraction into a temp graph file and then serves it. `open` and `extract-view` are aliases. `view` skips extraction and serves an existing graph JSON file. `demo` serves the bundled sample graph.
 2. Graph extraction is streaming. `parseQueryGraphStreaming` reads `bazel query ... --output=graph` incrementally so large graphs do not need to be buffered first.
 3. The Go server serves static UI assets plus `/graph.json`. It also exposes `/analysis.json`, so do not assume all ranking logic is frontend-only.
 4. The browser fetches the graph through [`ui/src/graphLoader.ts`](ui/src/graphLoader.ts).
