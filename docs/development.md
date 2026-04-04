@@ -41,7 +41,7 @@ cd cli && go test ./...
 
 ## Embedded UI
 
-If you change the shipped UI and want the standalone binary to pick it up, refresh the embedded bundle:
+If you change the shipped UI and want the standalone binary to pick it up, refresh the generated embedded bundle:
 
 ```bash
 ./scripts/refresh-embedded-ui.sh

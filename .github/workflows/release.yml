@@ -32,6 +32,8 @@ jobs:
       - name: Run frontend tests
         run: npm --prefix ui test
 
+      - name: Refresh embedded UI bundle
+        run: ./scripts/refresh-embedded-ui.sh
       - name: Run Go tests
         run: go -C cli test ./...
 
@@ -65,6 +67,8 @@ jobs:
           cache: npm
           cache-dependency-path: ui/package-lock.json
 
+      - name: Install UI dependencies
+        run: npm --prefix ui ci
       - name: Build release archive
         env:
           COMMIT_SHA: ${{ github.sha }}
