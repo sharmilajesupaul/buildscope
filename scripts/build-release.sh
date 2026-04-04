@@ -38,8 +38,10 @@ case "$GOARCH" in
     ;;
 esac
 
+ensure_node
 ensure_go
-ensure_embedded_ui_assets
+warm_go_modules
+sync_ui_dist "$EMBEDDED_UI_DIR"
 
 COMMIT_SHA="${COMMIT_SHA:-$(git -C "$REPO_DIR" rev-parse --short HEAD 2>/dev/null || printf 'unknown')}"
 BUILD_DATE="${BUILD_DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"

@@ -32,12 +32,6 @@ jobs:
       - name: Run frontend tests
         run: npm --prefix ui test
 
-      - name: Refresh embedded UI bundle
-        run: ./scripts/refresh-embedded-ui.sh
-
-      - name: Ensure embedded UI bundle is committed
-        run: git diff --exit-code -- cli/internal/embeddedui/dist
-
       - name: Run Go tests
         run: go -C cli test ./...
 
@@ -64,6 +58,12 @@ jobs:
         with:
           go-version-file: cli/go.mod
           cache-dependency-path: cli/go.sum
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
 
       - name: Build release archive
         env:
