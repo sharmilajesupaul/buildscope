@@ -2,9 +2,9 @@ class Buildscope < Formula
   desc "Local-first Bazel dependency explorer"
   homepage "https://github.com/sharmilajesupaul/buildscope"
   url "https://github.com/sharmilajesupaul/buildscope.git",
-      tag: "v0.1.7",
-      revision: "0558a36f2cb82a892b3fb0e4c06ca673a50b6f0f"
-  version "0.1.7"
+      tag: "v0.1.9",
+      revision: "137184dbd333ba160254101e54f8cd0a84fe1e99"
+  version "0.1.9"
 
   depends_on "go" => :build
 
@@ -13,7 +13,7 @@ class Buildscope < Formula
       -s
       -w
       -X main.version=v#{version}
-      -X main.commit=0558a36f2cb82a892b3fb0e4c06ca673a50b6f0f
+      -X main.commit=137184dbd333ba160254101e54f8cd0a84fe1e99
     ]
 
     cd "cli" do
