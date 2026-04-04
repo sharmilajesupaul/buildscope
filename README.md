@@ -243,10 +243,11 @@ git push origin v0.1.0
 That tag triggers the GitHub release workflow to:
 
 - run the frontend and Go test suites
+- generate the embedded UI bundle during release verification and packaging
 - publish versioned release assets for macOS and Linux on `amd64` and `arm64`
 - publish stable `latest` asset aliases for scripted Linux installs
 - mark the GitHub release as a prerelease because the tag is still under `v1`
-- open a PR that updates the Homebrew formula
+- open a PR that updates the Homebrew formula to the published macOS release archives
 
 ## Development
 
@@ -283,6 +284,8 @@ cd cli && go test ./...
 ```
 
 Ports can be overridden with `GO_PORT`, `VITE_PORT`, and `SERVER_PORT`.
+
+From a fresh checkout, run `./setup.sh` first, or run `./scripts/refresh-embedded-ui.sh` before `cd cli && go test ./...`, so the generated embedded UI bundle exists for `go:embed`.
 
 If you change the shipped UI and want the standalone binary to pick it up immediately, refresh the generated embedded bundle:
 

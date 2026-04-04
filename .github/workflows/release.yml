@@ -113,15 +113,31 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-darwin-*
+          merge-multiple: true
+          path: dist
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+
+      - name: Capture macOS archive checksums
+        id: checksums
+        run: |
+          VERSION_NO_V="${GITHUB_REF_NAME#v}"
+          AMD64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_darwin_amd64.tar.gz" | awk '{print $1}')"
+          ARM64_SHA="$(sha256sum "dist/buildscope_${VERSION_NO_V}_darwin_arm64.tar.gz" | awk '{print $1}')"
+          echo "amd64_sha=$AMD64_SHA" >> "$GITHUB_OUTPUT"
+          echo "arm64_sha=$ARM64_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Render Homebrew formula
         run: |
           ./scripts/render-homebrew-formula.sh \
             "${GITHUB_REF_NAME}" \
-            "${GITHUB_SHA}" \
+            "${{ steps.checksums.outputs.amd64_sha }}" \
+            "${{ steps.checksums.outputs.arm64_sha }}" \
             Formula/buildscope.rb
 
       - name: Open formula update PR

@@ -101,7 +101,7 @@ Short version:
 ## Validation Guide
 
 - UI-only changes: `npm --prefix ui run typecheck`, `cd ui && npm test`
-- Go-only changes: `cd cli && go test ./...`
+- Go-only changes: `./scripts/refresh-embedded-ui.sh`, then `cd cli && go test ./...`
 - Cross-stack changes: run both suites, then smoke test with `./dev.sh` or `./buildscope.sh //your/package:target`
 - Docs-only changes: no code tests needed, but keep command examples aligned with the actual CLI help
 - Fixture-related changes: verify the fixture workflow in `fixtures/README.md`

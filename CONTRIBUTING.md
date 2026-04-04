@@ -30,6 +30,13 @@ npm --prefix ui test
 cd cli && go test ./...
 ```
 
+From a fresh checkout, run `./setup.sh` first, or refresh the embedded UI bundle before the Go tests:
+
+```bash
+./scripts/refresh-embedded-ui.sh
+cd cli && go test ./...
+```
+
 If you change the shipped UI and want to validate the standalone Go binary path, refresh the generated embedded bundle too:
 
 ```bash

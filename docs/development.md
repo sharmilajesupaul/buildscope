@@ -39,6 +39,8 @@ cd cli && go test ./...
 ./buildscope.sh //your/package:target
 ```
 
+From a fresh checkout, run `./setup.sh` first, or run `./scripts/refresh-embedded-ui.sh` before `cd cli && go test ./...`, so the generated embedded UI bundle exists for `go:embed`.
+
 ## Embedded UI
 
 If you change the shipped UI and want the standalone binary to pick it up, refresh the generated embedded bundle:
