@@ -6,6 +6,7 @@
 node_modules/
 dist/
 cli/internal/embeddedui/dist/
+!cli/internal/embeddedui/dist/.gitkeep
 .parcel-cache/
 .turbo/
 .next/
