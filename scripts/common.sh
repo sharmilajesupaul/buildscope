@@ -181,6 +181,7 @@ ui_dist_needs_build() {
 }
 
 ensure_ui_dist() {
+  ensure_node
   ensure_ui_dependencies
   if ui_dist_needs_build; then
     log "Building UI assets..."
@@ -193,17 +194,39 @@ warm_go_modules() {
   go -C "$CLI_DIR" mod download
 }
 
-sync_ui_dist() {
+copy_ui_dist() {
   local destination=$1
-
-  ensure_ui_dist
 
   mkdir -p "$destination"
   rm -rf "$destination"/*
   cp -R "$UI_DIR/dist/." "$destination/"
 }
 
+sync_ui_dist() {
+  local destination=$1
+
+  ensure_ui_dist
+  copy_ui_dist "$destination"
+}
+
+embedded_ui_assets_need_sync() {
+  if [ ! -f "$EMBEDDED_UI_DIR/index.html" ]; then
+    return 0
+  fi
+
+  if ! diff -qr "$UI_DIR/dist" "$EMBEDDED_UI_DIR" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  return 1
+}
+
 ensure_embedded_ui_assets() {
+  ensure_ui_dist
+  if embedded_ui_assets_need_sync; then
+    log "Syncing embedded UI assets..."
+    copy_ui_dist "$EMBEDDED_UI_DIR"
+  fi
   ensure_file_exists "$EMBEDDED_UI_DIR/index.html"
   ensure_file_exists "$EMBEDDED_UI_DIR/sample-graph.json"
 }

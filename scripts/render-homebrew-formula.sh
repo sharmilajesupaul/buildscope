@@ -2,15 +2,16 @@
 
 set -euo pipefail
 
-if [ "$#" -ne 3 ]; then
-  echo "Usage: $0 <version> <revision> <output-path>" >&2
+if [ "$#" -ne 4 ]; then
+  echo "Usage: $0 <version> <darwin-amd64-sha256> <darwin-arm64-sha256> <output-path>" >&2
   exit 1
 fi
 
 VERSION="$1"
 VERSION_NO_V="${VERSION#v}"
-REVISION="$2"
-OUTPUT_PATH="$3"
+DARWIN_AMD64_SHA="$2"
+DARWIN_ARM64_SHA="$3"
+OUTPUT_PATH="$4"
 
 mkdir -p "$(dirname "$OUTPUT_PATH")"
 
@@ -18,24 +19,21 @@ cat >"$OUTPUT_PATH" <<EOF
 class Buildscope < Formula
   desc "Local-first Bazel dependency explorer"
   homepage "https://github.com/sharmilajesupaul/buildscope"
-  url "https://github.com/sharmilajesupaul/buildscope.git",
-      tag: "${VERSION}",
-      revision: "${REVISION}"
   version "${VERSION_NO_V}"
 
-  depends_on "go" => :build
+  on_macos do
+    if Hardware::CPU.arm?
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/${VERSION}/buildscope_${VERSION_NO_V}_darwin_arm64.tar.gz"
+      sha256 "${DARWIN_ARM64_SHA}"
+    else
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/${VERSION}/buildscope_${VERSION_NO_V}_darwin_amd64.tar.gz"
+      sha256 "${DARWIN_AMD64_SHA}"
+    end
+  end
 
   def install
-    ldflags = %W[
-      -s
-      -w
-      -X main.version=v#{version}
-      -X main.commit=${REVISION}
-    ]
-
-    cd "cli" do
-      system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/buildscope"
-    end
+    bin.install Dir["**/buildscope"].fetch(0)
+    doc.install Dir["**/README.md"].first if Dir["**/README.md"].any?
   end
 
   test do

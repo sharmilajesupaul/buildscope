@@ -49,6 +49,7 @@ Choose the path that matches how you plan to use BuildScope. Homebrew is the eas
 Prerequisites:
 
 - Go `1.22+` to build from source.
+- Node.js `24.11.1+` if you are building from a repo checkout, because the embedded UI bundle is generated locally before Go builds.
 - Bazel if you want to extract graphs from a live workspace.
 - Node.js is not required to run the installed app.
 
@@ -242,10 +243,11 @@ git push origin v0.1.0
 That tag triggers the GitHub release workflow to:
 
 - run the frontend and Go test suites
+- generate the embedded UI bundle during release verification and packaging
 - publish versioned release assets for macOS and Linux on `amd64` and `arm64`
 - publish stable `latest` asset aliases for scripted Linux installs
 - mark the GitHub release as a prerelease because the tag is still under `v1`
-- open a PR that updates the Homebrew formula
+- open a PR that updates the Homebrew formula to the published macOS release archives
 
 ## Development
 
@@ -283,7 +285,9 @@ cd cli && go test ./...
 
 Ports can be overridden with `GO_PORT`, `VITE_PORT`, and `SERVER_PORT`.
 
-If you change the shipped UI and want the standalone binary to pick it up, refresh the embedded bundle:
+From a fresh checkout, run `./setup.sh` first, or run `./scripts/refresh-embedded-ui.sh` before `cd cli && go test ./...`, so the generated embedded UI bundle exists for `go:embed`.
+
+If you change the shipped UI and want the standalone binary to pick it up immediately, refresh the generated embedded bundle:
 
 ```bash
 ./scripts/refresh-embedded-ui.sh
@@ -388,7 +392,7 @@ See [fixtures/README.md](fixtures/README.md) for the corpus and refresh workflow
 ## Repository Layout
 
 - `cli/` Go CLI for graph extraction and local serving
-- `cli/internal/embeddedui/` committed UI bundle embedded into the Go binary
+- `cli/internal/embeddedui/` Go embed package plus a generated local `dist/` bundle used for source builds and releases
 - `ui/` TypeScript frontend and Pixi.js renderer
 - `fixtures/` checked-in sample graphs and fixture metadata
 - `scripts/` helper scripts for local development and fixture maintenance

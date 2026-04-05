@@ -15,6 +15,7 @@ git push origin v0.1.0
 - refreshes the embedded UI bundle
 - publishes macOS and Linux release archives for `amd64` and `arm64`
 - publishes `latest` Linux asset aliases used by the install script
+- updates the Homebrew formula to install the published macOS release archives
 - marks `v0.x` GitHub releases as prereleases
 - opens a Homebrew formula update PR
 

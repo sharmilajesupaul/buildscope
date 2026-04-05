@@ -247,6 +247,16 @@ export function createSelectionInspector(): HTMLElement {
       <span class="mode-pill" id="weight-mode-label">Impact</span>
     </div>
     <div class="selection-slot">
+      <div class="focus-card focus-card-preview hidden" id="hover-preview">
+        <div class="compact-meta-row">
+          <span class="compact-meta-label">Hover</span>
+          <span class="compact-meta-value" id="hover-node-type">—</span>
+          <span class="compact-meta-label">Links</span>
+          <span class="compact-meta-value" id="hover-node-links">—</span>
+        </div>
+        <div class="focus-title" id="hover-node"></div>
+        <div class="focus-subtitle" id="hover-node-subtitle"></div>
+      </div>
       <div class="focus-empty" id="current-node-empty">Select a node to inspect what it is, why it matters, and how it could split.</div>
       <div class="focus-card hidden" id="current-node-status">
         <div class="focus-title" id="current-node"></div>
