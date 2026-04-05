@@ -47,7 +47,7 @@ jobs:
         with:
           script: |
             const url = "${{ steps.deploy.outputs.url }}";
-            const now = new Date().toUTCString();
+            const now = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'medium', timeStyle: 'short' }) + ' PT';
             const sha = context.sha.slice(0, 7);
             const { data: commit } = await github.rest.repos.getCommit({
               owner: context.repo.owner,
