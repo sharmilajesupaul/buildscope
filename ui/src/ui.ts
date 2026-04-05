@@ -7,7 +7,7 @@ export function createHeader(): HTMLElement {
     <div class="brand-lockup">
       <img class="app-logo" src="/brand/buildscope-mark.svg" alt="" />
       <div class="brand-copy">
-        <div class="app-name">BuildScope <span style="font-size: 10px; background: #ff4757; color: white; padding: 2px 6px; border-radius: 10px; vertical-align: middle; margin-left: 4px;">Preview</span></div>
+        <div class="app-name">BuildScope</div>
         <div class="app-tagline">Bazel dependency explorer</div>
       </div>
     </div>
