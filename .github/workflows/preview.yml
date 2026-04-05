@@ -48,7 +48,14 @@ jobs:
           script: |
             const url = "${{ steps.deploy.outputs.url }}";
             const now = new Date().toUTCString();
-            const body = `🚀 Preview URL for this PR: [${url}](${url})\n\nUsing the static demo experience.\n\n_Last updated: ${now}_`;
+            const sha = context.sha.slice(0, 7);
+            const { data: commit } = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+            });
+            const commitMessage = commit.commit.message.split('\n')[0];
+            const body = `🚀 Preview URL for this PR: [${url}](${url})\n\nUsing the static demo experience.\n\n_Last updated: ${now} — \`${sha}\` ${commitMessage}_`;
             
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -59,14 +66,12 @@ jobs:
             const botComment = comments.find(comment => comment.body.includes("Preview URL for this PR"));
             
             if (botComment) {
-              if (!botComment.body.includes(url)) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: botComment.id,
-                  body: body
-                });
-              }
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
