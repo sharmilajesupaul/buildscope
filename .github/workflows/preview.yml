@@ -59,7 +59,7 @@ jobs:
             const botComment = comments.find(comment => comment.body.includes("Preview URL for this PR"));
             
             if (botComment) {
-              if (botComment.body !== body) {
+              if (!botComment.body.includes(url)) {
                 await github.rest.issues.updateComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
