@@ -13,15 +13,15 @@ async function fetchGraph(graphPath: string): Promise<Graph> {
 
 export async function loadGraph(): Promise<Graph> {
   try {
-    return await fetchGraph('/graph.json');
+    return await fetchGraph('graph.json');
   } catch {
-    return fetchGraph('/sample-graph.json');
+    return fetchGraph('sample-graph.json');
   }
 }
 
 export async function loadAnalysis(limit = 15): Promise<BuildScopeAnalysisResponse | null> {
   try {
-    return await fetchJSON<BuildScopeAnalysisResponse>(`/analysis.json?top=${limit}`);
+    return await fetchJSON<BuildScopeAnalysisResponse>(`analysis.json?top=${limit}`);
   } catch {
     return null;
   }
@@ -30,7 +30,7 @@ export async function loadAnalysis(limit = 15): Promise<BuildScopeAnalysisRespon
 export async function loadTargetDecomposition(target: string): Promise<BuildScopeDecompositionResponse | null> {
   try {
     return await fetchJSON<BuildScopeDecompositionResponse>(
-      `/decomposition.json?target=${encodeURIComponent(target)}`
+      `decomposition.json?target=${encodeURIComponent(target)}`
     );
   } catch {
     return null;
