@@ -56,7 +56,8 @@ jobs:
               ref: headSha,
             });
             const commitMessage = commit.commit.message.split('\n')[0];
-            const body = `🚀 Preview URL for this PR: [${url}](${url})\n\nUsing the static demo experience.\n\n_Last updated: ${now} — \`${sha}\` ${commitMessage}_`;
+            const commitUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${headSha}`;
+            const body = `🚀 Preview URL for this PR: [${url}](${url})\n\nUsing the static demo experience.\n\n_Last updated: ${now} — [${sha}](${commitUrl}) ${commitMessage}_`;
             
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
