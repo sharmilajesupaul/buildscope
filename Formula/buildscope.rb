@@ -1,24 +1,21 @@
 class Buildscope < Formula
   desc "Local-first Bazel dependency explorer"
   homepage "https://github.com/sharmilajesupaul/buildscope"
-  url "https://github.com/sharmilajesupaul/buildscope.git",
-      tag: "v0.1.7",
-      revision: "0558a36f2cb82a892b3fb0e4c06ca673a50b6f0f"
-  version "0.1.7"
+  version "0.1.10"
 
-  depends_on "go" => :build
+  on_macos do
+    if Hardware::CPU.arm?
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.10/buildscope_0.1.10_darwin_arm64.tar.gz"
+      sha256 ""
+    else
+      url "https://github.com/sharmilajesupaul/buildscope/releases/download/v0.1.10/buildscope_0.1.10_darwin_amd64.tar.gz"
+      sha256 ""
+    end
+  end
 
   def install
-    ldflags = %W[
-      -s
-      -w
-      -X main.version=v#{version}
-      -X main.commit=0558a36f2cb82a892b3fb0e4c06ca673a50b6f0f
-    ]
-
-    cd "cli" do
-      system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/buildscope"
-    end
+    bin.install Dir["**/buildscope"].fetch(0)
+    doc.install Dir["**/README.md"].first if Dir["**/README.md"].any?
   end
 
   test do
